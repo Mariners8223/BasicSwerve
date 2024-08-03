@@ -11,8 +11,6 @@ import edu.wpi.first.wpilibj.*;
 import frc.robot.commands.Drive.DriveCommand;
 import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModule;
 import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleConstants;
-import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleIOCompBot;
-import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleIODevBot;
 import frc.util.FastGyros.GyroIO;
 import frc.util.FastGyros.NavxIO;
 import frc.util.FastGyros.SimGyroIO;

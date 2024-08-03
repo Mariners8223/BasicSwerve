@@ -13,8 +13,7 @@ import edu.wpi.first.math.util.Units;
 import frc.robot.MotorMap;
 import frc.util.PIDFGains;
 
-public class SwerveModuleIODevBot implements SwerveModuleIO{
-  private final SwerveModuleConstants constants = SwerveModuleConstants.DEVBOT;
+public class SwerveModuleIODevBot extends SwerveModuleIO{
 
   private final TalonFX driveMotor;
   private final CANSparkMax steerMotor;
@@ -25,12 +24,7 @@ public class SwerveModuleIODevBot implements SwerveModuleIO{
     int steerMotorID = MotorMap.DriveBase.modules[name.ordinal()][1];
     int absEncoderID = MotorMap.DriveBase.modules[name.ordinal()][2];
 
-    double zeroOffset = switch (name){
-      case Front_Left -> constants.front_left_zeroOffset;
-      case Front_Right -> constants.front_right_zeroOffset;
-      case Back_Left -> constants.back_left_zeroOffset;
-      case Back_Right -> constants.back_right_zeroOffset;
-    };
+    double zeroOffset = constants.abs_zeroOffsets[name.ordinal()];
 
     absEncoder = configCANCoder(absEncoderID, zeroOffset);
 

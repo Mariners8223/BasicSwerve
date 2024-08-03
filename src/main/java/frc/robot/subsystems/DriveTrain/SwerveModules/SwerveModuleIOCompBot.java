@@ -10,10 +10,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.robot.MotorMap;
-import frc.util.PIDFGains;
 
-public class SwerveModuleIOCompBot implements SwerveModuleIO {
-    private final SwerveModuleConstants constants = SwerveModuleConstants.COMPBOT;
+public class SwerveModuleIOCompBot extends SwerveModuleIO {
     private final TalonFX driveMotor;
     private final CANSparkMax steerMotor;
     private final DutyCycleEncoder absEncoder;
@@ -25,12 +23,7 @@ public class SwerveModuleIOCompBot implements SwerveModuleIO {
         int steerMotorID = MotorMap.DriveBase.modules[name.ordinal()][1];
         int absEncoderID = MotorMap.DriveBase.modules[name.ordinal()][2];
 
-        double zeroOffset = switch (name) {
-            case Front_Left -> constants.front_left_zeroOffset;
-            case Front_Right -> constants.front_right_zeroOffset;
-            case Back_Left -> constants.back_left_zeroOffset;
-            case Back_Right -> constants.back_right_zeroOffset;
-        };
+        double zeroOffset = constants.abs_zeroOffsets[name.ordinal()];
 
         absEncoder = configDutyCycleEncoder(absEncoderID, zeroOffset);
 

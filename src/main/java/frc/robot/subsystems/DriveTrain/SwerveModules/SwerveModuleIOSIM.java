@@ -9,12 +9,9 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants;
 import frc.robot.Constants.RobotType;
 
-public class SwerveModuleIOSIM implements SwerveModuleIO {
+public class SwerveModuleIOSIM extends SwerveModuleIO {
     private final DCMotorSim driveMotor;
     private final DCMotorSim steerMotor;
-
-    private final SwerveModuleConstants constants =
-            Constants.robotType == RobotType.DEVELOPMENT ? SwerveModuleConstants.DEVBOT : SwerveModuleConstants.COMPBOT;
 
     private final double driveMotorGearRatio = constants.driveGearRatio;
     private final double driveWheelRadiusMeters = constants.wheelRadiusMeters;
@@ -73,7 +70,7 @@ public class SwerveModuleIOSIM implements SwerveModuleIO {
     /**
      * A dummy class for replaying data
      */
-    public static class SwerveModuleIOReplay implements SwerveModuleIO {
+    public static class SwerveModuleIOReplay extends SwerveModuleIO {
         @Override
         public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
         }
