@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants;
-import frc.robot.Constants.RobotType;
 
 public class SwerveModuleIOSIM extends SwerveModuleIO {
     private final DCMotorSim driveMotor;
@@ -68,7 +67,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
 
     /**
-     * A dummy class for replaying data
+     * A fake class for replaying data
      */
     public static class SwerveModuleIOReplay extends SwerveModuleIO {
         @Override

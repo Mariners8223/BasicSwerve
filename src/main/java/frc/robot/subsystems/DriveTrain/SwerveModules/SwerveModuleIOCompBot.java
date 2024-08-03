@@ -1,10 +1,8 @@
 package frc.robot.subsystems.DriveTrain.SwerveModules;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.*;
 import com.revrobotics.CANSparkBase;
-import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -28,7 +26,7 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
         absEncoder = configDutyCycleEncoder(absEncoderID, zeroOffset);
 
         driveMotor = configTalonFX(getTalonFXConfiguration(), driveMotorID);
-        steerMotor = configCanSparkMax(steerMotorID);
+        steerMotor = configCanSparkMax(steerMotorID, absEncoder.get() * absEncoderMultiplier);
     }
 
     @Override
@@ -68,96 +66,4 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
         driveMotor.setPosition(0);
     }
 
-    private DutyCycleEncoder configDutyCycleEncoder(int absEncoderID, double zeroOffset) {
-        DutyCycleEncoder encoder = new DutyCycleEncoder(absEncoderID);
-        encoder.reset();
-        encoder.setPositionOffset(zeroOffset);
-
-        return encoder;
-    }
-
-    private TalonFX configTalonFX(TalonFXConfiguration config, int driveMotorID) {
-        TalonFX talonFX = new TalonFX(driveMotorID); //creates a new talon fx
-
-        talonFX.getConfigurator().apply(config); //apply the given config
-
-        talonFX.getPosition().setUpdateFrequency(SwerveModule.moduleThreadHz); //position is needed more for destroy
-
-        talonFX.getVelocity().setUpdateFrequency(SwerveModule.moduleThreadHz); //sets as default
-        talonFX.getMotorVoltage().setUpdateFrequency(SwerveModule.moduleThreadHz); //sets as default
-        talonFX.getSupplyCurrent().setUpdateFrequency(50); //sets as default
-        talonFX.getStatorCurrent().setUpdateFrequency(50); //sets as default
-        talonFX.getDeviceTemp().setUpdateFrequency(50);
-
-        talonFX.optimizeBusUtilization(); //optimizes canbus util
-
-        talonFX.setPosition(0);
-
-        return talonFX; //returns the ready talon fx
-    }
-
-    /**
-     * creates a config for the talonFX
-     *
-     * @return the new config
-     */
-    private TalonFXConfiguration getTalonFXConfiguration() {
-        TalonFXConfiguration config = new TalonFXConfiguration(); //creates a new talonFX config
-
-        config.FutureProofConfigs = false; //disables future proofing
-        config.Audio.AllowMusicDurDisable = false;
-
-        config.MotorOutput.Inverted = constants.isDriveInverted ? InvertedValue.CounterClockwise_Positive : InvertedValue.Clockwise_Positive; //sets the inverted value
-
-        config.CurrentLimits.SupplyCurrentLimitEnable = true;
-        config.CurrentLimits.SupplyCurrentLimit = 50;
-        config.CurrentLimits.SupplyCurrentThreshold = 60;
-        config.CurrentLimits.SupplyTimeThreshold = 0.1;
-
-        config.MotorOutput.NeutralMode = NeutralModeValue.Coast; //sets it to coast (changed when the robot is enabled)
-
-        config.Slot0.kP = constants.driveMotorPID.getP(); //sets the P
-        config.Slot0.kI = constants.driveMotorPID.getI(); //sets the I
-        config.Slot0.kD = constants.driveMotorPID.getD(); //sets the D
-        config.Slot0.kS = constants.driveMotorPID.getF(); //sets the feedForward
-
-        config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor; //just in case sets the built-in sensor
-        config.Feedback.SensorToMechanismRatio = 1; //changes the units to m/s
-
-        return config; //returns the new config
-    }
-
-    /**
-     * use this to config the steer motor at the start of the program
-     */
-    private CANSparkMax configCanSparkMax(int steerMotorID) {
-        CANSparkMax sparkMax = new CANSparkMax(steerMotorID, CANSparkLowLevel.MotorType.kBrushless);
-
-        sparkMax.restoreFactoryDefaults();
-
-        sparkMax.enableVoltageCompensation(12); //sets voltage compensation to 12V
-        sparkMax.setInverted(constants.isSteerInverted); //sets if the motor is inverted or not
-
-        sparkMax.setIdleMode(CANSparkBase.IdleMode.kCoast); //sets the idle mode to coat (automatically goes to brakes once the robot is enabled)
-
-        sparkMax.getPIDController().setP(constants.steerMotorPID.getP()); //sets the P for the PID Controller
-        sparkMax.getPIDController().setI(constants.steerMotorPID.getI()); //sets the I for the PID Controller
-        sparkMax.getPIDController().setD(constants.steerMotorPID.getD()); //sets the D for the PID Controller
-        sparkMax.getPIDController().setIZone(constants.steerMotorPID.getIZone()); //sets the IZone for the PID Controller
-
-        sparkMax.setPeriodicFramePeriod(CANSparkMax.PeriodicFrame.kStatus2, (int) (1000 / SwerveModule.moduleThreadHz)); //sets the status 0 frame to 10ms
-        sparkMax.setPeriodicFramePeriod(CANSparkMax.PeriodicFrame.kStatus1, (int) (1000 / SwerveModule.moduleThreadHz)); //sets the status 0 frame to 10ms
-        sparkMax.setPeriodicFramePeriod(CANSparkMax.PeriodicFrame.kStatus0, (int) (1000 / SwerveModule.moduleThreadHz));
-
-        sparkMax.getEncoder().setPositionConversionFactor(1); //sets the gear ratio for the module
-        sparkMax.getEncoder().setVelocityConversionFactor(1); //sets the velocity to rad per sec of the module
-
-        sparkMax.getEncoder().setPosition(absEncoder.get() * absEncoderMultiplier); //sets the position of the motor to the absolute encoder
-
-        sparkMax.setSmartCurrentLimit(35); //sets the current limit of the motor (thanks noga for reminding m)
-        sparkMax.setSecondaryCurrentLimit(60);
-        sparkMax.burnFlash(); //sometimes work
-
-        return sparkMax;
-    }
 }
