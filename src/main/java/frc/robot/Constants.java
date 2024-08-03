@@ -7,6 +7,7 @@ package frc.robot;
 
 import com.pathplanner.lib.path.PathConstraints;
 import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModule;
+import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleConstants;
 import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleIOCompBot;
 import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleIODevBot;
 import frc.util.PIDFGains;
@@ -33,7 +34,9 @@ public class Constants {
             public static final double pathErrorSpikeTolerance = 1; //the max position spike before path planner replans the path in meters
 
             public static final PathConstraints pathConstraints = new PathConstraints(
-                    robotType == RobotType.DEVELOPMENT ? SwerveModuleIODevBot.DevBotConstants.maxDriveVelocityMetersPerSecond : SwerveModuleIOCompBot.CompBotConstants.maxDriveVelocityMetersPerSecond,
+                    robotType == RobotType.DEVELOPMENT ?
+                            SwerveModuleConstants.DEVBOT.maxDriveVelocityMetersPerSecond :
+                            SwerveModuleConstants.COMPBOT.maxDriveVelocityMetersPerSecond,
                     10,
                     10,
                     20); //the constraints for pathPlanner

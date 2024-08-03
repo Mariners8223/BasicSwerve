@@ -10,6 +10,7 @@ import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.commands.Drive.DriveCommand;
 import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModule;
+import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleConstants;
 import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleIOCompBot;
 import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleIODevBot;
 import frc.util.FastGyros.GyroIO;
@@ -41,331 +42,392 @@ import frc.robot.Constants.RobotType;
  * It controls the movement and positioning of the robot using swerve drive.
  */
 public class DriveBase extends SubsystemBase {
-  private final SwerveModule[] modules = new SwerveModule[4]; //the array of the modules
+    /**
+     * the array of the modules themselves
+     */
+    private final SwerveModule[] modules = new SwerveModule[4];
 
-  private final SwerveDriveKinematics driveTrainKinematics = new SwerveDriveKinematics(SwerveModule.moduleTranslations); //the kinematics of the swerve drivetrain
+    /**
+     * the kinematics of the swerve drivetrain (how the modules are placed and calculating the kinematics)
+     */
+    private final SwerveDriveKinematics driveTrainKinematics = new SwerveDriveKinematics(SwerveModule.moduleTranslations);
 
-  private final SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[]{new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()}; //the deltas of the modules
+    /**
+     * a variable representing the deltas of the modules (how much they have moved since the last update)
+     */
+    private final SwerveModulePosition[] moduleDeltas =
+            new SwerveModulePosition[]{new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()};
 
-  private final SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(driveTrainKinematics, new Rotation2d(), moduleDeltas, new Pose2d()); //the pose estimator of the drivetrain
+    /**
+     * the pose estimator of the drivebase (takes the odometry (which is wheel distance and gyro)
+     * and calculates the pose of the robot and also can take vision measurements)
+     */
+    private final SwerveDrivePoseEstimator poseEstimator =
+            new SwerveDrivePoseEstimator(driveTrainKinematics, new Rotation2d(), moduleDeltas, new Pose2d());
 
-  private final GyroIO gyro; //the navx gyro of the robot
+    /**
+     * the gyro of the robot, can be navx or pigeon 2
+     */
+    private final GyroIO gyro;
 
-  private final DriveBaseInputsAutoLogged inputs = new DriveBaseInputsAutoLogged(); //an object representing the logger class
+    /**
+     * the inputs of the drivebase (all the motor voltages, angles, speeds, etc.) to be logged
+     */
+    private final DriveBaseInputsAutoLogged inputs = new DriveBaseInputsAutoLogged();
 
-  public final double maxFreeWheelSpeed = Constants.robotType == Constants.RobotType.DEVELOPMENT ? SwerveModuleIODevBot.DevBotConstants.maxDriveVelocityMetersPerSecond : SwerveModuleIOCompBot.CompBotConstants.maxDriveVelocityMetersPerSecond; //the max speed the wheels can spin when the robot is not moving
+    /**
+     * the max speed the wheels can spin (drive motor at max speed)
+     */
+    public final double maxFreeWheelSpeed = Constants.robotType == Constants.RobotType.DEVELOPMENT ?
+            SwerveModuleConstants.DEVBOT.maxDriveVelocityMetersPerSecond :
+            SwerveModuleConstants.COMPBOT.maxDriveVelocityMetersPerSecond; //the max speed the wheels can spin when the robot is not moving
 
-  private SwerveModuleState[] targetStates = new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()};
+    /**
+     * the target states of the modules (the states the modules should be in)
+     */
+    private SwerveModuleState[] targetStates =
+            new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()};
 
-  private Pose2d currentPose = new Pose2d();
+
+    /**
+     * the current pose of the robot (the position and rotation of the robot)
+     */
+    private Pose2d currentPose = new Pose2d();
 
 
-  @AutoLog
-  public static class DriveBaseInputs{
-    protected double XspeedInput = 0; //the X speed input
-    protected double YspeedInput = 0; //the Y speed input
+    @AutoLog
+    public static class DriveBaseInputs {
+        protected double XspeedInput = 0; //the X speed input
+        protected double YspeedInput = 0; //the Y speed input
 
-    protected double rotationSpeedInput = 0;
+        protected double rotationSpeedInput = 0;
 
-    protected SwerveModuleState[] currentStates = new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()}; //the current states of the modules
+        protected SwerveModuleState[] currentStates =
+                new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()}; //the current states of the modules
 
-    protected String activeCommand; //the active command of the robot
-  }
-
-  /** Creates a new DriveBase. */
-  public DriveBase() {
-    modules[0] = new SwerveModule(SwerveModule.ModuleName.Front_Left);
-    modules[1] = new SwerveModule(SwerveModule.ModuleName.Front_Right);
-    modules[2] = new SwerveModule(SwerveModule.ModuleName.Back_Left);
-    modules[3] = new SwerveModule(SwerveModule.ModuleName.Back_Right);
-
-    if(RobotBase.isReal()){
-      gyro = new NavxIO(Constants.robotType == RobotType.DEVELOPMENT);
-      gyro.reset(new Pose2d());
-    }
-    else gyro = new SimGyroIO(() -> driveTrainKinematics.toTwist2d(moduleDeltas), this::getChassisSpeeds);
-
-    for(int i = 0; i < 4; i++) modules[i].resetDriveEncoder();
-
-    SmartDashboard.putData("Gyro", gyro);
-
-    ReplanningConfig replanConfig = new ReplanningConfig(Constants.DriveTrain.PathPlanner.planPathToStartingPointIfNotAtIt, Constants.DriveTrain.PathPlanner.enableDynamicRePlanning, Constants.DriveTrain.PathPlanner.pathErrorTolerance, Constants.DriveTrain.PathPlanner.pathErrorSpikeTolerance);
-    // ^how pathplanner reacts to position error
-    HolonomicPathFollowerConfig pathFollowerConfig = new HolonomicPathFollowerConfig(
-      Constants.DriveTrain.PathPlanner.XYPID.createPIDConstants(),
-      Constants.DriveTrain.PathPlanner.thetaPID.createPIDConstants(),
-      maxFreeWheelSpeed,
-      Math.sqrt(Math.pow(SwerveModule.distanceBetweenWheels, 2) * 2) / 2,
-      replanConfig);
-    //^creates path constraints for pathPlanner
-
-    AutoBuilder.configureHolonomic(
-      this::getPose,
-      this::reset,
-      this::getChassisSpeeds,
-      this::drive,
-      pathFollowerConfig,
-      () -> {if(DriverStation.getAlliance().isPresent()) return DriverStation.getAlliance().get() == Alliance.Red;
-      else return false;},
-      this);
-    //^configures the auto builder for pathPlanner
-
-    new Trigger(RobotState::isEnabled).whileTrue(new StartEndCommand(() -> // sets the modules to brake mode when the robot is enabled
-      setModulesBrakeMode(true)
-    , () ->
-      {if(!DriverStation.isFMSAttached()) setModulesBrakeMode(false);}
-    ).ignoringDisable(true));
-
-    new Trigger(RobotState::isTeleop).and(RobotState::isEnabled).whileTrue(new StartEndCommand(() ->
-    this.setDefaultCommand(new DriveCommand(this, RobotContainer.driveController)), this::removeDefaultCommand).ignoringDisable(true));
+        protected String activeCommand; //the active command of the robot
     }
 
+    /**
+     * Creates a new DriveBase.
+     */
+    public DriveBase() {
+        modules[0] = new SwerveModule(SwerveModule.ModuleName.Front_Left);
+        modules[1] = new SwerveModule(SwerveModule.ModuleName.Front_Right);
+        modules[2] = new SwerveModule(SwerveModule.ModuleName.Back_Left);
+        modules[3] = new SwerveModule(SwerveModule.ModuleName.Back_Right);
 
-  /**
-   * resets the robot to 0, 0 and a rotation of 0 (towards red alliance)
-   */
-  public void resetOnlyDirection(){
-    if(DriverStation.getAlliance().isPresent()) if(DriverStation.getAlliance().get() == Alliance.Blue) currentPose = new Pose2d(currentPose.getX(), currentPose.getY(), new Rotation2d());
-    else currentPose = new Pose2d(currentPose.getX(), currentPose.getY(), new Rotation2d(-Math.PI));
-    else currentPose = new Pose2d(currentPose.getX(), currentPose.getY(), new Rotation2d());
+        if (RobotBase.isReal()) {
+            gyro = new NavxIO(Constants.robotType == RobotType.DEVELOPMENT);
+            gyro.reset(new Pose2d());
+        } else gyro = new SimGyroIO(() -> driveTrainKinematics.toTwist2d(moduleDeltas), this::getChassisSpeeds);
 
-    SwerveModulePosition[] positions = new SwerveModulePosition[4];
-    for(int i = 0; i < 4; i++) positions[i] = modules[i].modulePeriodic();
+        for (int i = 0; i < 4; i++) modules[i].resetDriveEncoder();
 
-    poseEstimator.resetPosition(new Rotation2d(), positions, currentPose);
+        SmartDashboard.putData("Gyro", gyro);
 
-    gyro.reset(currentPose);
-  }
+        ReplanningConfig replanConfig = new ReplanningConfig(Constants.DriveTrain.PathPlanner.planPathToStartingPointIfNotAtIt, Constants.DriveTrain.PathPlanner.enableDynamicRePlanning, Constants.DriveTrain.PathPlanner.pathErrorTolerance, Constants.DriveTrain.PathPlanner.pathErrorSpikeTolerance);
+        // ^how pathplanner reacts to position error
+        HolonomicPathFollowerConfig pathFollowerConfig = new HolonomicPathFollowerConfig(
+                Constants.DriveTrain.PathPlanner.XYPID.createPIDConstants(),
+                Constants.DriveTrain.PathPlanner.thetaPID.createPIDConstants(),
+                maxFreeWheelSpeed,
+                Math.sqrt(Math.pow(SwerveModule.distanceBetweenWheels, 2) * 2) / 2,
+                replanConfig);
+        //^creates path constraints for pathPlanner
 
-  public void setModulesBrakeMode(boolean isBrake){
-    for(int i = 0; i < 4; i++){
-      modules[i].setIdleMode(isBrake);
-    }
-  }
-  /**
-   * resets the robot to a new pose
-   * @param newPose the new pose the robot should be in
-   */
-  public void reset(Pose2d newPose){
-    SwerveModulePosition[] positions = new SwerveModulePosition[4];
-    for(int i = 0; i < 4; i++) positions[i] = modules[i].modulePeriodic();
+        AutoBuilder.configureHolonomic(
+                this::getPose,
+                this::reset,
+                this::getChassisSpeeds,
+                this::drive,
+                pathFollowerConfig,
+                () -> {
+                    if (DriverStation.getAlliance().isPresent())
+                        return DriverStation.getAlliance().get() == Alliance.Red;
+                    else return false;
+                },
+                this);
+        //^configures the auto builder for pathPlanner
 
-    poseEstimator.resetPosition(new Rotation2d(), positions, newPose);
+        new Trigger(RobotState::isEnabled).whileTrue(new StartEndCommand(() -> // sets the modules to brake mode when the robot is enabled
+                setModulesBrakeMode(true)
+                , () ->
+        {
+            if (!DriverStation.isFMSAttached()) setModulesBrakeMode(false);
+        }
+        ).ignoringDisable(true));
 
-    gyro.reset(newPose);
-    currentPose = newPose;
-    Logger.processInputs(getName(), inputs);
-  }
-
-  /**
-   * gets the acceleration of the robot in the X direction
-   * @return the acceleration of the robot in the X direction m/s^2
-   */
-  public double getXAcceleration(){
-    return gyro.getAccelerationX();
-  }
-
-  /**
-   * gets the acceleration of the robot in the Y direction
-   * @return the acceleration of the robot in the Y direction m/s^2
-   */
-  public double getYAcceleration() {
-    return gyro.getAccelerationY();
-  }
-  /**
-   * returns the reported Rotation by the Navx
-   * @return Rotation2d reported by the Navx
-   */
-  public Rotation2d getRotation2d(){
-    return gyro.getRotation2d();
-  }
-
-  /**
-   * returns the current angle of the robot
-   * @return the angle of the robot (left is positive) IN DEGREES
-   */
-  public double getAngle(){
-    return gyro.getAngleDegrees();
-  }
-
-  /**
-   * gets the current chassisSpeeds of the robot
-   * @return the current chassis speeds
-   */
-  public ChassisSpeeds getChassisSpeeds(){
-    return driveTrainKinematics.toChassisSpeeds(inputs.currentStates);
-  }
-
-  /**
-   * gets the current absolute (field relative ) speeds of the robot
-   * @return the current chassis speeds
-   */
-  public ChassisSpeeds getAbsoluteChassisSpeeds(){
-    return ChassisSpeeds.fromRobotRelativeSpeeds(getChassisSpeeds(), getRotation2d());
-  }
-
-  /**
-   * gets the current pose of the robot
-   * @return the current pose of the robot
-   */
-  public Pose2d getPose(){
-    return currentPose;
-  }
-
-  /**
-   * updates pose Estimator with vision measurements
-   * @param visionPose the pose of the robot from vision
-   * @param timeStamp the time stamp of the vision measurement
-   */
-  public void addVisionMeasurement(Pose2d visionPose, double timeStamp){
-    poseEstimator.addVisionMeasurement(visionPose, timeStamp);
-  }
-
-  /**
-   * drives the robot relative to itself
-   * @param Xspeed the X speed of the robot (forward is positive) m/s
-   * @param Yspeed the Y speed of the robot (left is positive) m/s
-   * @param rotationSpeed  the rotation of the robot (left is positive) rad/s
-   */
-  public void drive(double Xspeed, double Yspeed, double rotationSpeed){
-    targetStates = driveTrainKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(Xspeed, Yspeed, rotationSpeed, getRotation2d()));
-    SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, maxFreeWheelSpeed);
-
-    for(int i = 0; i < 4; i++){
-      targetStates[i] = modules[i].run(targetStates[i]);
+        new Trigger(RobotState::isTeleop).and(RobotState::isEnabled).whileTrue(new StartEndCommand(() ->
+                this.setDefaultCommand(new DriveCommand(this, RobotContainer.driveController)), this::removeDefaultCommand).ignoringDisable(true));
     }
 
-    inputs.XspeedInput = Xspeed;
-    inputs.YspeedInput = Yspeed;
-    inputs.rotationSpeedInput = rotationSpeed;
-    Logger.processInputs(getName(), inputs);
-  }
 
-  /**
-   * drives the robot relative to itself
-   * @param Xspeed the X speed of the robot (forward is positive) m/s
-   * @param Yspeed the Y speed of the robot (left is positive) m/s
-   * @param rotationSpeed  the rotation of the robot (left is positive) rad/s
-   */
-  public void robotRelativeDrive(double Xspeed, double Yspeed, double rotationSpeed){
+    /**
+     * resets the robot to 0, 0 and a rotation of 0 (towards red alliance)
+     */
+    public void resetOnlyDirection() {
+        if (DriverStation.getAlliance().isPresent()) if (DriverStation.getAlliance().get() == Alliance.Blue)
+            currentPose = new Pose2d(currentPose.getX(), currentPose.getY(), new Rotation2d());
+        else currentPose = new Pose2d(currentPose.getX(), currentPose.getY(), new Rotation2d(-Math.PI));
+        else currentPose = new Pose2d(currentPose.getX(), currentPose.getY(), new Rotation2d());
 
-    targetStates = driveTrainKinematics.toSwerveModuleStates(new ChassisSpeeds(Xspeed, Yspeed, rotationSpeed));
-    SwerveDriveKinematics.desaturateWheelSpeeds(inputs.currentStates, maxFreeWheelSpeed);
+        SwerveModulePosition[] positions = new SwerveModulePosition[4];
+        for (int i = 0; i < 4; i++) positions[i] = modules[i].modulePeriodic();
 
-    for(int i = 0; i < 4; i++){
-      targetStates[i] = modules[i].run(targetStates[i]);
+        poseEstimator.resetPosition(new Rotation2d(), positions, currentPose);
+
+        gyro.reset(currentPose);
     }
 
-    inputs.XspeedInput = Xspeed;
-    inputs.YspeedInput = Yspeed;
-    inputs.rotationSpeedInput = rotationSpeed;
-    Logger.processInputs(getName(), inputs);
-  }
-
-  /**
-   * drives the robot without built in pid fixes
-   * @param chassisSpeeds the chassis speeds of the target
-   */
-  public void drive(ChassisSpeeds chassisSpeeds){
-    targetStates = driveTrainKinematics.toSwerveModuleStates(chassisSpeeds);
-    SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, maxFreeWheelSpeed);
-
-    for(int i = 0; i < 4; i++){
-      targetStates[i] = modules[i].run(targetStates[i]);
+    public void setModulesBrakeMode(boolean isBrake) {
+        for (int i = 0; i < 4; i++) {
+            modules[i].setIdleMode(isBrake);
+        }
     }
 
-    inputs.XspeedInput = chassisSpeeds.vxMetersPerSecond;
-    inputs.YspeedInput = chassisSpeeds.vyMetersPerSecond;
-    inputs.rotationSpeedInput = chassisSpeeds.omegaRadiansPerSecond;
-    Logger.processInputs(getName(), inputs);
-  }
+    /**
+     * resets the robot to a new pose
+     *
+     * @param newPose the new pose the robot should be in
+     */
+    public void reset(Pose2d newPose) {
+        SwerveModulePosition[] positions = new SwerveModulePosition[4];
+        for (int i = 0; i < 4; i++) positions[i] = modules[i].modulePeriodic();
 
-  public void runVoltageSteer(Measure<Voltage> voltage, SwerveModule.ModuleName name){
-    modules[name.ordinal()].runSysIDSteer(voltage);
-  }
+        poseEstimator.resetPosition(new Rotation2d(), positions, newPose);
 
-  public void runVoltageDrive(Measure<Voltage> voltage, SwerveModule.ModuleName name, Rotation2d rotation){
-    modules[name.ordinal()].runSysIDDrive(voltage, rotation);
-  }
-
-  /**
-   * path finds a path from the current pose to the target pose
-   * @param targetPose the target pose
-   * @param endVelocity the velocity the robot should be in when it reaches the end of the path in m/s
-   * @param rotationDelay the delay in meters before the robot starts rotation
-   * @return a command that follows a path to the target pose
-   */
-  public Command findPath(Pose2d targetPose, double endVelocity ,double rotationDelay){
-    return AutoBuilder.pathfindToPose(targetPose, Constants.DriveTrain.PathPlanner.pathConstraints, endVelocity, rotationDelay);
-  }
-
-  /**
-   * path finds a path from the current pose to the target pose
-   * @param targetPose the target pose
-   * @param endVelocity the velocity the robot should be in when it reaches the end of the path in m/s
-   * @return a command that follows a path to the target pose
-   */
-  public Command findPath(Pose2d targetPose, double endVelocity){
-    return AutoBuilder.pathfindToPose(targetPose, Constants.DriveTrain.PathPlanner.pathConstraints, endVelocity);
-  }
-
-  /**
-   * path finds a path from the current pose to the target pose
-   * @param targetPose the target pose
-   * @return a command that follows a path to the target pose
-   */
-  public Command findPath(Pose2d targetPose){
-    return AutoBuilder.pathfindToPose(targetPose, Constants.DriveTrain.PathPlanner.pathConstraints);
-  }
-
-  /**
-   * path finds to a given path then follows that path
-   * @param targetPath the path to path find to and follow
-   * @return a command that path finds to a given path then follows that path
-   */
-  public Command pathFindToPathAndFollow(PathPlannerPath targetPath){
-    return AutoBuilder.pathfindThenFollowPath(targetPath, Constants.DriveTrain.PathPlanner.pathConstraints);
-  }
-
-  /**
-   * path finds to a given path then follows that path
-   * @param targetPath the path to path find to and follow
-   * @param rotationDelay the delay in meters in which the robot does not change it's holonomic angle
-   * @return a command that path finds to a given path then follows that path
-   */
-  public Command pathFindToPathAndFollow(PathPlannerPath targetPath, double rotationDelay){
-    return AutoBuilder.pathfindThenFollowPath(targetPath, Constants.DriveTrain.PathPlanner.pathConstraints, rotationDelay);
-  }
-
-  SwerveModulePosition[] previousPositions = new SwerveModulePosition[]{new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()};
-  SwerveModulePosition[] positions = new SwerveModulePosition[]{new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()};
-
-  @Override
-  public void periodic() {
-    for(int i = 0; i < 4; i++){
-      inputs.currentStates[i] = modules[i].getCurrentState();
-      positions[i] = modules[i].modulePeriodic();
-
-      moduleDeltas[i] = new SwerveModulePosition(
-              positions[i].distanceMeters - previousPositions[i].distanceMeters,
-              positions[i].angle
-      );
-
-      previousPositions[i] = positions[i].copy();
+        gyro.reset(newPose);
+        currentPose = newPose;
+        Logger.processInputs(getName(), inputs);
     }
 
-    gyro.update();
-    poseEstimator.updateWithTime(Logger.getTimestamp(), gyro.getRotation2d(), positions);
-    currentPose = poseEstimator.getEstimatedPosition();
+    /**
+     * gets the acceleration of the robot in the X direction
+     *
+     * @return the acceleration of the robot in the X direction m/s^2
+     */
+    public double getXAcceleration() {
+        return gyro.getAccelerationX();
+    }
 
-    Logger.recordOutput("DriveBase/estimatedPose", currentPose);
-    Logger.recordOutput("DriveBase/ChassisSpeeds", getChassisSpeeds());
-    Logger.recordOutput("DriveBase/targetStates", targetStates);
+    /**
+     * gets the acceleration of the robot in the Y direction
+     *
+     * @return the acceleration of the robot in the Y direction m/s^2
+     */
+    public double getYAcceleration() {
+        return gyro.getAccelerationY();
+    }
 
-    RobotContainer.field.setRobotPose(currentPose);
+    /**
+     * returns the reported Rotation by the Navx
+     *
+     * @return Rotation2d reported by the Navx
+     */
+    public Rotation2d getRotation2d() {
+        return gyro.getRotation2d();
+    }
 
-    inputs.activeCommand = this.getCurrentCommand() != null ? this.getCurrentCommand().getName() : "None";
+    /**
+     * returns the current angle of the robot
+     *
+     * @return the angle of the robot (left is positive) IN DEGREES
+     */
+    public double getAngle() {
+        return gyro.getAngleDegrees();
+    }
 
-    Logger.processInputs(getName(), inputs);
-  }
+    /**
+     * gets the current chassisSpeeds of the robot
+     *
+     * @return the current chassis speeds
+     */
+    public ChassisSpeeds getChassisSpeeds() {
+        return driveTrainKinematics.toChassisSpeeds(inputs.currentStates);
+    }
+
+    /**
+     * gets the current absolute (field relative ) speeds of the robot
+     *
+     * @return the current chassis speeds
+     */
+    public ChassisSpeeds getAbsoluteChassisSpeeds() {
+        return ChassisSpeeds.fromRobotRelativeSpeeds(getChassisSpeeds(), getRotation2d());
+    }
+
+    /**
+     * gets the current pose of the robot
+     *
+     * @return the current pose of the robot
+     */
+    public Pose2d getPose() {
+        return currentPose;
+    }
+
+    /**
+     * updates pose Estimator with vision measurements
+     *
+     * @param visionPose the pose of the robot from vision
+     * @param timeStamp  the time stamp of the vision measurement
+     */
+    public void addVisionMeasurement(Pose2d visionPose, double timeStamp) {
+        poseEstimator.addVisionMeasurement(visionPose, timeStamp);
+    }
+
+    /**
+     * drives the robot relative to itself
+     *
+     * @param Xspeed        the X speed of the robot (forward is positive) m/s
+     * @param Yspeed        the Y speed of the robot (left is positive) m/s
+     * @param rotationSpeed the rotation of the robot (left is positive) rad/s
+     */
+    public void drive(double Xspeed, double Yspeed, double rotationSpeed) {
+        targetStates = driveTrainKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(Xspeed, Yspeed, rotationSpeed, getRotation2d()));
+        SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, maxFreeWheelSpeed);
+
+        for (int i = 0; i < 4; i++) {
+            targetStates[i] = modules[i].run(targetStates[i]);
+        }
+
+        inputs.XspeedInput = Xspeed;
+        inputs.YspeedInput = Yspeed;
+        inputs.rotationSpeedInput = rotationSpeed;
+        Logger.processInputs(getName(), inputs);
+    }
+
+    /**
+     * drives the robot relative to itself
+     *
+     * @param Xspeed        the X speed of the robot (forward is positive) m/s
+     * @param Yspeed        the Y speed of the robot (left is positive) m/s
+     * @param rotationSpeed the rotation of the robot (left is positive) rad/s
+     */
+    public void robotRelativeDrive(double Xspeed, double Yspeed, double rotationSpeed) {
+
+        targetStates = driveTrainKinematics.toSwerveModuleStates(new ChassisSpeeds(Xspeed, Yspeed, rotationSpeed));
+        SwerveDriveKinematics.desaturateWheelSpeeds(inputs.currentStates, maxFreeWheelSpeed);
+
+        for (int i = 0; i < 4; i++) {
+            targetStates[i] = modules[i].run(targetStates[i]);
+        }
+
+        inputs.XspeedInput = Xspeed;
+        inputs.YspeedInput = Yspeed;
+        inputs.rotationSpeedInput = rotationSpeed;
+        Logger.processInputs(getName(), inputs);
+    }
+
+    /**
+     * drives the robot without built in pid fixes
+     *
+     * @param chassisSpeeds the chassis speeds of the target
+     */
+    public void drive(ChassisSpeeds chassisSpeeds) {
+        targetStates = driveTrainKinematics.toSwerveModuleStates(chassisSpeeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, maxFreeWheelSpeed);
+
+        for (int i = 0; i < 4; i++) {
+            targetStates[i] = modules[i].run(targetStates[i]);
+        }
+
+        inputs.XspeedInput = chassisSpeeds.vxMetersPerSecond;
+        inputs.YspeedInput = chassisSpeeds.vyMetersPerSecond;
+        inputs.rotationSpeedInput = chassisSpeeds.omegaRadiansPerSecond;
+        Logger.processInputs(getName(), inputs);
+    }
+
+    public void runVoltageSteer(Measure<Voltage> voltage, SwerveModule.ModuleName name) {
+        modules[name.ordinal()].runSysIDSteer(voltage);
+    }
+
+    public void runVoltageDrive(Measure<Voltage> voltage, SwerveModule.ModuleName name, Rotation2d rotation) {
+        modules[name.ordinal()].runSysIDDrive(voltage, rotation);
+    }
+
+    /**
+     * path finds a path from the current pose to the target pose
+     *
+     * @param targetPose    the target pose
+     * @param endVelocity   the velocity the robot should be in when it reaches the end of the path in m/s
+     * @param rotationDelay the delay in meters before the robot starts rotation
+     * @return a command that follows a path to the target pose
+     */
+    public Command findPath(Pose2d targetPose, double endVelocity, double rotationDelay) {
+        return AutoBuilder.pathfindToPose(targetPose, Constants.DriveTrain.PathPlanner.pathConstraints, endVelocity, rotationDelay);
+    }
+
+    /**
+     * path finds a path from the current pose to the target pose
+     *
+     * @param targetPose  the target pose
+     * @param endVelocity the velocity the robot should be in when it reaches the end of the path in m/s
+     * @return a command that follows a path to the target pose
+     */
+    public Command findPath(Pose2d targetPose, double endVelocity) {
+        return AutoBuilder.pathfindToPose(targetPose, Constants.DriveTrain.PathPlanner.pathConstraints, endVelocity);
+    }
+
+    /**
+     * path finds a path from the current pose to the target pose
+     *
+     * @param targetPose the target pose
+     * @return a command that follows a path to the target pose
+     */
+    public Command findPath(Pose2d targetPose) {
+        return AutoBuilder.pathfindToPose(targetPose, Constants.DriveTrain.PathPlanner.pathConstraints);
+    }
+
+    /**
+     * path finds to a given path then follows that path
+     *
+     * @param targetPath the path to path find to and follow
+     * @return a command that path finds to a given path then follows that path
+     */
+    public Command pathFindToPathAndFollow(PathPlannerPath targetPath) {
+        return AutoBuilder.pathfindThenFollowPath(targetPath, Constants.DriveTrain.PathPlanner.pathConstraints);
+    }
+
+    /**
+     * path finds to a given path then follows that path
+     *
+     * @param targetPath    the path to path find to and follow
+     * @param rotationDelay the delay in meters in which the robot does not change it's holonomic angle
+     * @return a command that path finds to a given path then follows that path
+     */
+    public Command pathFindToPathAndFollow(PathPlannerPath targetPath, double rotationDelay) {
+        return AutoBuilder.pathfindThenFollowPath(targetPath, Constants.DriveTrain.PathPlanner.pathConstraints, rotationDelay);
+    }
+
+    SwerveModulePosition[] previousPositions = new SwerveModulePosition[]{new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()};
+    SwerveModulePosition[] positions = new SwerveModulePosition[]{new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()};
+
+    @Override
+    public void periodic() {
+        for (int i = 0; i < 4; i++) {
+            inputs.currentStates[i] = modules[i].getCurrentState();
+            positions[i] = modules[i].modulePeriodic();
+
+            moduleDeltas[i] = new SwerveModulePosition(
+                    positions[i].distanceMeters - previousPositions[i].distanceMeters,
+                    positions[i].angle
+            );
+
+            previousPositions[i] = positions[i].copy();
+        }
+
+        gyro.update();
+        poseEstimator.updateWithTime(Logger.getTimestamp(), gyro.getRotation2d(), positions);
+        currentPose = poseEstimator.getEstimatedPosition();
+
+        Logger.recordOutput("DriveBase/estimatedPose", currentPose);
+        Logger.recordOutput("DriveBase/ChassisSpeeds", getChassisSpeeds());
+        Logger.recordOutput("DriveBase/targetStates", targetStates);
+
+        RobotContainer.field.setRobotPose(currentPose);
+
+        inputs.activeCommand = this.getCurrentCommand() != null ? this.getCurrentCommand().getName() : "None";
+
+        Logger.processInputs(getName(), inputs);
+    }
 }

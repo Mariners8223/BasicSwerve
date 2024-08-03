@@ -8,62 +8,90 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants;
 import frc.robot.Constants.RobotType;
-import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleIODevBot.DevBotConstants;
 
-public class SwerveModuleIOSIM implements SwerveModuleIO{
-  private final DCMotorSim driveMotor;
-  private final DCMotorSim steerMotor;
+public class SwerveModuleIOSIM implements SwerveModuleIO {
+    private final DCMotorSim driveMotor;
+    private final DCMotorSim steerMotor;
 
-  private final double driveMotorGearRatio = Constants.robotType == RobotType.DEVELOPMENT ? DevBotConstants.driveGearRatio : SwerveModuleIOCompBot.CompBotConstants.driveGearRatio;
-  private final double driveWheelRadiusMeters = Constants.robotType == RobotType.DEVELOPMENT ? DevBotConstants.wheelRadiusMeters : SwerveModuleIOCompBot.CompBotConstants.wheelRadiusMeters;
-  private final double steerMotorGearRatio = Constants.robotType == RobotType.DEVELOPMENT ? DevBotConstants.steerGearRatio : SwerveModuleIOCompBot.CompBotConstants.steerGearRatio;
+    private final SwerveModuleConstants constants =
+            Constants.robotType == RobotType.DEVELOPMENT ? SwerveModuleConstants.DEVBOT : SwerveModuleConstants.COMPBOT;
 
-  private double driveMotorVoltage = 0;
-  private double steerMotorVoltage = 0;
+    private final double driveMotorGearRatio = constants.driveGearRatio;
+    private final double driveWheelRadiusMeters = constants.wheelRadiusMeters;
+    private final double steerMotorGearRatio = constants.steerGearRatio;
 
-  public SwerveModuleIOSIM(){
-    driveMotor = new DCMotorSim(DCMotor.getFalcon500(1), 1, 0.25 / steerMotorGearRatio);
-    if (Constants.robotType == Constants.RobotType.DEVELOPMENT) {
-      steerMotor = new DCMotorSim(DCMotor.getNEO(1), 1, 0.25 / steerMotorGearRatio);
-    } else {
-      steerMotor = new DCMotorSim(DCMotor.getNeo550(1), 1, 0.25);
+    private double driveMotorVoltage = 0;
+    private double steerMotorVoltage = 0;
+
+    public SwerveModuleIOSIM() {
+        driveMotor = new DCMotorSim(DCMotor.getFalcon500(1), 1, 0.25 / steerMotorGearRatio);
+        if (Constants.robotType == Constants.RobotType.DEVELOPMENT) {
+            steerMotor = new DCMotorSim(DCMotor.getNEO(1), 1, 0.25 / steerMotorGearRatio);
+        } else {
+            steerMotor = new DCMotorSim(DCMotor.getNeo550(1), 1, 0.25);
+        }
     }
-  }
 
-  @Override
-  public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
-    driveMotor.update(1 / SwerveModule.moduleThreadHz);
-    steerMotor.update(1 / SwerveModule.moduleThreadHz);
+    @Override
+    public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
+        driveMotor.update(1 / SwerveModule.moduleThreadHz);
+        steerMotor.update(1 / SwerveModule.moduleThreadHz);
 
-    inputs.currentState.speedMetersPerSecond = (driveMotor.getAngularVelocityRadPerSec() / driveMotorGearRatio) * driveWheelRadiusMeters;
-    inputs.currentState.angle = Rotation2d.fromRadians(steerMotor.getAngularPositionRad() / steerMotorGearRatio);
+        inputs.currentState.speedMetersPerSecond = (driveMotor.getAngularVelocityRadPerSec() / driveMotorGearRatio) * driveWheelRadiusMeters;
+        inputs.currentState.angle = Rotation2d.fromRadians(steerMotor.getAngularPositionRad() / steerMotorGearRatio);
 
-    inputs.steerVelocityRadPerSec = steerMotor.getAngularVelocityRadPerSec() / steerMotorGearRatio;
-    inputs.drivePositionMeters = driveMotor.getAngularPositionRad() * driveWheelRadiusMeters;
+        inputs.steerVelocityRadPerSec = steerMotor.getAngularVelocityRadPerSec() / steerMotorGearRatio;
+        inputs.drivePositionMeters = driveMotor.getAngularPositionRad() * driveWheelRadiusMeters;
 
-    inputs.driveMotorAppliedVoltage = driveMotorVoltage;
-    inputs.steerMotorAppliedVoltage = steerMotorVoltage;
-  }
+        inputs.driveMotorAppliedVoltage = driveMotorVoltage;
+        inputs.steerMotorAppliedVoltage = steerMotorVoltage;
+    }
 
-  @Override
-  public void setDriveMotorVoltage(double voltage) {
-    driveMotorVoltage = MathUtil.clamp(voltage, -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
-    driveMotor.setInputVoltage(voltage);
-  }
+    @Override
+    public void setDriveMotorVoltage(double voltage) {
+        driveMotorVoltage = MathUtil.clamp(voltage, -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
+        driveMotor.setInputVoltage(voltage);
+    }
 
-  @Override
-  public void setSteerMotorVoltage(double voltage) {
-    steerMotorVoltage = MathUtil.clamp(voltage, -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
-    steerMotor.setInputVoltage(voltage);
-  }
+    @Override
+    public void setSteerMotorVoltage(double voltage) {
+        steerMotorVoltage = MathUtil.clamp(voltage, -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
+        steerMotor.setInputVoltage(voltage);
+    }
 
-  @Override
-  public void setIdleMode(boolean isBrakeMode) {
-    DriverStation.reportWarning("dummy this is a simulation", false);
-  }
+    @Override
+    public void setIdleMode(boolean isBrakeMode) {
+        DriverStation.reportWarning("dummy this is a simulation", false);
+    }
 
-  @Override
-  public void resetDriveEncoder() {
-    driveMotor.setState(0, 0);
-  }
+    @Override
+    public void resetDriveEncoder() {
+        driveMotor.setState(0, 0);
+    }
+
+
+    /**
+     * A dummy class for replaying data
+     */
+    public static class SwerveModuleIOReplay implements SwerveModuleIO {
+        @Override
+        public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
+        }
+
+        @Override
+        public void setDriveMotorVoltage(double voltage) {
+        }
+
+        @Override
+        public void setSteerMotorVoltage(double voltage) {
+        }
+
+        @Override
+        public void setIdleMode(boolean isBrakeMode) {
+        }
+
+        @Override
+        public void resetDriveEncoder() {
+        }
+    }
 }
