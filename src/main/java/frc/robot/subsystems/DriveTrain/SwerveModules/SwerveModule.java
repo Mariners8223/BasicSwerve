@@ -32,9 +32,11 @@ public class SwerveModule {
 
     public static final double moduleThreadHz = 50;
     public static final double distanceBetweenWheels = 0.576; // the distance between each wheel in meters
-    public static final Translation2d[] moduleTranslations = new Translation2d[]
-            {new Translation2d(distanceBetweenWheels / 2, distanceBetweenWheels / 2), new Translation2d(distanceBetweenWheels / 2, -distanceBetweenWheels / 2),
-                    new Translation2d(-distanceBetweenWheels / 2, distanceBetweenWheels / 2), new Translation2d(-distanceBetweenWheels / 2, -distanceBetweenWheels / 2)};
+    public static final Translation2d[] moduleTranslations = new Translation2d[]{
+            new Translation2d(distanceBetweenWheels / 2, distanceBetweenWheels / 2),
+            new Translation2d(distanceBetweenWheels / 2, -distanceBetweenWheels / 2),
+            new Translation2d(-distanceBetweenWheels / 2, distanceBetweenWheels / 2),
+            new Translation2d(-distanceBetweenWheels / 2, -distanceBetweenWheels / 2)};
 
     private final String moduleName;
     private final SwerveModuleIO io;
@@ -47,23 +49,6 @@ public class SwerveModule {
     private boolean isRunningSysID = false;
 
     private SwerveModuleState targetState = new SwerveModuleState();
-
-    private double driveMotorVoltageOutput = 0;
-    private double steerMotorVoltageOutput = 0;
-
-    private final Runnable driveMotorSetRunnable = new Runnable() {
-        @Override
-        public void run() {
-            io.setDriveMotorVoltage(driveMotorVoltageOutput);
-        }
-    };
-
-    private final Runnable steerMotorSetRunnable = new Runnable() {
-        @Override
-        public void run() {
-            io.setSteerMotorVoltage(steerMotorVoltageOutput);
-        }
-    };
 
     public SwerveModule(ModuleName name) {
         this.moduleName = name.toString();
@@ -97,17 +82,26 @@ public class SwerveModule {
             targetState = SwerveModuleState.optimize(targetState, inputs.currentState.angle);
             targetState.speedMetersPerSecond *= Math.cos(targetState.angle.getRadians() - inputs.currentState.angle.getRadians());
 
-            driveMotorVoltageOutput = drivePIDController.calculate(inputs.currentState.speedMetersPerSecond, targetState.speedMetersPerSecond) + driveFeedforward.calculate(targetState.speedMetersPerSecond);
-            steerMotorVoltageOutput = steerPIDController.calculate(inputs.currentState.angle.getRadians(), targetState.angle.getRadians());
+            double driveMotorVoltageOutput =
+                    drivePIDController.calculate(inputs.currentState.speedMetersPerSecond, targetState.speedMetersPerSecond);
+
+            driveMotorVoltageOutput += driveFeedforward.calculate(targetState.speedMetersPerSecond);
+
+            double steerMotorVoltageOutput =
+                    steerPIDController.calculate(inputs.currentState.angle.getRadians(), targetState.angle.getRadians());
             steerMotorVoltageOutput = steerPIDController.atSetpoint() ? 0 : steerMotorVoltageOutput;
 
-            driveMotorSetRunnable.run();
-            steerMotorSetRunnable.run();
+            io.setDriveMotorVoltage(driveMotorVoltageOutput);
+            io.setSteerMotorVoltage(steerMotorVoltageOutput);
+
+            io.run();
         } else {
             if (targetState != null) {
                 double steerOutPut = steerPIDController.calculate(inputs.currentState.angle.getRadians(), targetState.angle.getRadians());
 
                 io.setSteerMotorVoltage(steerPIDController.atSetpoint() ? 0 : steerOutPut);
+
+                io.run();
             }
         }
         Logger.processInputs("SwerveModule/" + moduleName, inputs);

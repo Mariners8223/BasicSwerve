@@ -33,25 +33,25 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
         // inputs.currentState.angle = Rotation2d.fromRotations(absEncoder.getPosition().getValueAsDouble());
         inputs.currentState.angle = Rotation2d.fromRotations(steerMotor.getEncoder().getPosition() / constants.steerGearRatio);
 
-        inputs.currentState.speedMetersPerSecond = (driveMotor.getVelocity().getValueAsDouble() / constants.driveGearRatio) * constants.wheelCircumferenceMeters;
+        inputs.currentState.speedMetersPerSecond =
+                (driveMotor.getVelocity().getValueAsDouble() / constants.driveGearRatio) * constants.wheelCircumferenceMeters;
 
         inputs.absEncoderPosition = (absEncoder.getAbsolutePosition().getValueAsDouble());
 
-        inputs.steerVelocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(steerMotor.getEncoder().getVelocity() / constants.steerGearRatio);
-        inputs.drivePositionMeters = (driveMotor.getPosition().getValueAsDouble() / constants.driveGearRatio) * constants.wheelCircumferenceMeters;
+        inputs.steerVelocityRadPerSec =
+                Units.rotationsPerMinuteToRadiansPerSecond(steerMotor.getEncoder().getVelocity() / constants.steerGearRatio);
+
+        inputs.drivePositionMeters =
+                (driveMotor.getPosition().getValueAsDouble() / constants.driveGearRatio) * constants.wheelCircumferenceMeters;
 
         inputs.driveMotorAppliedVoltage = driveMotor.getMotorVoltage().getValueAsDouble();
         inputs.steerMotorAppliedVoltage = steerMotor.getAppliedOutput() * steerMotor.getBusVoltage();
     }
 
     @Override
-    public void setDriveMotorVoltage(double voltage) {
-        driveMotor.setVoltage(voltage);
-    }
-
-    @Override
-    public void setSteerMotorVoltage(double voltage) {
-        steerMotor.setVoltage(voltage);
+    protected void sendInputsToMotors(double driveMotorVoltageInput, double steerMotorVoltageInput) {
+        driveMotor.setVoltage(driveMotorVoltageInput);
+        steerMotor.setVoltage(steerMotorVoltageInput);
     }
 
     @Override

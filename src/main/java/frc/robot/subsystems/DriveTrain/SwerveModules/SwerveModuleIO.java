@@ -15,7 +15,7 @@ import org.littletonrobotics.junction.AutoLog;
 
 import static frc.robot.Constants.robotType;
 
-public abstract class SwerveModuleIO {
+public abstract class SwerveModuleIO implements Runnable{
     @AutoLog
     static class SwerveModuleIOInputs {
         public SwerveModuleState currentState = new SwerveModuleState();
@@ -35,24 +35,41 @@ public abstract class SwerveModuleIO {
     protected final SwerveModuleConstants constants =
             robotType == Constants.RobotType.DEVELOPMENT ? SwerveModuleConstants.DEVBOT : SwerveModuleConstants.COMPBOT;
 
+    private double driveMotorVoltageInput = 0;
+    private double steerMotorVoltageInput = 0;
+
     /**
      * Updates the inputs of the module
      */
     abstract void updateInputs(SwerveModuleIOInputsAutoLogged inputs);
 
     /**
-     * sets the voltage for the drive motor
+     * sets the voltage input for the drive motor
      *
      * @param voltage the voltage to set the drive motor to
      */
-    abstract void setDriveMotorVoltage(double voltage);
+    public void setDriveMotorVoltage(double voltage){
+        this.driveMotorVoltageInput = voltage;
+    }
 
     /**
-     * sets the voltage for the steer motor
+     * sets the voltage input for the steer motor
      *
      * @param voltage the voltage to set the steer motor to
      */
-    abstract void setSteerMotorVoltage(double voltage);
+    public void setSteerMotorVoltage(double voltage){
+        this.steerMotorVoltageInput = voltage;
+    }
+
+    /**
+     * sends the inputs set by {@link #setDriveMotorVoltage driveMotor} and {@link #setSteerMotorVoltage steerMotor} to the motors
+     */
+    @Override
+    public void run() {
+        sendInputsToMotors(driveMotorVoltageInput, steerMotorVoltageInput);
+    }
+
+    abstract protected void sendInputsToMotors(double driveMotorVoltage, double steerMotorVoltage);
 
     /**
      * sets the idle mode of the module

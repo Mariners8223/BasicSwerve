@@ -44,15 +44,12 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
     }
 
     @Override
-    public void setDriveMotorVoltage(double voltage) {
-        driveMotorVoltage = MathUtil.clamp(voltage, -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
-        driveMotor.setInputVoltage(voltage);
-    }
+    protected void sendInputsToMotors(double driveMotorVoltage, double steerMotorVoltage) {
+        this.driveMotorVoltage = MathUtil.clamp(driveMotorVoltage, -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
+        this.steerMotorVoltage = MathUtil.clamp(steerMotorVoltage, -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
 
-    @Override
-    public void setSteerMotorVoltage(double voltage) {
-        steerMotorVoltage = MathUtil.clamp(voltage, -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
-        steerMotor.setInputVoltage(voltage);
+        driveMotor.setInputVoltage(this.driveMotorVoltage);
+        steerMotor.setInputVoltage(this.steerMotorVoltage);
     }
 
     @Override
@@ -75,15 +72,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         }
 
         @Override
-        public void setDriveMotorVoltage(double voltage) {
-        }
-
-        @Override
-        public void setSteerMotorVoltage(double voltage) {
-        }
-
-        @Override
         public void setIdleMode(boolean isBrakeMode) {
+        }
+
+        @Override
+        protected void sendInputsToMotors(double driveMotorVoltage, double steerMotorVoltage) {
         }
 
         @Override
