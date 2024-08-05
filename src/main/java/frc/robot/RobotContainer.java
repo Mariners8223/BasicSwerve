@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
-import frc.util.controllers.CommandController;
-import frc.util.controllers.CommandPS4Controller;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
