@@ -18,7 +18,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * @see PS4Controller
  */
 @SuppressWarnings("MethodName")
-public class CommandPS4Controller extends CommandGenericHID {
+public class CommandPS4Controller extends CommandGenericHID implements CommandController{
   private final PS4Controller m_hid;
 
   /**

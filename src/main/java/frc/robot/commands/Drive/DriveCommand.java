@@ -3,13 +3,14 @@ package frc.robot.commands.Drive;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import frc.robot.subsystems.DriveTrain.DriveBase;
+import frc.util.controllers.CommandController;
 
 
 public class DriveCommand extends Command {
     private final DriveBase driveBase;
-    private final CommandPS5Controller controller;
+    private final CommandController controller;
 
-    public DriveCommand(DriveBase driveBase, CommandPS5Controller controller) {
+    public DriveCommand(DriveBase driveBase, CommandController controller) {
         this.driveBase = driveBase;
         this.controller = controller;
         addRequirements(this.driveBase);

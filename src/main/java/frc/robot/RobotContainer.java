@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
+import frc.util.controllers.CommandController;
+import frc.util.controllers.CommandPS4Controller;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -28,7 +30,7 @@ import frc.robot.subsystems.DriveTrain.SysID;
 
 public class RobotContainer{
     public static DriveBase driveBase;
-    public static CommandPS5Controller driveController;
+    public static CommandController driveController;
 
     public static Field2d field;
     public static LoggedDashboardChooser<Command> autoChooser;
@@ -36,7 +38,7 @@ public class RobotContainer{
 
     public RobotContainer()
     {
-        driveController = new CommandPS5Controller(0);
+        driveController = new CommandPS4Controller(0);
         driveBase = new DriveBase();
         SysID drivebaseSysID = new SysID(driveBase);
 
