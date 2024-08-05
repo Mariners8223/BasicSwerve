@@ -157,7 +157,7 @@ public class DriveBase extends SubsystemBase {
         ).ignoringDisable(true));
 
         new Trigger(RobotState::isTeleop).and(RobotState::isEnabled).whileTrue(new StartEndCommand(() ->
-                this.setDefaultCommand(new DriveCommand(this, RobotContainer.driveController)), this::removeDefaultCommand).ignoringDisable(true));
+                this.setDefaultCommand(new DriveCommand(this, RobotContainer.driveController.getHID())), this::removeDefaultCommand).ignoringDisable(true));
     }
 
 
