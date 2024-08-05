@@ -8,8 +8,7 @@ package frc.robot;
 import com.pathplanner.lib.path.PathConstraints;
 import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModule;
 import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleConstants;
-import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleIOCompBot;
-import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleIODevBot;
+
 import frc.util.PIDFGains;
 
 import java.util.Map;

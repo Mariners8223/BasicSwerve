@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
+import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import frc.util.controllers.CommandController;
 import frc.util.controllers.CommandPS4Controller;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -23,14 +24,13 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.DriveTrain.DriveBase;
 import frc.robot.subsystems.DriveTrain.SysID;
 
 public class RobotContainer{
     public static DriveBase driveBase;
-    public static CommandController driveController;
+    public static CommandPS5Controller driveController;
 
     public static Field2d field;
     public static LoggedDashboardChooser<Command> autoChooser;
@@ -38,7 +38,7 @@ public class RobotContainer{
 
     public RobotContainer()
     {
-        driveController = new CommandPS4Controller(0);
+        driveController = new CommandPS5Controller(0);
         driveBase = new DriveBase();
         SysID drivebaseSysID = new SysID(driveBase);
 
