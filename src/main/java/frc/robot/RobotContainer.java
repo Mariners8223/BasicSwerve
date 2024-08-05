@@ -53,9 +53,12 @@ public class RobotContainer{
         private String lastAutoName = "InstantCommand"; 
         @Override
         public boolean getAsBoolean() {
+            if(autoChooser.get() == null) return false;
+
             String currentAutoName = autoChooser.get().getName();
-            try{
-                return lastAutoName != autoChooser.get().getName();
+
+            try{ 
+                return lastAutoName != currentAutoName;
             }
             finally{
                 lastAutoName = currentAutoName;
