@@ -25,8 +25,8 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
 
         absEncoder = configDutyCycleEncoder(absEncoderID, zeroOffset);
 
-        driveMotor = configTalonFX(getTalonFXConfiguration(), driveMotorID);
-        steerMotor = configCanSparkMax(steerMotorID, absEncoder.get() * absEncoderMultiplier);
+        driveMotor = configTalonFX(getTalonFXConfiguration(name), driveMotorID);
+        steerMotor = configCanSparkMax(steerMotorID, absEncoder.get() * absEncoderMultiplier, name);
     }
 
     @Override

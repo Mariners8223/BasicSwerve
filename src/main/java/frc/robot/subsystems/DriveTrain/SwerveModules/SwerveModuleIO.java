@@ -153,7 +153,7 @@ public abstract class SwerveModuleIO implements Runnable{
      * configures the TalonFX to swerve settings
      * @return the configured talon fx
      */
-    protected TalonFXConfiguration getTalonFXConfiguration() {
+    protected TalonFXConfiguration getTalonFXConfiguration(SwerveModule.ModuleName name) {
         TalonFXConfiguration config = new TalonFXConfiguration(); //creates a new talonFX config
 
         config.FutureProofConfigs = false; //disables future proofing
@@ -168,10 +168,10 @@ public abstract class SwerveModuleIO implements Runnable{
 
         config.MotorOutput.NeutralMode = NeutralModeValue.Coast; //sets it to coast (changed when the robot is enabled)
 
-        config.Slot0.kP = constants.driveMotorPID.getP(); //sets the P
-        config.Slot0.kI = constants.driveMotorPID.getI(); //sets the I
-        config.Slot0.kD = constants.driveMotorPID.getD(); //sets the D
-        config.Slot0.kS = constants.driveMotorPID.getF(); //sets the feedForward
+        config.Slot0.kP = constants.driveMotorPID[name.ordinal()].getP(); //sets the P
+        config.Slot0.kI = constants.driveMotorPID[name.ordinal()].getI(); //sets the I
+        config.Slot0.kD = constants.driveMotorPID[name.ordinal()].getD(); //sets the D
+        config.Slot0.kS = constants.driveMotorPID[name.ordinal()].getF(); //sets the feedForward
 
         config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor; //just in case sets the built-in sensor
         config.Feedback.SensorToMechanismRatio = 1; //changes the units to m/s
@@ -185,7 +185,7 @@ public abstract class SwerveModuleIO implements Runnable{
      * @param absEncoderPosition the position of the absolute encoder (in rotations of the encoder)
      * @return the configured steer motor
      */
-    protected CANSparkMax configCanSparkMax(int steerMotorID, double absEncoderPosition) {
+    protected CANSparkMax configCanSparkMax(int steerMotorID, double absEncoderPosition, SwerveModule.ModuleName name) {
         CANSparkMax sparkMax = new CANSparkMax(steerMotorID, CANSparkLowLevel.MotorType.kBrushless);
 
         sparkMax.restoreFactoryDefaults();
@@ -195,10 +195,10 @@ public abstract class SwerveModuleIO implements Runnable{
 
         sparkMax.setIdleMode(CANSparkBase.IdleMode.kCoast); //sets the idle mode to coat (automatically goes to brakes once the robot is enabled)
 
-        sparkMax.getPIDController().setP(constants.steerMotorPID.getP()); //sets the P for the PID Controller
-        sparkMax.getPIDController().setI(constants.steerMotorPID.getI()); //sets the I for the PID Controller
-        sparkMax.getPIDController().setD(constants.steerMotorPID.getD()); //sets the D for the PID Controller
-        sparkMax.getPIDController().setIZone(constants.steerMotorPID.getIZone()); //sets the IZone for the PID Controller
+        sparkMax.getPIDController().setP(constants.steerMotorPID[name.ordinal()].getP()); //sets the P for the PID Controller
+        sparkMax.getPIDController().setI(constants.steerMotorPID[name.ordinal()].getI()); //sets the I for the PID Controller
+        sparkMax.getPIDController().setD(constants.steerMotorPID[name.ordinal()].getD()); //sets the D for the PID Controller
+        sparkMax.getPIDController().setIZone(constants.steerMotorPID[name.ordinal()].getIZone()); //sets the IZone for the PID Controller
 
         sparkMax.setPeriodicFramePeriod(CANSparkMax.PeriodicFrame.kStatus2, (int) (1000 / SwerveModule.moduleThreadHz)); //sets the status 0 frame to 10ms
         sparkMax.setPeriodicFramePeriod(CANSparkMax.PeriodicFrame.kStatus1, (int) (1000 / SwerveModule.moduleThreadHz)); //sets the status 0 frame to 10ms

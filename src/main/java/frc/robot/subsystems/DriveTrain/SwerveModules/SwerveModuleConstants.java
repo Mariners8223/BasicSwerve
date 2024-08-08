@@ -11,9 +11,18 @@ public enum SwerveModuleConstants {
 
             0.302, -0.44, -0.164, 0.303,
 
-            new PIDFGains(10, 0, 0, 1.2, 0.1, 0, 1 / SwerveModule.moduleThreadHz,
-                    3, 100),
-            new PIDFGains(10, 0, 0, 0.14, 0.1, 0, 1 / SwerveModule.moduleThreadHz)),
+            new PIDFGains[]{
+                    new PIDFGains(8, 0, 0.07, 1 / SwerveModule.moduleThreadHz), //FL
+                    new PIDFGains(10, 0, 0.07, 1 / SwerveModule.moduleThreadHz), //FR
+                    new PIDFGains(7.5, 0, 0.1, 1 / SwerveModule.moduleThreadHz), //BL
+                    new PIDFGains(10, 0, 0.09, 1 / SwerveModule.moduleThreadHz) //BR
+            },
+            new PIDFGains[]{
+                    new PIDFGains(0, 0, 0),
+                    new PIDFGains(0, 0, 0),
+                    new PIDFGains(0, 0, 0),
+                    new PIDFGains(0, 0, 0)
+            }),
 
     /**
      * usually the final robot
@@ -23,9 +32,18 @@ public enum SwerveModuleConstants {
 
             0.59625, 0.9368, 0.226, 0.750,
 
-            new PIDFGains(0, 0.00, 0, 0, 0.1, 0, 1 / SwerveModule.moduleThreadHz,
-                    3, 100),
-            new PIDFGains(0, 0, 0, 0, 0.1, 0, 1 / SwerveModule.moduleThreadHz));
+            new PIDFGains[]{
+                    new PIDFGains(8, 0, 0.07, 1 / SwerveModule.moduleThreadHz), //FL
+                    new PIDFGains(10, 0, 0.07, 1 / SwerveModule.moduleThreadHz), //FR
+                    new PIDFGains(7.5, 0, 0.1, 1 / SwerveModule.moduleThreadHz), //BL
+                    new PIDFGains(10, 0, 0.09, 1 / SwerveModule.moduleThreadHz) //BR
+            },
+            new PIDFGains[]{
+                    new PIDFGains(0, 0, 0),
+                    new PIDFGains(0, 0, 0),
+                    new PIDFGains(0, 0, 0),
+                    new PIDFGains(0, 0, 0)
+            });
 
     /**
      * the gear ratio (not including circular movement to liner) between the drive motor and the wheel
@@ -75,18 +93,18 @@ public enum SwerveModuleConstants {
     /**
      * the PIDF gains for the drive motor
      */
-    public final PIDFGains driveMotorPID;
+    public final PIDFGains[] driveMotorPID;
 
     /**
      * the PIDF gains for the steer motor
      */
-    public final PIDFGains steerMotorPID;
+    public final PIDFGains[] steerMotorPID;
 
     SwerveModuleConstants(double driveGearRatio, double steerGearRatio, double wheelRadiusMeters,
                           double maxDriveVelocityMetersPerSecond, boolean isDriveInverted, boolean isSteerInverted,
                           boolean isAbsEncoderInverted, double front_left_zeroOffset, double front_right_zeroOffset,
-                          double back_left_zeroOffset, double back_right_zeroOffset, PIDFGains driveMotorPID,
-                          PIDFGains steerMotorPID) {
+                          double back_left_zeroOffset, double back_right_zeroOffset, PIDFGains[] driveMotorPID,
+                          PIDFGains[] steerMotorPID) {
 
         this.driveGearRatio = driveGearRatio;
         this.steerGearRatio = steerGearRatio;
@@ -96,11 +114,13 @@ public enum SwerveModuleConstants {
         this.isDriveInverted = isDriveInverted;
         this.isSteerInverted = isSteerInverted;
         this.isAbsEncoderInverted = isAbsEncoderInverted;
+
         this.abs_zeroOffsets[0] = front_left_zeroOffset;
         this.abs_zeroOffsets[1] = front_right_zeroOffset;
         this.abs_zeroOffsets[2] = back_left_zeroOffset;
         this.abs_zeroOffsets[3] = back_right_zeroOffset;
-        this.driveMotorPID = driveMotorPID;
-        this.steerMotorPID = steerMotorPID;
+
+        this.driveMotorPID = driveMotorPID.clone();
+        this.steerMotorPID = steerMotorPID.clone();
     }
 }

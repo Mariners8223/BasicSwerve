@@ -57,9 +57,9 @@ public class SwerveModule {
         SwerveModuleConstants constants =
                 robotType == Constants.RobotType.DEVELOPMENT ? SwerveModuleConstants.DEVBOT : SwerveModuleConstants.COMPBOT;
 
-        drivePIDController = constants.driveMotorPID.createProfiledPIDController();
-        driveFeedforward = new SimpleMotorFeedforward(0, constants.driveMotorPID.getF());
-        steerPIDController = constants.steerMotorPID.createPIDController();
+        drivePIDController = constants.driveMotorPID[name.ordinal()].createProfiledPIDController();
+        driveFeedforward = new SimpleMotorFeedforward(0, constants.driveMotorPID[name.ordinal()].getF());
+        steerPIDController = constants.steerMotorPID[name.ordinal()].createPIDController();
 
         SendableRegistry.setName(drivePIDController, moduleName + " drive Controller");
         SendableRegistry.setName(steerPIDController, moduleName + " steer Controller");
@@ -103,8 +103,6 @@ public class SwerveModule {
         } else {
             double steerOut = steerPIDController.calculate(inputs.currentState.angle.getRadians());
             double driveOut = drivePIDController.calculate(inputs.currentState.speedMetersPerSecond);
-
-            steerOut = steerPIDController.atSetpoint() ? 0 : steerOut;
 
             steerOut = MathUtil.clamp(steerOut, -12, 12);
 

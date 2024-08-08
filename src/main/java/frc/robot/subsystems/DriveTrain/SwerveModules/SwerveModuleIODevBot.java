@@ -24,8 +24,8 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
         absEncoder = configCANCoder(absEncoderID, zeroOffset);
 
-        driveMotor = configTalonFX(getTalonFXConfiguration(), driveMotorID);
-        steerMotor = configCanSparkMax(steerMotorID, absEncoder.getAbsolutePosition().getValueAsDouble());
+        driveMotor = configTalonFX(getTalonFXConfiguration(name), driveMotorID);
+        steerMotor = configCanSparkMax(steerMotorID, absEncoder.getAbsolutePosition().getValueAsDouble(), name);
     }
 
     @Override
