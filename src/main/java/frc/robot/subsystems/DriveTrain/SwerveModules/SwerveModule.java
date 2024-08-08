@@ -49,6 +49,7 @@ public class SwerveModule {
     private final PIDController steerPIDController;
 
     private boolean runningCalibration = false;
+    private boolean runningDriveCalibration = false;
 
     private SwerveModuleState targetState = new SwerveModuleState();
 
@@ -95,22 +96,36 @@ public class SwerveModule {
 
             io.run();
         } else {
-            drivePIDController.setP(SmartDashboard.getNumber("drive P", drivePIDController.getP()));
-            drivePIDController.setI(SmartDashboard.getNumber("drive I", drivePIDController.getI()));
-            drivePIDController.setD(SmartDashboard.getNumber("drive D", drivePIDController.getD()));
+            if (runningDriveCalibration) {
+                drivePIDController.setP(SmartDashboard.getNumber("drive P", drivePIDController.getP()));
+                drivePIDController.setI(SmartDashboard.getNumber("drive I", drivePIDController.getI()));
+                drivePIDController.setD(SmartDashboard.getNumber("drive D", drivePIDController.getD()));
 
-            driveFeedforward = new SimpleMotorFeedforward(0, SmartDashboard.getNumber("drive kS", driveFeedforward.ks));
+                driveFeedforward = new SimpleMotorFeedforward(0, SmartDashboard.getNumber("drive kS", driveFeedforward.ks));
 
-            double steerOut = steerPIDController.calculate(inputs.currentState.angle.getRadians());
-            double driveOut = drivePIDController.calculate(inputs.currentState.speedMetersPerSecond);
+                double driveOut = drivePIDController.calculate(inputs.currentState.speedMetersPerSecond);
 
-            steerOut = MathUtil.clamp(steerOut, -12, 12);
+                driveOut += driveFeedforward.calculate(drivePIDController.getGoal().position);
+                driveOut = MathUtil.clamp(driveOut, -12, 12);
 
-            driveOut += driveFeedforward.calculate(drivePIDController.getGoal().position);
-            driveOut = MathUtil.clamp(driveOut, -12, 12);
+                io.setDriveMotorVoltage(driveOut);
 
-            io.setSteerMotorVoltage(steerOut);
-            io.setDriveMotorVoltage(driveOut);
+                double steerOut = steerPIDController.calculate(inputs.currentState.angle.getRadians(), targetState.angle.getRadians());
+
+                steerOut = steerPIDController.atSetpoint() ? 0 : steerOut;
+
+                io.setSteerMotorVoltage(steerOut);
+            } else {
+                double steerOut = steerPIDController.calculate(inputs.currentState.angle.getRadians());
+
+
+                steerOut = MathUtil.clamp(steerOut, -12, 12);
+
+
+                io.setSteerMotorVoltage(steerOut);
+                io.setDriveMotorVoltage(0);
+            }
+
             io.run();
         }
         Logger.processInputs("SwerveModule/" + moduleName, inputs);
@@ -131,7 +146,7 @@ public class SwerveModule {
         return targetState;
     }
 
-    public void runCalibration() {
+    public void runSteerCalibration() {
         runningCalibration = true;
 
         SendableRegistry.setName(steerPIDController, moduleName + " steer Controller");
@@ -139,8 +154,18 @@ public class SwerveModule {
         SmartDashboard.putData(steerPIDController);
     }
 
-    public void stopCalibration() {
+    public void stopSteerCalibration() {
         runningCalibration = false;
+    }
+
+    public void runDriveCalibration(){
+        runningDriveCalibration = true;
+        runningCalibration = true;
+    }
+
+    public void stopDriveCalibration(){
+        runningCalibration = false;
+        runningDriveCalibration = false;
     }
 
     public void setIdleMode(boolean isBrakeMode) {

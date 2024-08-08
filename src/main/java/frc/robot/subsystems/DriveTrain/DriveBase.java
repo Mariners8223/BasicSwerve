@@ -335,9 +335,9 @@ public class DriveBase extends SubsystemBase {
         Logger.processInputs(getName(), inputs);
     }
 
-    public void runModuleCalibration(){
+    public void runModuleDriveCalibration(){
         for(int i = 0; i < 4; i++){
-            modules[i].runCalibration();
+            modules[i].runDriveCalibration();
         }
 
         SmartDashboard.putNumber("drive P", 0);
@@ -347,9 +347,21 @@ public class DriveBase extends SubsystemBase {
         SmartDashboard.putNumber("drive kS", 0);
     }
 
-    public void stopModuleCalibration(){
+    public void stopModuleDriveCalibration(){
         for(int i = 0; i < 4; i++){
-            modules[i].stopCalibration();
+            modules[i].stopDriveCalibration();
+        }
+    }
+
+    public void runModuleSteerCalibration(){
+        for(int i = 0; i < 4; i++){
+            modules[i].runSteerCalibration();
+        }
+    }
+
+    public void stopModuleSteerCalibration(){
+        for(int i = 0; i < 4; i++){
+            modules[i].stopSteerCalibration();
         }
     }
 
