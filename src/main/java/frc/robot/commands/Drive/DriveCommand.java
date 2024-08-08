@@ -1,6 +1,7 @@
 package frc.robot.commands.Drive;
 
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveTrain.DriveBase;
 
@@ -29,12 +30,12 @@ public class DriveCommand extends Command {
 
     @Override
     public void execute() {
-        //calculates a value from 0 to the max wheel speed based on the R2 axis
-        double R2Axis = 1 + (driveBase.maxFreeWheelSpeed - 1) * (1 - (0.5 + controller.getRawAxis(R2_AXIS) / 2));
+        //calculates a value from 1 to the max wheel speed based on the R2 axis
+        double R2Axis = (1 - (0.5 + controller.getRawAxis(R2_AXIS) / 2)) * (driveBase.maxFreeWheelSpeed - 1) + 1;
 
         //sets the value of the 3 axis we need (accounting for drift)
-        double leftX = Math.abs(controller.getRawAxis(LEFT_X_AXIS)) > 0.1 ? -controller.getRawAxis(LEFT_X_AXIS) : 0;
-        double leftY = Math.abs(controller.getRawAxis(LEFT_Y_AXIS)) > 0.1 ? -controller.getRawAxis(LEFT_Y_AXIS) : 0;
+        double leftX = Math.abs(controller.getRawAxis(LEFT_X_AXIS)) > 0.1 ? controller.getRawAxis(LEFT_X_AXIS) : 0;
+        double leftY = Math.abs(controller.getRawAxis(LEFT_Y_AXIS)) > 0.1 ? controller.getRawAxis(LEFT_Y_AXIS) : 0;
         double rightX = Math.abs(controller.getRawAxis(RIGHT_X_AXIS)) > 0.1 ? -controller.getRawAxis(RIGHT_X_AXIS) : 0;
 
         //drives the robot with the values
