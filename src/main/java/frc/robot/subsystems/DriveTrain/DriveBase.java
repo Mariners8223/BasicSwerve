@@ -335,12 +335,16 @@ public class DriveBase extends SubsystemBase {
         Logger.processInputs(getName(), inputs);
     }
 
-    public void runVoltageSteer(Measure<Voltage> voltage, SwerveModule.ModuleName name) {
-        modules[name.ordinal()].runSysIDSteer(voltage);
+    public void runModuleCalibration(){
+        for(int i = 0; i < 4; i++){
+            modules[i].runCalibration();
+        }
     }
 
-    public void runVoltageDrive(Measure<Voltage> voltage, SwerveModule.ModuleName name, Rotation2d rotation) {
-        modules[name.ordinal()].runSysIDDrive(voltage, rotation);
+    public void stopModuleCalibration(){
+        for(int i = 0; i < 4; i++){
+            modules[i].stopCalibration();
+        }
     }
 
     /**

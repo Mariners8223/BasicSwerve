@@ -1,5 +1,6 @@
 package frc.robot.subsystems.DriveTrain.SwerveModules;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -47,7 +48,7 @@ public class SwerveModule {
     public final SimpleMotorFeedforward driveFeedforward;
     private final PIDController steerPIDController;
 
-    private boolean isRunningSysID = false;
+    private boolean runningCalibration = false;
 
     private SwerveModuleState targetState = new SwerveModuleState();
 
@@ -82,7 +83,7 @@ public class SwerveModule {
     public SwerveModulePosition modulePeriodic() {
         io.updateInputs(inputs);
 
-        if (!isRunningSysID) {
+        if (!runningCalibration) {
             targetState = SwerveModuleState.optimize(targetState, inputs.currentState.angle);
             targetState.speedMetersPerSecond *= Math.cos(targetState.angle.getRadians() - inputs.currentState.angle.getRadians());
 
@@ -100,13 +101,18 @@ public class SwerveModule {
 
             io.run();
         } else {
-            if (targetState != null) {
-                double steerOutPut = steerPIDController.calculate(inputs.currentState.angle.getRadians(), targetState.angle.getRadians());
+            double steerOut = steerPIDController.calculate(inputs.currentState.angle.getRadians());
+            double driveOut = drivePIDController.calculate(inputs.currentState.speedMetersPerSecond);
 
-                io.setSteerMotorVoltage(steerPIDController.atSetpoint() ? 0 : steerOutPut);
+            steerOut = steerPIDController.atSetpoint() ? 0 : steerOut;
 
-                io.run();
-            }
+            steerOut = MathUtil.clamp(steerOut, -12, 12);
+
+            driveOut = MathUtil.clamp(driveOut, -12, 12);
+
+            io.setSteerMotorVoltage(steerOut);
+            io.setDriveMotorVoltage(driveOut);
+            io.run();
         }
         Logger.processInputs("SwerveModule/" + moduleName, inputs);
 
@@ -118,7 +124,6 @@ public class SwerveModule {
     }
 
     public SwerveModuleState run(SwerveModuleState targetState) {
-        isRunningSysID = false;
         targetState = SwerveModuleState.optimize(targetState, inputs.currentState.angle);
         targetState.speedMetersPerSecond *= inputs.currentState.angle.minus(targetState.angle).getCos();
 
@@ -127,18 +132,12 @@ public class SwerveModule {
         return targetState;
     }
 
-    public void runSysIDSteer(Measure<Voltage> steerVoltage) {
-        isRunningSysID = true;
-        io.setSteerMotorVoltage(steerVoltage.in(Volts));
-        io.run();
-        targetState = null;
+    public void runCalibration() {
+        runningCalibration = true;
     }
 
-    public void runSysIDDrive(Measure<Voltage> driveVoltage, Rotation2d angle) {
-        isRunningSysID = true;
-        io.setDriveMotorVoltage(driveVoltage.in(Volts));
-        io.run();
-        targetState.angle = angle;
+    public void stopCalibration() {
+        runningCalibration = false;
     }
 
     public void setIdleMode(boolean isBrakeMode) {

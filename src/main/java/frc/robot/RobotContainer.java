@@ -24,7 +24,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.DriveTrain.DriveBase;
-import frc.robot.subsystems.DriveTrain.SysID;
 
 public class RobotContainer{
     public static DriveBase driveBase;
@@ -38,9 +37,8 @@ public class RobotContainer{
     {
         driveController = new CommandPS5Controller(0);
         driveBase = new DriveBase();
-        SysID drivebaseSysID = new SysID(driveBase);
 
-        configureBindings(drivebaseSysID);
+        configureBindings();
 
         field = new Field2d();
 
@@ -49,7 +47,7 @@ public class RobotContainer{
         configChooser();
     }
 
-    private static BooleanSupplier checkForPathChoiseUpdate = new BooleanSupplier() {
+    private static final BooleanSupplier checkForPathChoiseUpdate = new BooleanSupplier() {
         private String lastAutoName = "InstantCommand"; 
         @Override
         public boolean getAsBoolean() {
@@ -104,12 +102,9 @@ public class RobotContainer{
     }
     
     
-    private void configureBindings(SysID drivebaseSysID) {
-        driveController.options().onTrue(new InstantCommand(driveBase::resetOnlyDirection));
-        driveController.cross().whileTrue(drivebaseSysID.getSysIDCommand(SysID.SysIDType.Steer, true, true));
-        driveController.square().whileTrue(drivebaseSysID.getSysIDCommand(SysID.SysIDType.Steer, false, true));
-        driveController.triangle().whileTrue(drivebaseSysID.getSysIDCommand(SysID.SysIDType.Steer, true, false));
-        driveController.circle().whileTrue(drivebaseSysID.getSysIDCommand(SysID.SysIDType.Steer, false, false));
+    private void configureBindings() {
+        driveController.cross().onTrue(new InstantCommand(() -> driveBase.runModuleCalibration()));
+        driveController.triangle().onTrue(new InstantCommand(() -> driveBase.stopModuleCalibration()));
     }
     
     
