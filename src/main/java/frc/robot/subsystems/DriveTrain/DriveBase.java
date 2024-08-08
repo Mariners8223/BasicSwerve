@@ -339,6 +339,12 @@ public class DriveBase extends SubsystemBase {
         for(int i = 0; i < 4; i++){
             modules[i].runCalibration();
         }
+
+        SmartDashboard.putNumber("drive P", 0);
+        SmartDashboard.putNumber("drive I", 0);
+        SmartDashboard.putNumber("drive D", 0);
+
+        SmartDashboard.putNumber("drive kS", 0);
     }
 
     public void stopModuleCalibration(){
