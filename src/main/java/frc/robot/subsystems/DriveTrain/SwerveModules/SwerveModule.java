@@ -9,6 +9,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
+import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
@@ -59,6 +60,12 @@ public class SwerveModule {
         driveFeedforward = new SimpleMotorFeedforward(0, constants.driveMotorPID.getF());
         steerPIDController = constants.steerMotorPID.createPIDController();
 
+        SendableRegistry.setName(drivePIDController, moduleName + " drive Controller");
+        SendableRegistry.setName(steerPIDController, moduleName + " steer Controller");
+
+        SmartDashboard.putData(drivePIDController);
+        SmartDashboard.putData(steerPIDController);
+
         if (RobotBase.isReal()) {
             io = switch (robotType) {
                 case DEVELOPMENT -> new SwerveModuleIODevBot(name);
@@ -67,9 +74,6 @@ public class SwerveModule {
             };
         } else {
             io = robotType == Constants.RobotType.REPLAY ? new SwerveModuleIOSIM.SwerveModuleIOReplay() : new SwerveModuleIOSIM();
-
-            SmartDashboard.putData(drivePIDController);
-            SmartDashboard.putData(steerPIDController);
 
         }
 
@@ -126,12 +130,14 @@ public class SwerveModule {
     public void runSysIDSteer(Measure<Voltage> steerVoltage) {
         isRunningSysID = true;
         io.setSteerMotorVoltage(steerVoltage.in(Volts));
+        io.run();
         targetState = null;
     }
 
     public void runSysIDDrive(Measure<Voltage> driveVoltage, Rotation2d angle) {
         isRunningSysID = true;
         io.setDriveMotorVoltage(driveVoltage.in(Volts));
+        io.run();
         targetState.angle = angle;
     }
 
