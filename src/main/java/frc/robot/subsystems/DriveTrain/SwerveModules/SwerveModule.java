@@ -61,12 +61,6 @@ public class SwerveModule {
         driveFeedforward = new SimpleMotorFeedforward(0, constants.driveMotorPID[name.ordinal()].getF());
         steerPIDController = constants.steerMotorPID[name.ordinal()].createPIDController();
 
-        SendableRegistry.setName(drivePIDController, moduleName + " drive Controller");
-        SendableRegistry.setName(steerPIDController, moduleName + " steer Controller");
-
-        SmartDashboard.putData(drivePIDController);
-        SmartDashboard.putData(steerPIDController);
-
         if (RobotBase.isReal()) {
             io = switch (robotType) {
                 case DEVELOPMENT -> new SwerveModuleIODevBot(name);
@@ -132,10 +126,16 @@ public class SwerveModule {
 
     public void runCalibration() {
         runningCalibration = true;
+
+        SendableRegistry.setName(drivePIDController, moduleName + " drive Controller");
+        SendableRegistry.setName(steerPIDController, moduleName + " steer Controller");
+
+        SmartDashboard.putData(drivePIDController);
+        SmartDashboard.putData(steerPIDController);
     }
 
     public void stopCalibration() {
-        runningCalibration = false;
+        runningCalibration = false;        
     }
 
     public void setIdleMode(boolean isBrakeMode) {

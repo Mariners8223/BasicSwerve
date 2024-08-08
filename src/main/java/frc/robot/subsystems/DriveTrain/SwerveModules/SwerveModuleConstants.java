@@ -33,10 +33,10 @@ public enum SwerveModuleConstants {
             0.59625, 0.9368, 0.226, 0.750,
 
             new PIDFGains[]{
-                    new PIDFGains(8, 0, 0.07, 1 / SwerveModule.moduleThreadHz), //FL
-                    new PIDFGains(10, 0, 0.07, 1 / SwerveModule.moduleThreadHz), //FR
+                    new PIDFGains(7, 0, 0.07, 1 / SwerveModule.moduleThreadHz), //FL
+                    new PIDFGains(8, 0, 0.07, 1 / SwerveModule.moduleThreadHz), //FR
                     new PIDFGains(7.5, 0, 0.1, 1 / SwerveModule.moduleThreadHz), //BL
-                    new PIDFGains(10, 0, 0.09, 1 / SwerveModule.moduleThreadHz) //BR
+                    new PIDFGains(7, 0, 0.09, 1 / SwerveModule.moduleThreadHz) //BR
             },
             new PIDFGains[]{
                     new PIDFGains(0, 0, 0),
@@ -103,8 +103,8 @@ public enum SwerveModuleConstants {
     SwerveModuleConstants(double driveGearRatio, double steerGearRatio, double wheelRadiusMeters,
                           double maxDriveVelocityMetersPerSecond, boolean isDriveInverted, boolean isSteerInverted,
                           boolean isAbsEncoderInverted, double front_left_zeroOffset, double front_right_zeroOffset,
-                          double back_left_zeroOffset, double back_right_zeroOffset, PIDFGains[] driveMotorPID,
-                          PIDFGains[] steerMotorPID) {
+                          double back_left_zeroOffset, double back_right_zeroOffset, PIDFGains[] steerMotorPID,
+                          PIDFGains[] driveMotorPID) {
 
         this.driveGearRatio = driveGearRatio;
         this.steerGearRatio = steerGearRatio;
@@ -120,7 +120,7 @@ public enum SwerveModuleConstants {
         this.abs_zeroOffsets[2] = back_left_zeroOffset;
         this.abs_zeroOffsets[3] = back_right_zeroOffset;
 
-        this.driveMotorPID = driveMotorPID.clone();
-        this.steerMotorPID = steerMotorPID.clone();
+        this.driveMotorPID = driveMotorPID;
+        this.steerMotorPID = steerMotorPID;
     }
 }

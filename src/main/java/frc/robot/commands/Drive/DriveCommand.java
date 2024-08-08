@@ -9,8 +9,8 @@ public class DriveCommand extends Command {
     private final DriveBase driveBase;
     private final GenericHID controller;
 
-    private final int LEFT_X_AXIS = 0;
-    private final int LEFT_Y_AXIS = 1;
+    private final int LEFT_X_AXIS = 1;
+    private final int LEFT_Y_AXIS = 0;
     private final int RIGHT_X_AXIS = 2;
     private final int R2_AXIS = 4;
 
