@@ -343,6 +343,7 @@ public class DriveBase extends SubsystemBase {
         SmartDashboard.putNumber("drive P", 0);
         SmartDashboard.putNumber("drive I", 0);
         SmartDashboard.putNumber("drive D", 0);
+        SmartDashboard.putNumber("drive setPoint", 0);
 
         SmartDashboard.putNumber("drive kS", 0);
     }

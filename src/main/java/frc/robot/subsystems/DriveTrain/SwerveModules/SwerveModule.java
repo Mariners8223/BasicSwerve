@@ -101,6 +101,8 @@ public class SwerveModule {
                 drivePIDController.setI(SmartDashboard.getNumber("drive I", drivePIDController.getI()));
                 drivePIDController.setD(SmartDashboard.getNumber("drive D", drivePIDController.getD()));
 
+                drivePIDController.setGoal(SmartDashboard.getNumber("drive setPoint", 0));
+
                 driveFeedforward = new SimpleMotorFeedforward(0, SmartDashboard.getNumber("drive kS", driveFeedforward.ks));
 
                 double driveOut = drivePIDController.calculate(inputs.currentState.speedMetersPerSecond);
