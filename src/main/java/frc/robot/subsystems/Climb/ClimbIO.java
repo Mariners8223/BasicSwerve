@@ -16,14 +16,14 @@ public interface ClimbIO {
         double motorTemperature;
         double motorCurrent;
         double motorSpeed;
-        double hookHeight;
-        int motorPosition;
-        Pose3d hookPosition;
+        double motorPosition;
     }
 
-    public void spinMotor(double speed);
+    public void setMotorDutyCycle(double power);
     public void setCoast();
-    public void setLimit(boolean isMinimum);
+    public void setBrake();
+    public void setMinimum();
+    public void setMaximum();
     public void resetEncoder();
 
     public void update(ClimbInputAutoLogged inputs);
