@@ -41,16 +41,16 @@ public class Climb extends SubsystemBase {
     //TODO: Aproximate hook movement with graph:)
     return 0;
   }
-  public boolean getIsHookOnChain(){
+  // public boolean getIsHookOnChain(){
   
-  }
+  // }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     io.update(input);
     Logger.recordOutput("Is hook on chain", input.motorCurrent>ClimbConstants.CLIMB_CURRENT_WHEN_ON_HOOK);
-    Logger.recordOutput("hook hight", );
+    // Logger.recordOutput("hook hight", );
     
   
   }
