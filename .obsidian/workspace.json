@@ -1,0 +1,162 @@
+{
+  "main": {
+    "id": "a4910b5e0d6a6e46",
+    "type": "split",
+    "children": [
+      {
+        "id": "7c28c547d9e535ae",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "831e3d6d2b45e028",
+            "type": "leaf",
+            "state": {
+              "type": "excalidraw",
+              "state": {
+                "file": "obsidian_vault/Climb/Climb Feature Flowchart.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "6331787ff3f102bf",
+    "type": "split",
+    "children": [
+      {
+        "id": "220d990bd57fdb7e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f73cdd95a759c50d",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "02cbb3bbdac7ab29",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "3a56b097975220c4",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "7b3faf57cff06817",
+    "type": "split",
+    "children": [
+      {
+        "id": "82a8e74d7c5397d3",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1343cdefc33d71ef",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "obsidian_vault/Climb/Climb Feature Flowchart.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "d0fd751aea251f0e",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "obsidian_vault/Climb/Climb Feature Flowchart.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "ac72810a684642f4",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "19c5c5909acec3e3",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "obsidian_vault/Climb/Climb Feature Flowchart.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "obsidian-excalidraw-plugin:Create new drawing": false
+    }
+  },
+  "active": "831e3d6d2b45e028",
+  "lastOpenFiles": [
+    "bin/main/frc/robot/commands/Climb/HookDescend.class",
+    "bin/main/frc/robot/commands/Climb/HookAscend.class",
+    "bin/main/frc/robot/commands/Climb",
+    "src/main/java/frc/robot/commands/Climb/HookDescend.java",
+    "src/main/java/frc/robot/commands/Climb/HookAscend.java",
+    "src/main/java/frc/robot/commands/Climb",
+    "obsidian_vault/Climb/climb system.md",
+    "bin/main/frc/robot/subsystems/Shooter_Intake/ShooterIntake.class",
+    "src/main/java/frc/robot/subsystems/Shooter_Intake/ShooterIntake.java",
+    "src/main/java/frc/robot/subsystems/Shooter_Intake",
+    "obsidian_vault/Climb/Climb Feature Flowchart.md"
+  ]
+}

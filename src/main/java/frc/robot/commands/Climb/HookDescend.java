@@ -14,9 +14,10 @@ public class HookDescend extends Command {
   /** Creates a new HookDescend. */
   Climb climb ;
   Timer timer;
+
   public HookDescend() {
     // Use addRequirements() here to declare subsystem dependencies.
-     climb = RobotContainer.climb; 
+    climb = RobotContainer.climb; 
     addRequirements(climb);
 
     timer = new Timer();
@@ -26,9 +27,9 @@ public class HookDescend extends Command {
   @Override
   public void initialize() {
 
-    if(timer.getMatchTime()<120||!climb.getHasLimit()){cancel();}//TODO: Ask Eyal if we can do it in initialize :3
+    if(Timer.getMatchTime() < 120|| !climb.hasLimit()){cancel();}//TODO: Ask Eyal if we can do it in initialize :3
 
-    if(climb.getPosition()>0){climb.startMotor(-1*ClimbConstants.CLIMB_MOTOR_POWER);}
+    if(climb.getPosition() > 0) {climb.startMotor(-1*ClimbConstants.CLIMB_MOTOR_POWER);}
     else{climb.startMotor(ClimbConstants.CLIMB_MOTOR_POWER);}
   }
 
@@ -45,7 +46,6 @@ public class HookDescend extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-
     return Math.abs(climb.getPosition())<=ClimbConstants.CLOSE_ZERO_POSITION;
   }
 }

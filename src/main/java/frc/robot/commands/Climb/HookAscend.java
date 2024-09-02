@@ -25,25 +25,22 @@ public class HookAscend extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    if(Timer.getMatchTime() < 120) {cancel();}//TODO: Ask Eyal if we can do it in initialize :3
+    if(!climb.hasLimit()) {timer.start();}
 
-    if(timer.getMatchTime()<120){cancel();}//TODO: Ask Eyal if we can do it in initialize :3
-    if(!climb.getHasLimit()){timer.start();}
     climb.setCoast();
-
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-
-    if(timer.get()>=1){
-      if(climb.getPosition()<0){climb.setMaximum();}
-      else{climb.setMinimum();}
+    if(timer.get() >= 1){
+      if ( climb.getPosition() < 0 ) {climb.setMaximum();}
+      else {climb.setMinimum();}
       
       timer.reset();
       timer.stop();
     }
-
   }
 
   // Called once the command ends or is interrupted.
@@ -56,5 +53,6 @@ public class HookAscend extends Command {
   @Override
   public boolean isFinished() {
     return false;
+    // Command is WhileTrue, so it will be interrupted
   }
 }
