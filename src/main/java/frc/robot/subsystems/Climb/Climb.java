@@ -15,7 +15,7 @@ public class Climb extends SubsystemBase {
   ClimbIO io ;
   ClimbInputAutoLogged input;
   boolean hasLimit;
-  boolean isOnHook; 
+  
   
   public Climb() {
     hasLimit = false;
@@ -37,20 +37,22 @@ public class Climb extends SubsystemBase {
   public void resetEncoder(){io.resetEncoder();}
   public void startMotor(double power){io.setMotorDutyCycle(power);}//TODO: Ask Eyal if power should be in subsystem or commend :3
   
-  public double hookHeight(){
+  public double getHookHeight(){
     //TODO: Aproximate hook movement with graph:)
     return 0;
   }
   public boolean getIsHookOnChain(){
+    return input.motorCurrent>ClimbConstants.CLIMB_CURRENT_WHEN_ON_HOOK;
   
   }
+  public double getPosition(){return input.motorPosition;}
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     io.update(input);
-    Logger.recordOutput("Is hook on chain", input.motorCurrent>ClimbConstants.CLIMB_CURRENT_WHEN_ON_HOOK);
-    Logger.recordOutput("hook hight", );
+    Logger.recordOutput("Is hook on chain", getIsHookOnChain());
+    Logger.recordOutput("hook height",getHookHeight() );
     
   
   }
