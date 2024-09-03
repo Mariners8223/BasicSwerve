@@ -119,7 +119,7 @@ public class DriveBase extends SubsystemBase {
         if (RobotBase.isReal()) {
             gyro = new NavxIO(Constants.ROBOT_TYPE == RobotType.DEVELOPMENT);
             gyro.reset(new Pose2d());
-        } else gyro = new SimGyroIO(() -> driveTrainKinematics.toTwist2d(moduleDeltas), this.getChassisSpeeds);
+        } else gyro = new SimGyroIO(() -> driveTrainKinematics.toTwist2d(moduleDeltas), this::getChassisSpeeds);
 
         for (int i = 0; i < 4; i++) modules[i].resetDriveEncoder();
 
