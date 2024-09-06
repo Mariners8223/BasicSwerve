@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.Arm;
 
 import org.littletonrobotics.junction.AutoLog;
 
@@ -14,9 +14,11 @@ public interface ArmIO {
 
     }
 
-    public void setAlphaTargetRotation();
-    public void setBetaTargetRotation();
+    public void setAlphaTargetRotation(double AlphaTarget);
+    public void setBetaTargetRotation(double BetaTarget);
     public void resetBetaEncoder();
+    public double GetCurrentAlphaPos();
+    public double GetCurrentBetaPos();
 
     public void update(ArmInputsAutoLogged inputs);
 }
