@@ -19,18 +19,18 @@ public class Arm extends SubsystemBase {
     io.setBetaTargetRotation(BetaTarget);
   }
   
-  public void TargetArmPos_Alpha(ArmPos armPos){ //souldn't work 
-    double currentAlphaPos = io.GetCurrentAlphaPos();
-    // double currentBetaPos = io.GetCurrentBetaPos();
-    double wantedPos = armPos.getPosValue();
-    // boolean workWithAlpha = (wanttedPos != ArmPos.CollectFloorPos_Beta) ? true : false;
-    if(currentAlphaPos != wantedPos){
-      if(currentAlphaPos == ArmPos.CollectFloorPos_Alpha.getPosValue()){
-        //here sould be a sequence
-      }
-      else if(wantedPos == ArmPos.CollectFloorPos_Alpha.getPosValue()){
-        //here sould be a sequence
-      }
-    }
-  }
+  // public void TargetArmPos_Alpha(ArmPos armPos){ //souldn't work 
+  //   double currentAlphaPos = io.GetCurrentAlphaPos();
+  //   // double currentBetaPos = io.GetCurrentBetaPos();
+  //   double wantedPos = armPos.getPosValue();
+  //   // boolean workWithAlpha = (wanttedPos != ArmPos.CollectFloorPos_Beta) ? true : false;
+  //   if(currentAlphaPos != wantedPos){
+  //     if(currentAlphaPos == ArmPos.CollectFloorPos_Alpha.getPosValue()){
+  //       //here sould be a sequence
+  //     }
+  //     else if(wantedPos == ArmPos.CollectFloorPos_Alpha.getPosValue()){
+  //       //here sould be a sequence
+  //     }
+  //   }
+  // }
 }
