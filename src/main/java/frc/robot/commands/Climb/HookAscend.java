@@ -6,7 +6,6 @@ package frc.robot.commands.Climb;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.RobotContainer;
 import frc.robot.subsystems.Climb.Climb;
 
 public class HookAscend extends Command {
@@ -14,9 +13,9 @@ public class HookAscend extends Command {
   Climb climb ;
   Timer timer;
 
-  public HookAscend() {
+  public HookAscend(Climb climb) {
     // Use addRequirements() here to declare subsystem dependencies.
-    climb = RobotContainer.climb; 
+    this.climb = climb;
     addRequirements(climb);
 
     timer = new Timer();
@@ -25,8 +24,8 @@ public class HookAscend extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    if(Timer.getMatchTime() < 120) {cancel();}//TODO: Ask Eyal if we can do it in initialize :3
-    if(!climb.hasLimit()) {timer.start();}
+    if(Timer.getMatchTime() < 120) cancel();
+    if(!climb.hasLimit()) timer.start();
 
     climb.setCoast();
   }
@@ -35,7 +34,7 @@ public class HookAscend extends Command {
   @Override
   public void execute() {
     if(timer.get() >= 1){
-      if ( climb.getPosition() < 0 ) {climb.setMaximum();}
+      if (climb.getPosition() < 0) climb.setMaximum();
       else {climb.setMinimum();}
       
       timer.reset();

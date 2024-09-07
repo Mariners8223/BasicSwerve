@@ -10,7 +10,7 @@ public class ClimbConstants {
     public static final double SPOOL_CIRCUMFERENCE = 0;
     public static final double CLIMB_GEAR_RATIO = 0;
     public static final double CLIMB_CURRENT_WHEN_ON_HOOK = 0;
-    public static final double CLOSE_ZERO_POSITION = 0;
+    public static final double CHAIN_HEIGHT = 0;
     
     //TODO: Find correct value 
 }
