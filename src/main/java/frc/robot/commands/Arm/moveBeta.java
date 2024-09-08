@@ -5,16 +5,24 @@
 package frc.robot.commands.Arm;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.Arm.Arm;
 
 public class moveBeta extends Command {
   /** Creates a new moveBeta. */
-  public moveBeta() {
+  Arm arm;
+  double wantedBetaPos;
+  public moveBeta(Arm arm, double wantedBetaPos) {
+    this.arm=arm;  
+    this.wantedBetaPos=wantedBetaPos;
+    addRequirements(arm);
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    arm.MoveBeta(wantedBetaPos);
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
@@ -27,6 +35,6 @@ public class moveBeta extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return (arm.GetBetaPos()== wantedBetaPos);
   }
 }

@@ -10,15 +10,11 @@ public interface ArmIO {
 
         public double motorBetaPosition;
         public boolean betaLimitSwitch;
-
-
     }
 
     public void setAlphaTargetRotation(double AlphaTarget);
     public void setBetaTargetRotation(double BetaTarget);
     public void resetBetaEncoder();
-    public double GetCurrentAlphaPos();
-    public double GetCurrentBetaPos();
 
     public void update(ArmInputsAutoLogged inputs);
 }

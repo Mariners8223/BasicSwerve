@@ -5,16 +5,25 @@
 package frc.robot.commands.Arm;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.Arm.Arm;
 
 public class moveAlpha extends Command {
   /** Creates a new moveAlpha. */
-  public moveAlpha() {
+  Arm arm;
+  double wantedAlphaPos;
+  public moveAlpha(Arm arm, double wantedAlphaPos) {
     // Use addRequirements() here to declare subsystem dependencies.
+    this.arm = arm;
+    this.wantedAlphaPos = wantedAlphaPos;
+
+    addRequirements(arm);
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    arm.MoveAlpha(wantedAlphaPos);
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
@@ -27,6 +36,6 @@ public class moveAlpha extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return (arm.GetAlphaPos() == wantedAlphaPos); //TODO: Check if this case is correct
   }
 }
