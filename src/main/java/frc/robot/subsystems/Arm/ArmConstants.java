@@ -7,6 +7,7 @@ public class ArmConstants {
         COLLECT_SOURCE_POSITION(0.0, 0),
         SHOOT_SUBWOFFER_POSITION(0.0, 0),
         FREE_POSITION(0.0, 0),
+        
         UNKNOWN(100, 100);
 
         private final double alpha;
