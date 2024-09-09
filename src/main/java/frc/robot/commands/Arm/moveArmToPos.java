@@ -15,7 +15,7 @@ import frc.robot.subsystems.Arm.ArmConstants.ArmPos;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class moveArmToPos extends SequentialCommandGroup {
   /** Creates a new moveArmToPos. */
-  public moveArmToPos(Arm arm, ArmPos targetPos, ArmConstants freePos, ArmConstants collectFloorPos) {
+  public moveArmToPos(Arm arm, ArmPos targetPos) {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
 
