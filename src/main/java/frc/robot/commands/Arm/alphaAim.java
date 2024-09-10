@@ -18,7 +18,10 @@ public class alphaAim extends SequentialCommandGroup {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
     addCommands(
-    new moveBeta(arm,ArmPos.AIM_PSITION.getBeta())
+    new moveBeta(arm,ArmPos.AIM_PSITION.getBeta()),
+    new alphaAim_command(arm),
+    new betaAim_command(arm)
+
     );
   }
 }
