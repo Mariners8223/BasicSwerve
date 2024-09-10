@@ -4,11 +4,7 @@
 
 package frc.robot.subsystems.Climb;
 
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.ControlRequest;
-import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -16,15 +12,12 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 public class ClimbIOReal implements ClimbIO {
 
     TalonFX motorFx;
-    public ClimbIOReal(TalonFX motorFx){this.motorFx = motorFx;}
+    public ClimbIOReal(TalonFX motorFx){ this.motorFx = motorFx; }
 
     @Override
-    public void setBrake(){motorFx.setNeutralMode(NeutralModeValue.Brake);}
-
-    @Override
-    public void setCoast(){motorFx.setNeutralMode(NeutralModeValue.Coast);
-    }
-    //TODO: Ask Eyal if this is correct...? (the brake and set)(also: ConfigStatorCurrentLimit to slow the brake?)
+    public void setBrake(){ motorFx.setNeutralMode(NeutralModeValue.Brake); }
+    public void setCoast(){ motorFx.setNeutralMode(NeutralModeValue.Coast); }
+    // ConfigStatorCurrentLimit to slow the brake
 
     @Override
     public void setMotorDutyCycle(double power){motorFx.set(power);}
@@ -48,6 +41,7 @@ public class ClimbIOReal implements ClimbIO {
         motorFx.getConfigurator().apply(config);
     }
 
+    @Override
     public void update(ClimbInputAutoLogged inputs){
         inputs.motorCurrent = motorFx.getSupplyCurrent().getValueAsDouble() ; 
         inputs.motorPosition = motorFx.getPosition().getValueAsDouble();

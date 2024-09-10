@@ -31,6 +31,7 @@ public class ClimbIOSim implements ClimbIO {
     public void setMaximum(){ max = true; }
     public void setMinimum(){ max = false; }
 
+    @Override
     public void update(ClimbInputAutoLogged inputs){
         motor.update(1/50);
 
