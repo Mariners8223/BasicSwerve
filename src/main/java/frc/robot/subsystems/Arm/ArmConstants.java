@@ -28,5 +28,10 @@ public class ArmConstants {
     }
 
     public static final double ARM_POSITION_TOLERANCE = 5 / 360;
+
+    public static final int alphaMotorID = 0;
+    public static final int betaMotorID = 0;
+    public static final int ccountsPerRev = 0;
+    public static final int limitSwitchPort = 0;
     
 }
