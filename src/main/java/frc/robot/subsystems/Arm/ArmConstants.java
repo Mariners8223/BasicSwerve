@@ -1,5 +1,7 @@
 package frc.robot.subsystems.Arm;
 
+import frc.util.PIDFGains;
+
 public class ArmConstants {
     public enum ArmPos{
         HOME_POSITION(0.0, 0),
@@ -29,9 +31,21 @@ public class ArmConstants {
 
     public static final double ARM_POSITION_TOLERANCE = 5 / 360;
 
-    public static final int alphaMotorID = 0;
-    public static final int betaMotorID = 0;
     public static final int ccountsPerRev = 0;
     public static final int limitSwitchPort = 0;
     
+    public class AlphaConstants{
+        public static final int MOTOR_ID = 0;
+        public static final boolean IS_INVERTED = false;
+
+        public static final PIDFGains PID = new PIDFGains(0, 0, 0, 0, ARM_POSITION_TOLERANCE);
+    }
+    
+    public class BetaConstants{
+        public static final int MOTOR_ID = 0;
+        public static final boolean IS_INVERTED = false;
+
+        public static final PIDFGains PID = new PIDFGains(0, 0, 0, 0, ARM_POSITION_TOLERANCE);
+        public static final double GEAR_RATIO = 0;
+    }
 }
