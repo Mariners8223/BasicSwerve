@@ -47,7 +47,7 @@ public class ArmIOReal implements ArmIO {
             motor.getPIDController().setI(ArmConstants.AlphaConstants.PID.getI());
             motor.getPIDController().setD(ArmConstants.AlphaConstants.PID.getD());
             motor.getPIDController().setFF(ArmConstants.AlphaConstants.PID.getF());
-            //TODO: Tolerance?!?
+            //TODO: Tolerance?!? funny joke
         }
         
         else{
@@ -59,7 +59,7 @@ public class ArmIOReal implements ArmIO {
             motor.getPIDController().setI(ArmConstants.BetaConstants.PID.getI());
             motor.getPIDController().setD(ArmConstants.BetaConstants.PID.getD());
             motor.getPIDController().setFF(ArmConstants.BetaConstants.PID.getF());
-            //TODO: Tolerance?!?
+            //TODO: Tolerance?!? funny joke
         }
 
         return motor;
