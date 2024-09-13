@@ -28,8 +28,8 @@ public class ArmIOReal implements ArmIO {
     SparkPIDController alphaPID;
 
     public ArmIOReal(){
-        alphaMotor = configMotor(true);
-        betaMotor = configMotor(false);
+        alphaMotor = configAlphaMotor();
+        betaMotor = configBetaMotor();
         encoder_Abs = alphaMotor.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
         encoder_Relative = alphaMotor.getAlternateEncoder(ArmConstants.ccountsPerRev);
         limitSwitch = new DigitalInput(ArmConstants.limitSwitchPort);
@@ -37,32 +37,31 @@ public class ArmIOReal implements ArmIO {
        // alphaMotor.getPIDController().setP(0);
     }
 
-    public CANSparkMax configMotor(boolean alpha){
-        CANSparkMax motor;
-        if (alpha){
-            motor = new CANSparkMax(ArmConstants.AlphaConstants.MOTOR_ID, MotorType.kBrushless);
-            motor.setInverted(ArmConstants.AlphaConstants.IS_INVERTED);
+    public CANSparkMax configAlphaMotor(){
+        CANSparkMax alphaMotor;
+            alphaMotor = new CANSparkMax(ArmConstants.AlphaConstants.MOTOR_ID, MotorType.kBrushless);
+            alphaMotor.setInverted(ArmConstants.AlphaConstants.IS_INVERTED);
 
-            motor.getPIDController().setP(ArmConstants.AlphaConstants.PID.getP());
-            motor.getPIDController().setI(ArmConstants.AlphaConstants.PID.getI());
-            motor.getPIDController().setD(ArmConstants.AlphaConstants.PID.getD());
-            motor.getPIDController().setFF(ArmConstants.AlphaConstants.PID.getF());
-            //TODO: Tolerance?!? funny joke
-        }
+            alphaMotor.getPIDController().setP(ArmConstants.AlphaConstants.PID.getP());
+            alphaMotor.getPIDController().setI(ArmConstants.AlphaConstants.PID.getI());
+            alphaMotor.getPIDController().setD(ArmConstants.AlphaConstants.PID.getD());
+            alphaMotor.getPIDController().setFF(ArmConstants.AlphaConstants.PID.getF());
+
+            return alphaMotor;
+    }
         
-        else{
-            motor = new CANSparkMax(ArmConstants.BetaConstants.MOTOR_ID, MotorType.kBrushless);
-            motor.setInverted(ArmConstants.BetaConstants.IS_INVERTED);
-            motor.getEncoder().setPositionConversionFactor(ArmConstants.BetaConstants.GEAR_RATIO);
+    public CANSparkMax configBetaMotor(){
+        CANSparkMax betaMotor;
+            betaMotor = new CANSparkMax(ArmConstants.BetaConstants.MOTOR_ID, MotorType.kBrushless);
+            betaMotor.setInverted(ArmConstants.BetaConstants.IS_INVERTED);
+            betaMotor.getEncoder().setPositionConversionFactor(ArmConstants.BetaConstants.GEAR_RATIO);
 
-            motor.getPIDController().setP(ArmConstants.BetaConstants.PID.getP());
-            motor.getPIDController().setI(ArmConstants.BetaConstants.PID.getI());
-            motor.getPIDController().setD(ArmConstants.BetaConstants.PID.getD());
-            motor.getPIDController().setFF(ArmConstants.BetaConstants.PID.getF());
-            //TODO: Tolerance?!? funny joke
-        }
+            betaMotor.getPIDController().setP(ArmConstants.BetaConstants.PID.getP());
+            betaMotor.getPIDController().setI(ArmConstants.BetaConstants.PID.getI());
+            betaMotor.getPIDController().setD(ArmConstants.BetaConstants.PID.getD());
+            betaMotor.getPIDController().setFF(ArmConstants.BetaConstants.PID.getF());
 
-        return motor;
+            return betaMotor;
     }
 
     public void setAlphaTargetRotation(double alphaTarget){
