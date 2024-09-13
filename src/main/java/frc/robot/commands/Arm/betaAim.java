@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Arm.Arm;
-import frc.robot.subsystems.Arm.ArmConstants.ArmPos;
+import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
@@ -20,7 +20,7 @@ public class betaAim extends SequentialCommandGroup {
     // addCommands(new FooCommand(), new BarCommand());
     
    addCommands(
-     new moveAlpha(arm,ArmPos.AIM_PSITION.getAlpha()),
+     new moveAlpha(arm,ArmPosition.AIM_PSITION.getAlpha()),
      new betaAim_command(arm, betaTarget)
     );
   }

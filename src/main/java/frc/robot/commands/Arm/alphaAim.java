@@ -10,7 +10,7 @@ import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Arm.Arm;
-import frc.robot.subsystems.Arm.ArmConstants.ArmPos;
+import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
@@ -21,7 +21,7 @@ public class alphaAim extends SequentialCommandGroup {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
     addCommands(
-     new moveBeta(arm,ArmPos.AIM_PSITION.getBeta()),
+     new moveBeta(arm,ArmPosition.AIM_PSITION.getBeta()),
      new alphaAim_command(arm, alphaTarget)
     );          
   }

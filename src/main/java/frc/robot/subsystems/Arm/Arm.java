@@ -5,7 +5,7 @@
 package frc.robot.subsystems.Arm;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Arm.ArmConstants.*;
-import frc.robot.subsystems.Arm.ArmConstants.ArmPos;
+import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 
 
 public class Arm extends SubsystemBase {
@@ -24,20 +24,20 @@ public class Arm extends SubsystemBase {
   public double GetAlphaPos() { return inputs.motorAlphaPosition; }
   public double GetBetaPos() { return inputs.motorBetaPosition; }
 
-  public ArmPos getCurrentPos(){
+  public ArmPosition getCurrentPos(){
     double alpha = GetAlphaPos();
     double beta = GetBetaPos();
 
-    ArmPos[] positions = ArmPos.values();
+    ArmPosition[] positions = ArmPosition.values();
 
-    for (ArmPos armPos : positions) {
+    for (ArmPosition armPos : positions) {
       if(Math.abs(alpha - armPos.getAlpha()) < ArmConstants.ARM_POSITION_TOLERANCE &&
       Math.abs(beta - armPos.getBeta()) < ArmConstants.ARM_POSITION_TOLERANCE)
       return armPos;
     }
 
  
-    return ArmPos.UNKNOWN;
+    return ArmPosition.UNKNOWN;
   }
   
   @Override

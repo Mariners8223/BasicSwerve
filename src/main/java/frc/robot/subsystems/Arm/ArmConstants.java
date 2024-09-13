@@ -3,7 +3,7 @@ package frc.robot.subsystems.Arm;
 import frc.util.PIDFGains;
 
 public class ArmConstants {
-    public enum ArmPos{
+    public enum ArmPosition{
         HOME_POSITION(0.0, 0),
         COLLECT_FLOOR_POSITION(0.0, 0),
         COLLECT_SOURCE_POSITION(0.0, 0),
@@ -14,7 +14,7 @@ public class ArmConstants {
 
         private final double alpha;
         private final double beta;
-        ArmPos(double alpha, double beta){
+        ArmPosition(double alpha, double beta){
             this.alpha = alpha;
             this.beta = beta;
         }
