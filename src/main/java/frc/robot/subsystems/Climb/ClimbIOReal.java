@@ -16,7 +16,7 @@ public class ClimbIOReal implements ClimbIO {
     public ClimbIOReal(TalonFX motorFx){
         this.motorFx = motorFx;
 
-        this.motorFx = new TalonFX(0);s
+        this.motorFx = new TalonFX(0);
     }
 
     @Override
