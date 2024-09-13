@@ -13,9 +13,9 @@ public class betaAim_command extends Command {
   Arm arm;
   Supplier<Double> betaTarget;
   
-  public betaAim_command(Arm arm){
+  public betaAim_command(Arm arm,Supplier<Double> betaTarget){
     this.arm = arm;
-
+    this.betaTarget = betaTarget;
       addRequirements(arm);
   } 
   /** Creates a new betaAim_command. */
