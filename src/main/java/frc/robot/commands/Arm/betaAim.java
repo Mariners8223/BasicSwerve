@@ -5,7 +5,7 @@
 package frc.robot.commands.Arm;
 
 import java.util.function.Supplier;
-
+import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Arm.Arm;
 import frc.robot.subsystems.Arm.ArmConstants.ArmPos;
@@ -15,7 +15,7 @@ import frc.robot.subsystems.Arm.ArmConstants.ArmPos;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class betaAim extends SequentialCommandGroup {
   /** Creates a new betaAim. */
-  public betaAim(Arm arm, Supplier<Double> betaTarget) {
+  public betaAim(Arm arm, Supplier<Measure<Angle>> betaTarget) {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
     

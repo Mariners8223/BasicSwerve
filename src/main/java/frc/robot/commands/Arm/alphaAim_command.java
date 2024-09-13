@@ -6,14 +6,15 @@ package frc.robot.commands.Arm;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Arm.Arm;
 
 public class alphaAim_command extends Command {
   /** Creates a new alphaAim_command. */
   Arm arm;
-  Supplier<Double> alphaTarget;
-  public alphaAim_command(Arm arm, Supplier<Double> alphaTarget) {
+  Supplier<Measure<Angle>> alphaTarget;
+  public alphaAim_command(Arm arm, Supplier<Measure<Angle>> alphaTarget) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.arm = arm;
     this.alphaTarget= alphaTarget;
@@ -28,7 +29,7 @@ public class alphaAim_command extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-     arm.MoveAlpha(alphaTarget.get());
+     arm.MoveAlpha(alphaTarget.get().in(Units.Radian));
     }
 
   // Called once the command ends or is interrupted.
