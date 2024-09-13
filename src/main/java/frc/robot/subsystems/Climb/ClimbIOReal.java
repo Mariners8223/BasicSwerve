@@ -12,7 +12,12 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 public class ClimbIOReal implements ClimbIO {
 
     TalonFX motorFx;
-    public ClimbIOReal(TalonFX motorFx){ this.motorFx = motorFx; }
+
+    public ClimbIOReal(TalonFX motorFx){
+        this.motorFx = motorFx;
+
+        this.motorFx = new TalonFX(0);s
+    }
 
     @Override
     public void setBrake(){ motorFx.setNeutralMode(NeutralModeValue.Brake); }
