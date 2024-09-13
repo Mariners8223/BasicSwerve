@@ -13,10 +13,10 @@ public class alphaAim_command extends Command {
   /** Creates a new alphaAim_command. */
   Arm arm;
   Supplier<Double> alphaTarget;
-  public alphaAim_command(Arm arm) {
+  public alphaAim_command(Arm arm, Supplier<Double> alphaTarget) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.arm = arm;
-
+    this.alphaTarget= alphaTarget;
       addRequirements(arm);
     }
 

@@ -65,8 +65,8 @@ public class ArmIOReal implements ArmIO {
         return motor;
     }
 
-    public void setAlphaTargetRotation(double AlphaTarget){
-        alphaMotor.getPIDController().setReference(AlphaTarget, ControlType.kPosition);
+    public void setAlphaTargetRotation(double alphaTarget){
+        alphaMotor.getPIDController().setReference(alphaTarget, ControlType.kPosition);
     }
     public void setBetaTargetRotation(double BetaTarget){
         betaMotor.getPIDController().setReference(BetaTarget,ControlType.kPosition);
