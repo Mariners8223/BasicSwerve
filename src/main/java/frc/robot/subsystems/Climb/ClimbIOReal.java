@@ -13,16 +13,14 @@ public class ClimbIOReal implements ClimbIO {
 
     TalonFX motorFx;
 
-    public ClimbIOReal(TalonFX motorFx){
-        this.motorFx = motorFx;
-
-        this.motorFx = new TalonFX(0);
+    public ClimbIOReal(){
+        this.motorFx = new TalonFX(ClimbConstants.MOTOR_ID);
     }
 
     @Override
     public void setBrake(){ motorFx.setNeutralMode(NeutralModeValue.Brake); }
     public void setCoast(){ motorFx.setNeutralMode(NeutralModeValue.Coast); }
-    // ConfigStatorCurrentLimit to slow the brake
+    // For Later (just in case): ConfigStatorCurrentLimit to slow the brake
 
     @Override
     public void setMotorDutyCycle(double power){motorFx.set(power);}
@@ -35,19 +33,21 @@ public class ClimbIOReal implements ClimbIO {
         SoftwareLimitSwitchConfigs config = new SoftwareLimitSwitchConfigs();
         config.ForwardSoftLimitThreshold = 0;
         config.ForwardSoftLimitEnable = true;
+        config.ReverseSoftLimitEnable = false;
         motorFx.getConfigurator().apply(config);
     }
 
     @Override
     public void setMinimum(){
         SoftwareLimitSwitchConfigs config = new SoftwareLimitSwitchConfigs();
-        config.ForwardSoftLimitThreshold = 0;
-        config.ForwardSoftLimitEnable = true;
+        config.ReverseSoftLimitThreshold = 0;
+        config.ReverseSoftLimitEnable = true;
+        config.ForwardSoftLimitEnable = false;
         motorFx.getConfigurator().apply(config);
     }
 
     @Override
-    public void update(ClimbInputAutoLogged inputs){
+    public void update(ClimbInputsAutoLogged inputs){
         inputs.motorCurrent = motorFx.getSupplyCurrent().getValueAsDouble() ; 
         inputs.motorPosition = motorFx.getPosition().getValueAsDouble();
         inputs.motorSpeed=  motorFx.getVelocity().getValueAsDouble();

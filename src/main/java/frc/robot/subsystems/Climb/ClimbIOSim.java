@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.Climb;
 
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
@@ -11,17 +12,19 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 public class ClimbIOSim implements ClimbIO {
 
     DCMotorSim motor;
+    DCMotor gearbox;
     boolean max;
 
-    public ClimbIOSim(DCMotorSim motor){
-        this.motor = motor;
+    public ClimbIOSim(){
+        gearbox = new DCMotor(0, 0, 0, 0, 0, 0);
+        motor = new DCMotorSim(gearbox, ClimbConstants.SimConstants.GEARING, 1);
     }
 
     @Override
     public void setMotorDutyCycle(double power){ motor.setInputVoltage(power * RobotController.getBatteryVoltage()); }
     
     @Override
-    public void setCoast(){ motor.setState(motor.getAngularPositionRotations(), 3); } //TODO: Check actual velocity
+    public void setCoast(){ motor.setState(motor.getAngularPositionRotations(), ClimbConstants.SimConstants.COAST_VELOCITY); } //TODO: Check actual velocity
     public void setBrake(){ motor.setState(motor.getAngularPositionRotations(), 0); }
     
     @Override
@@ -32,7 +35,7 @@ public class ClimbIOSim implements ClimbIO {
     public void setMinimum(){ max = false; }
 
     @Override
-    public void update(ClimbInputAutoLogged inputs){
+    public void update(ClimbInputsAutoLogged inputs){
         motor.update(1/50);
 
         inputs.motorCurrent = motor.getCurrentDrawAmps();

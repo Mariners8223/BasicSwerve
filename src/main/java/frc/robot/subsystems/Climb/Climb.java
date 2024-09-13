@@ -7,26 +7,33 @@ package frc.robot.subsystems.Climb;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.Climb.ClimbIO.ClimbInput;
+import frc.robot.subsystems.Climb.ClimbIO.ClimbInputs;
 
 public class Climb extends SubsystemBase {
   /** Creates a new Climb. */
   ClimbIO io ;
-  ClimbInputAutoLogged input;
+  ClimbInputsAutoLogged input;
   boolean hasLimit;
+  Pose3d hookPosition;
   
   public Climb() {
     hasLimit = false;
   }
 
   public void setMaximum(){
-    io.setMaximum();
-    hasLimit = true;
+    if (!hasLimit){
+      io.setMaximum();
+      hasLimit = true;
+    }
   }
   public void setMinimum(){
-    io.setMinimum();
-    hasLimit= true;
+    if (!hasLimit){
+      io.setMinimum();
+      hasLimit= true;
+    }
   }
 
   public boolean hasLimit(){return hasLimit;}
@@ -35,7 +42,7 @@ public class Climb extends SubsystemBase {
   public void resetEncoder(){io.resetEncoder();}
 
   public void startMotor(double power){
-    MathUtil.clamp(power, -0.8, 0.8);
+    power = MathUtil.clamp(power, -0.8, 0.8);
     io.setMotorDutyCycle(power);
   }
   
@@ -54,5 +61,6 @@ public class Climb extends SubsystemBase {
     io.update(input);
     Logger.recordOutput("Climb/Is hook on chain", getIsHookOnChain());
     Logger.recordOutput("Climb/Hook Height",getHookHeight() );
+    Logger.recordOutput("Hook Position", new Pose3d(ClimbConstants.POSITION_X_VALUE, ClimbConstants.POSITION_Y_VALUE, getHookHeight(), new Rotation3d()));
   }
 }

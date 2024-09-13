@@ -12,7 +12,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 public interface ClimbIO {
 
     @AutoLog
-    public static class ClimbInput{
+    public static class ClimbInputs{
         double motorTemperature;
         double motorCurrent;
         double motorSpeed;
@@ -26,5 +26,5 @@ public interface ClimbIO {
     public void setMaximum();
     public void resetEncoder();
 
-    public void update(ClimbInputAutoLogged inputs);
+    public void update(ClimbInputsAutoLogged inputs);
 }

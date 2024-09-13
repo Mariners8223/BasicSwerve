@@ -13,14 +13,11 @@ import frc.robot.subsystems.Climb.ClimbConstants;
 public class HookDescend extends Command {
   /** Creates a new HookDescend. */
   Climb climb ;
-  Timer timer;
 
   public HookDescend(Climb climb) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.climb = climb; 
     addRequirements(climb);
-
-    timer = new Timer();
   }
 
   // Called when the command is initially scheduled.

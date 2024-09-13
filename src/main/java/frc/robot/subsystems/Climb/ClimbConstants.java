@@ -11,6 +11,15 @@ public class ClimbConstants {
     public static final double CLIMB_GEAR_RATIO = 0;
     public static final double CLIMB_CURRENT_WHEN_ON_HOOK = 0;
     public static final double CHAIN_HEIGHT = 0;
+    public static final int MOTOR_ID = 0;
+    
+    public static final double POSITION_X_VALUE = 0;
+    public static final double POSITION_Y_VALUE = 0;
+
+    public class SimConstants{
+        public static final double GEARING = 1;
+        public static final double COAST_VELOCITY = 0;
+    }
     
     //TODO: Find correct value 
 }
