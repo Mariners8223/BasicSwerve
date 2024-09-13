@@ -3,7 +3,6 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.subsystems.Arm;
-import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Arm.ArmConstants.*;
 import frc.robot.subsystems.Arm.ArmConstants.ArmPos;
@@ -14,7 +13,7 @@ public class Arm extends SubsystemBase {
   ArmIOReal io;
   ArmInputsAutoLogged inputs;
 
-  public void MoveAlpha(Measure<Angle> AlphaTarget){
+  public void MoveAlpha(double AlphaTarget){
     io.setAlphaTargetRotation(AlphaTarget);
   }
 
