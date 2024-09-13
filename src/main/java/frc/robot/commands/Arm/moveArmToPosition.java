@@ -13,9 +13,9 @@ import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class moveArmToPos extends SequentialCommandGroup {
-  /** Creates a new moveArmToPos. */
-  public moveArmToPos(Arm arm, ArmPosition targetPos) {
+public class moveArmToPosition extends SequentialCommandGroup {
+  /** Creates a new moveArmToPosition. */
+  public moveArmToPosition(Arm arm, ArmPosition targetPos) {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
 

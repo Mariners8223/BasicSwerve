@@ -21,17 +21,17 @@ public class ArmIOReal implements ArmIO {
     CANSparkMax alphaMotor;
     CANSparkMax betaMotor;
 
-    SparkAbsoluteEncoder encoder_Abs;
-    RelativeEncoder encoder_Relative;
+    SparkAbsoluteEncoder AbsolueEncoder;
+    RelativeEncoder RelativeEncoder;
     DigitalInput limitSwitch;
 
-    SparkPIDController alphaPID;
+    
 
     public ArmIOReal(){
         alphaMotor = configAlphaMotor();
         betaMotor = configBetaMotor();
-        encoder_Abs = alphaMotor.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
-        encoder_Relative = alphaMotor.getAlternateEncoder(ArmConstants.ccountsPerRev);
+        AbsolueEncoder = alphaMotor.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
+        RelativeEncoder = alphaMotor.getAlternateEncoder(ArmConstants.ccountsPerRev);
         limitSwitch = new DigitalInput(ArmConstants.limitSwitchPort);
 
        // alphaMotor.getPIDController().setP(0);
@@ -54,7 +54,7 @@ public class ArmIOReal implements ArmIO {
         CANSparkMax betaMotor;
             betaMotor = new CANSparkMax(ArmConstants.BetaConstants.MOTOR_ID, MotorType.kBrushless);
             betaMotor.setInverted(ArmConstants.BetaConstants.IS_INVERTED);
-            betaMotor.getEncoder().setPositionConversionFactor(ArmConstants.BetaConstants.GEAR_RATIO);
+            
 
             betaMotor.getPIDController().setP(ArmConstants.BetaConstants.PID.getP());
             betaMotor.getPIDController().setI(ArmConstants.BetaConstants.PID.getI());
@@ -74,8 +74,8 @@ public class ArmIOReal implements ArmIO {
         betaMotor.getEncoder().setPosition(0);
     }
     public void update(ArmInputsAutoLogged inputs){
-        inputs.motorAlphaPosition = encoder_Relative.getPosition();
-        inputs.absAlphaEncoderPosition = encoder_Abs.getPosition();
+        inputs.motorAlphaPosition = RelativeEncoder.getPosition();
+        inputs.absAlphaEncoderPosition = AbsolueEncoder.getPosition();
         inputs.motorBetaPosition = betaMotor.getEncoder().getPosition();
         inputs.betaLimitSwitch = limitSwitch.get();
     }

@@ -18,8 +18,7 @@ public class betaAim_command extends Command {
     this.betaTarget = betaTarget;
       addRequirements(arm);
   } 
-  /** Creates a new betaAim_command. */
-  public betaAim_command() {
+  /** Creates a new betaAim_command. */ {
     // Use addRequirements() here to declare subsystem dependencies.
   }
 

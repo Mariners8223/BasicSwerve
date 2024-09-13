@@ -15,6 +15,7 @@ public class Arm extends SubsystemBase {
 
   public void MoveAlpha(double AlphaTarget){
     io.setAlphaTargetRotation(AlphaTarget);
+    
   }
 
   public void MoveBeta(double BetaTarget){
