@@ -29,7 +29,7 @@ public class betaAim_command extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    arm.MoveBeta(betaTarget.get().in(Units.Radian));
+    arm.MoveBeta(Math.PI - betaTarget.get().in(Units.Radian));
   }
 
   // Called once the command ends or is interrupted.
