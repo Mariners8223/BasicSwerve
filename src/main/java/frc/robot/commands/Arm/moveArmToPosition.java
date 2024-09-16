@@ -4,10 +4,8 @@
 
 package frc.robot.commands.Arm;
 
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Arm.Arm;
-import frc.robot.subsystems.Arm.ArmConstants;
 import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more

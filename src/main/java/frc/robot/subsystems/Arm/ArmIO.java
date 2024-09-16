@@ -10,6 +10,8 @@ public interface ArmIO {
 
         public double motorBetaPosition;
         public boolean betaLimitSwitch;
+        public double alphaAppliedOutput;
+        public double betaAppliedOutput;
     }
 
     public void setAlphaTargetRotation(double AlphaTarget);

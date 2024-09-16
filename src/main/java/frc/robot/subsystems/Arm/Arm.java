@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems.Arm;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.Arm.ArmConstants.*;
 import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 
 
@@ -36,7 +35,6 @@ public class Arm extends SubsystemBase {
       Math.abs(beta - armPos.getBeta()) < ArmConstants.ARM_POSITION_TOLERANCE)
       return armPos;
     }
-
  
     return ArmPosition.UNKNOWN;
   }

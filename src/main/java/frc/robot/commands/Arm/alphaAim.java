@@ -7,7 +7,6 @@ package frc.robot.commands.Arm;
 import java.util.function.Supplier;
 
 import edu.wpi.first.units.*;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Arm.Arm;
 import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
@@ -21,6 +20,7 @@ public class alphaAim extends SequentialCommandGroup {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
     addCommands(
+     new moveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> arm.getCurrentPos() == ArmPosition.COLLECT_FLOOR_POSITION),
      new moveBeta(arm,ArmPosition.AIM_PSITION.getBeta()),
      new alphaAim_command(arm, alphaTarget)
     );          
