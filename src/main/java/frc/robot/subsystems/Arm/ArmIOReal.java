@@ -46,6 +46,9 @@ public class ArmIOReal implements ArmIO {
             alphaMotor.getPIDController().setI(ArmConstants.AlphaConstants.PID.getI());
             alphaMotor.getPIDController().setD(ArmConstants.AlphaConstants.PID.getD());
             alphaMotor.getPIDController().setFF(ArmConstants.AlphaConstants.PID.getF());
+            alphaMotor.setSmartCurrentLimit(35);
+            alphaMotor.setSecondaryCurrentLimit(60);
+
 
             return alphaMotor;
     }
@@ -60,6 +63,8 @@ public class ArmIOReal implements ArmIO {
             betaMotor.getPIDController().setI(ArmConstants.BetaConstants.PID.getI());
             betaMotor.getPIDController().setD(ArmConstants.BetaConstants.PID.getD());
             betaMotor.getPIDController().setFF(ArmConstants.BetaConstants.PID.getF());
+            betaMotor.setSmartCurrentLimit(35);
+            betaMotor.setSecondaryCurrentLimit(60);
 
             return betaMotor;
     }
