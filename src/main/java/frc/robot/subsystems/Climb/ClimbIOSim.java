@@ -22,32 +22,14 @@ public class ClimbIOSim implements ClimbIO {
 
     @Override
     public void setMotorDutyCycle(double power){ motor.setInputVoltage(power * RobotController.getBatteryVoltage()); }
-    
-    @Override
-    public void setCoast(){ motor.setState(motor.getAngularPositionRotations(), ClimbConstants.SimConstants.COAST_VELOCITY); } //TODO: Check actual velocity
-    public void setBrake(){ motor.setState(motor.getAngularPositionRotations(), 0); }
-    
-    @Override
-    public void resetEncoder(){ motor.setState(0, motor.getAngularVelocityRadPerSec());}
 
     @Override
-    public void setMaximum(){ max = true; }
-    public void setMinimum(){ max = false; }
+    public void stopMotor(){ motor.setState(motor.getAngularPositionRad(), 0); }
 
     @Override
     public void update(ClimbInputsAutoLogged inputs){
         motor.update(1/50);
-
-        inputs.motorCurrent = motor.getCurrentDrawAmps();
-        inputs.motorPosition = motor.getAngularPositionRotations();
-        inputs.motorSpeed = motor.getAngularVelocityRPM();
+        inputs.motorAppliedOutput = motor.getCurrentDrawAmps();
         inputs.motorTemperature = -274;
-
-        if (max){
-            if (inputs.motorPosition > 0) { setBrake(); }
-        }
-        if (!max){
-            if (inputs.motorPosition < 0) { setBrake(); }
-        }
     }
 }

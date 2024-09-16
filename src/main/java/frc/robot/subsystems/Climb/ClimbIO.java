@@ -14,17 +14,11 @@ public interface ClimbIO {
     @AutoLog
     public static class ClimbInputs{
         double motorTemperature;
-        double motorCurrent;
-        double motorSpeed;
-        double motorPosition;
+        double motorAppliedOutput;
     }
 
     public void setMotorDutyCycle(double power);
-    public void setCoast();
-    public void setBrake();
-    public void setMinimum();
-    public void setMaximum();
-    public void resetEncoder();
+    public void stopMotor();
 
     public void update(ClimbInputsAutoLogged inputs);
 }

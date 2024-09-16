@@ -4,54 +4,32 @@
 
 package frc.robot.subsystems.Climb;
 
-import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+
+// import com.ctre.phoeni
 
 /** Add your docs here. */
 public class ClimbIOReal implements ClimbIO {
-
-    TalonFX motorFx;
+    VictorSPX motorSPX;
 
     public ClimbIOReal(){
-        this.motorFx = new TalonFX(ClimbConstants.MOTOR_ID);
+        this.motorSPX = new VictorSPX(ClimbConstants.MOTOR_ID);
+
+        motorSPX.enableVoltageCompensation(true);
+        motorSPX.setInverted(ClimbConstants.MOTOR_INVERTED);
     }
 
     @Override
-    public void setBrake(){ motorFx.setNeutralMode(NeutralModeValue.Brake); }
-    public void setCoast(){ motorFx.setNeutralMode(NeutralModeValue.Coast); }
-    // For Later (just in case): ConfigStatorCurrentLimit to slow the brake
+    public void setMotorDutyCycle(double power){motorSPX.set(VictorSPXControlMode.PercentOutput, power);}
 
     @Override
-    public void setMotorDutyCycle(double power){motorFx.set(power);}
-
-    @Override
-    public void resetEncoder(){motorFx.setPosition(0);}
-
-    @Override
-    public void setMaximum(){
-        SoftwareLimitSwitchConfigs config = new SoftwareLimitSwitchConfigs();
-        config.ForwardSoftLimitThreshold = 0;
-        config.ForwardSoftLimitEnable = true;
-        config.ReverseSoftLimitEnable = false;
-        motorFx.getConfigurator().apply(config);
-    }
-
-    @Override
-    public void setMinimum(){
-        SoftwareLimitSwitchConfigs config = new SoftwareLimitSwitchConfigs();
-        config.ReverseSoftLimitThreshold = 0;
-        config.ReverseSoftLimitEnable = true;
-        config.ForwardSoftLimitEnable = false;
-        motorFx.getConfigurator().apply(config);
-    }
+    public void stopMotor() {motorSPX.set(VictorSPXControlMode.Disabled, 0);}
 
     @Override
     public void update(ClimbInputsAutoLogged inputs){
-        inputs.motorCurrent = motorFx.getSupplyCurrent().getValueAsDouble() ; 
-        inputs.motorPosition = motorFx.getPosition().getValueAsDouble();
-        inputs.motorSpeed=  motorFx.getVelocity().getValueAsDouble();
-        inputs.motorTemperature = motorFx.getDeviceTemp().getValueAsDouble();
+        inputs.motorAppliedOutput = motorSPX.getMotorOutputPercent();
+        inputs.motorTemperature = motorSPX.getTemperature();
     }
 
 

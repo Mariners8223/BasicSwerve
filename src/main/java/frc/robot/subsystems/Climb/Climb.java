@@ -19,48 +19,21 @@ public class Climb extends SubsystemBase {
   boolean hasLimit;
   Pose3d hookPosition;
   
-  public Climb() {
-    hasLimit = false;
-  }
-
-  public void setMaximum(){
-    if (!hasLimit){
-      io.setMaximum();
-      hasLimit = true;
-    }
-  }
-  public void setMinimum(){
-    if (!hasLimit){
-      io.setMinimum();
-      hasLimit= true;
-    }
-  }
-
-  public boolean hasLimit(){return hasLimit;}
-  public void setCoast(){io.setCoast();}
-  public void setBrake(){io.setBrake();}
-  public void resetEncoder(){io.resetEncoder();}
+  public Climb() {  }
 
   public void startMotor(double power){
-    power = MathUtil.clamp(power, -0.8, 0.8);
+    power = MathUtil.clamp(power, 0, 1);
     io.setMotorDutyCycle(power);
   }
-  
-  public double getHookHeight(){
-    //TODO: Aproximate hook movement with graph:)
-    return 0;
-  }
 
-  public boolean getIsHookOnChain() {return (input.motorCurrent > ClimbConstants.CLIMB_CURRENT_WHEN_ON_HOOK) 
-                                    && (Math.abs(input.motorPosition) > ClimbConstants.CHAIN_HEIGHT);}
-  public double getPosition(){return input.motorPosition;}
+  public void stopMotor(){
+    io.stopMotor();
+  }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     io.update(input);
-    Logger.recordOutput("Climb/Is hook on chain", getIsHookOnChain());
-    Logger.recordOutput("Climb/Hook Height",getHookHeight() );
-    Logger.recordOutput("Hook Position", new Pose3d(ClimbConstants.POSITION_X_VALUE, ClimbConstants.POSITION_Y_VALUE, getHookHeight(), new Rotation3d()));
+    // Logger.recordOutput("Climb/Is hook on chain", getIsHookOnChain());
   }
 }

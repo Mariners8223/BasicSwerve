@@ -23,11 +23,7 @@ public class HookDescend extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-
-    if(Timer.getMatchTime() < 120|| !climb.hasLimit()) cancel();
-
-    if(climb.getPosition() > 0) climb.startMotor(-1*ClimbConstants.CLIMB_MOTOR_POWER);
-    else {climb.startMotor(ClimbConstants.CLIMB_MOTOR_POWER);}
+    climb.startMotor(ClimbConstants.CLIMB_DESCEND_MOTOR_POWER);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -37,7 +33,7 @@ public class HookDescend extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    climb.setBrake();
+    climb.stopMotor();
   }
 
   // Returns true when the command should end.
