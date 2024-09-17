@@ -45,6 +45,7 @@ public class ArmConstants {
         public static final double cecondaryCurrentLimit_alpha = 0;
         public static final float alphaForwardSoftLimit = 0;
         public static final float alphaReverseSoftLimit = 0;
+        public static final double alphaGearRatio = 0;
     }
     
     public class BetaConstants{
@@ -59,5 +60,6 @@ public class ArmConstants {
         public static final double cecondaryCurrentLimit_beta = 0;
         public static final float betaForwardSoftLimit = 0;
         public static final float betaReverseSoftLimit = 0;
+        public static double BetaGearRatio;
     }
 }

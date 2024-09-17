@@ -75,11 +75,11 @@ public class ArmIOReal implements ArmIO {
     }
 
     public void setAlphaTargetRotation(double alphaTarget){
-        alphaMotor.getPIDController().setReference(alphaTarget, ControlType.kPosition);
+        alphaMotor.getPIDController().setReference(alphaTarget * ArmConstants.AlphaConstants.alphaGearRatio, ControlType.kPosition);
     }
 
     public void setBetaTargetRotation(double BetaTarget){
-        betaMotor.getPIDController().setReference(BetaTarget,ControlType.kPosition);
+        betaMotor.getPIDController().setReference(BetaTarget * ArmConstants.BetaConstants.BetaGearRatio ,ControlType.kPosition);
     }
 
     public void resetBetaEncoder(){
