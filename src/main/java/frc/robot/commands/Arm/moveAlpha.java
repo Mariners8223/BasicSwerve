@@ -9,8 +9,8 @@ import frc.robot.subsystems.Arm.Arm;
 
 public class moveAlpha extends Command {
   /** Creates a new moveAlpha. */
-  Arm arm;
-  double wantedAlphaPos;
+  private final Arm arm;
+  private final double wantedAlphaPos;
   public moveAlpha(Arm arm, double wantedAlphaPos) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.arm = arm;
@@ -34,6 +34,6 @@ public class moveAlpha extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return (arm.GetAlphaPos() == wantedAlphaPos); //TODO: Check if this case is correct
+    return (arm.GetAlphaPosition() == wantedAlphaPos); //TODO: Check if this case is correct
   }
 }

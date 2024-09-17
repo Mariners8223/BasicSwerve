@@ -9,7 +9,7 @@ public class ArmConstants {
         COLLECT_SOURCE_POSITION(0.0, 0),
         SHOOT_SUBWOFFER_POSITION(0.0, 0),
         FREE_POSITION(0.0, 0),
-        AIM_PSITION(0,0),
+        AIM_POSITION(0,0),
         UNKNOWN(100, 100);
 
         private final double alpha;
@@ -43,6 +43,8 @@ public class ArmConstants {
         public static final double maxOutputRange_alpha = 0;
         public static final int smartCurrentLimit_alpha = 0;
         public static final double cecondaryCurrentLimit_alpha = 0;
+        public static final float alphaForwardSoftLimit = 0;
+        public static final float alphaReverseSoftLimit = 0;
     }
     
     public class BetaConstants{
@@ -55,5 +57,7 @@ public class ArmConstants {
         public static final double maxOutputRange_beta = 0;
         public static final int smartCurrentLimit_beta = 0;
         public static final double cecondaryCurrentLimit_beta = 0;
+        public static final float betaForwardSoftLimit = 0;
+        public static final float betaReverseSoftLimit = 0;
     }
 }

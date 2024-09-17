@@ -20,8 +20,8 @@ public class alphaAim extends SequentialCommandGroup {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
     addCommands(
-     new moveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> arm.getCurrentPos() == ArmPosition.COLLECT_FLOOR_POSITION),
-     new moveBeta(arm,ArmPosition.AIM_PSITION.getBeta()),
+     new moveArmToPosition(arm, ArmPosition.FREE_POSITION),
+     new moveBeta(arm,ArmPosition.AIM_POSITION.getBeta()),
      new alphaAim_command(arm, alphaTarget)
     );          
   }

@@ -9,6 +9,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAbsoluteEncoder;
 import com.revrobotics.CANSparkBase.ControlType;
+import com.revrobotics.CANSparkBase.SoftLimitDirection;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -30,8 +31,6 @@ public class ArmIOReal implements ArmIO {
         AbsolueEncoder = alphaMotor.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
         RelativeEncoder = alphaMotor.getAlternateEncoder(ArmConstants.ccountsPerRev);
         limitSwitch = new DigitalInput(ArmConstants.limitSwitchPort);
-
-       // alphaMotor.getPIDController().setP(0);
     }
 
     public CANSparkMax configAlphaMotor(){
@@ -48,6 +47,8 @@ public class ArmIOReal implements ArmIO {
             alphaMotor.setSmartCurrentLimit(ArmConstants.AlphaConstants.smartCurrentLimit_alpha);
             alphaMotor.setSecondaryCurrentLimit(ArmConstants.AlphaConstants.cecondaryCurrentLimit_alpha);
 
+            alphaMotor.setSoftLimit(SoftLimitDirection.kForward, ArmConstants.AlphaConstants.alphaForwardSoftLimit);
+            alphaMotor.setSoftLimit(SoftLimitDirection.kReverse, ArmConstants.AlphaConstants.alphaReverseSoftLimit);
 
             return alphaMotor;
     }
@@ -66,6 +67,9 @@ public class ArmIOReal implements ArmIO {
 
             betaMotor.setSmartCurrentLimit(ArmConstants.BetaConstants.smartCurrentLimit_beta);
             betaMotor.setSecondaryCurrentLimit(ArmConstants.BetaConstants.cecondaryCurrentLimit_beta);
+
+            betaMotor.setSoftLimit(SoftLimitDirection.kForward, ArmConstants.BetaConstants.betaForwardSoftLimit);
+            betaMotor.setSoftLimit(SoftLimitDirection.kReverse, ArmConstants.BetaConstants.betaReverseSoftLimit);
 
             return betaMotor;
     }

@@ -9,8 +9,8 @@ import frc.robot.subsystems.Arm.Arm;
 
 public class moveBeta extends Command {
   /** Creates a new moveBeta. */
-  Arm arm;
-  double wantedBetaPos;
+  private final Arm arm;
+  private final double wantedBetaPos;
   public moveBeta(Arm arm, double wantedBetaPos) {
     this.arm=arm;  
     this.wantedBetaPos=wantedBetaPos;
@@ -32,6 +32,6 @@ public class moveBeta extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return (arm.GetBetaPos()== wantedBetaPos);
+    return (arm.GetBetaPosition()== wantedBetaPos);
   }
 }

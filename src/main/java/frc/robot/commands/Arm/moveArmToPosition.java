@@ -17,15 +17,15 @@ public class moveArmToPosition extends SequentialCommandGroup {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
 
-    addCommands(  
+    addCommands(
 
-      new moveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> targetPos != arm.getCurrentPos() && arm.getCurrentPos() == ArmPosition.COLLECT_FLOOR_POSITION),
-      new moveBeta(arm, ArmPosition.FREE_POSITION.getBeta()).onlyIf(() -> targetPos != arm.getCurrentPos() && arm.getCurrentPos() == ArmPosition.COLLECT_FLOOR_POSITION),
+      new moveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> arm.currentPos == ArmPosition.COLLECT_FLOOR_POSITION),
+      new moveBeta(arm, ArmPosition.FREE_POSITION.getBeta()).onlyIf(() -> arm.currentPos == ArmPosition.COLLECT_FLOOR_POSITION),
 
-      new moveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> targetPos != arm.getCurrentPos() && arm.getCurrentPos() != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION),
-      new moveBeta(arm, ArmPosition.COLLECT_FLOOR_POSITION.getBeta()).onlyIf(() -> targetPos != arm.getCurrentPos() && arm.getCurrentPos() != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION),
+      new moveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> arm.currentPos != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION),
+      new moveBeta(arm, ArmPosition.COLLECT_FLOOR_POSITION.getBeta()).onlyIf(() -> arm.currentPos != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION),
 
-      new moveAlpha(arm, targetPos.getAlpha()).onlyIf(() -> targetPos != arm.getCurrentPos())
+      new moveAlpha(arm, targetPos.getAlpha())
     );
 
   }
