@@ -21,7 +21,7 @@ public class Arm extends SubsystemBase {
     io.setAlphaTargetRotation(AlphaTarget);
     inputs.wantedAlphaAlngle = AlphaTarget;
   }
-
+ 
   public void MoveBeta(double BetaTarget){
     io.setBetaTargetRotation(BetaTarget);
     inputs.wantedBetaAlngle = BetaTarget;

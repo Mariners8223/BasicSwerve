@@ -6,6 +6,7 @@ package frc.robot.subsystems.Arm;
 
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.EncoderType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAbsoluteEncoder;
 import com.revrobotics.CANSparkBase.ControlType;
@@ -42,6 +43,8 @@ public class ArmIOReal implements ArmIO {
             alphaMotor.getPIDController().setI(ArmConstants.AlphaConstants.PID.getI());
             alphaMotor.getPIDController().setD(ArmConstants.AlphaConstants.PID.getD());
             alphaMotor.getPIDController().setFF(ArmConstants.AlphaConstants.PID.getF());
+            // alphaMotor.getPIDController().setFeedbackDevice(AbsolueEncoder);
+            // alphaMotor.
             alphaMotor.getPIDController().setOutputRange(ArmConstants.AlphaConstants.minOutputRange_alpha, ArmConstants.AlphaConstants.maxOutputRange_alpha);
 
             alphaMotor.setSmartCurrentLimit(ArmConstants.AlphaConstants.smartCurrentLimit_alpha);
@@ -63,7 +66,7 @@ public class ArmIOReal implements ArmIO {
             betaMotor.getPIDController().setI(ArmConstants.BetaConstants.PID.getI());
             betaMotor.getPIDController().setD(ArmConstants.BetaConstants.PID.getD());
             betaMotor.getPIDController().setFF(ArmConstants.BetaConstants.PID.getF());
-            alphaMotor.getPIDController().setOutputRange(ArmConstants.BetaConstants.minOutputRange_beta, ArmConstants.BetaConstants.maxOutputRange_beta);
+            betaMotor.getPIDController().setOutputRange(ArmConstants.BetaConstants.minOutputRange_beta, ArmConstants.BetaConstants.maxOutputRange_beta);
 
             betaMotor.setSmartCurrentLimit(ArmConstants.BetaConstants.smartCurrentLimit_beta);
             betaMotor.setSecondaryCurrentLimit(ArmConstants.BetaConstants.cecondaryCurrentLimit_beta);
