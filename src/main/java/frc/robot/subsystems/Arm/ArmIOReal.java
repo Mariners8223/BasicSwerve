@@ -6,7 +6,6 @@ package frc.robot.subsystems.Arm;
 
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.EncoderType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAbsoluteEncoder;
 import com.revrobotics.CANSparkBase.ControlType;
@@ -20,8 +19,8 @@ public class ArmIOReal implements ArmIO {
     CANSparkMax alphaMotor;
     CANSparkMax betaMotor;
 
-    SparkAbsoluteEncoder AbsolueEncoder;
-    RelativeEncoder RelativeEncoder;
+    SparkAbsoluteEncoder absolueEncoder;
+    RelativeEncoder relativeEncoder;
     DigitalInput limitSwitch;
 
     
@@ -29,8 +28,6 @@ public class ArmIOReal implements ArmIO {
     public ArmIOReal(){
         alphaMotor = configAlphaMotor();
         betaMotor = configBetaMotor();
-        AbsolueEncoder = alphaMotor.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
-        RelativeEncoder = alphaMotor.getAlternateEncoder(ArmConstants.ccountsPerRev);
         limitSwitch = new DigitalInput(ArmConstants.limitSwitchPort);
     }
 
@@ -43,8 +40,17 @@ public class ArmIOReal implements ArmIO {
             alphaMotor.getPIDController().setI(ArmConstants.AlphaConstants.PID.getI());
             alphaMotor.getPIDController().setD(ArmConstants.AlphaConstants.PID.getD());
             alphaMotor.getPIDController().setFF(ArmConstants.AlphaConstants.PID.getF());
-            // alphaMotor.getPIDController().setFeedbackDevice(AbsolueEncoder);
-            // alphaMotor.
+
+            absolueEncoder = alphaMotor.getAbsoluteEncoder();
+            relativeEncoder = alphaMotor.getAlternateEncoder(8192); //according to the documentation, https://docs.revrobotics.com/through-bore-encoder/specifications
+
+            relativeEncoder.setPosition(absolueEncoder.getPosition());
+
+            absolueEncoder.setPositionConversionFactor(1 / ArmConstants.AlphaConstants.alphaGearRatio); //just takes the encoder position and multiply it by the value given
+            relativeEncoder.setPositionConversionFactor(1 / ArmConstants.AlphaConstants.alphaGearRatio); //just takes the encoder position and multiply it by the value given
+
+            alphaMotor.getPIDController().setFeedbackDevice(relativeEncoder); //this is the encoder that will be used for the PID loop
+
             alphaMotor.getPIDController().setOutputRange(ArmConstants.AlphaConstants.minOutputRange_alpha, ArmConstants.AlphaConstants.maxOutputRange_alpha);
 
             alphaMotor.setSmartCurrentLimit(ArmConstants.AlphaConstants.smartCurrentLimit_alpha);
@@ -90,8 +96,8 @@ public class ArmIOReal implements ArmIO {
     }
 
     public void update(ArmInputsAutoLogged inputs){
-        inputs.motorAlphaPosition = RelativeEncoder.getPosition();
-        inputs.absAlphaEncoderPosition = AbsolueEncoder.getPosition();
+        inputs.motorAlphaPosition = relativeEncoder.getPosition();
+        inputs.absAlphaEncoderPosition = absolueEncoder.getPosition();
         inputs.motorBetaPosition = betaMotor.getEncoder().getPosition();
         inputs.betaLimitSwitch = limitSwitch.get();
         inputs.alphaAppliedOutput = alphaMotor.getAppliedOutput();

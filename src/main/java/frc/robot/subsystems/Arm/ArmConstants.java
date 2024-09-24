@@ -45,7 +45,7 @@ public class ArmConstants {
         public static final double cecondaryCurrentLimit_alpha = 0;
         public static final float alphaForwardSoftLimit = 0;
         public static final float alphaReverseSoftLimit = 0;
-        public static final double alphaGearRatio = 0;
+        public static final double alphaGearRatio = 1;
     }
     
     public class BetaConstants{
@@ -53,7 +53,7 @@ public class ArmConstants {
         public static final boolean IS_INVERTED = false;
 
         public static final PIDFGains PID = new PIDFGains(0, 0, 0, 0, ARM_POSITION_TOLERANCE);
-        public static final double GEAR_RATIO = 0;
+        public static final double GEAR_RATIO = 1;
         public static final double minOutputRange_beta = 0;
         public static final double maxOutputRange_beta = 0;
         public static final int smartCurrentLimit_beta = 0;
