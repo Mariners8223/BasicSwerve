@@ -19,7 +19,7 @@ public class ArmIOReal implements ArmIO {
     CANSparkMax alphaMotor;
     CANSparkMax betaMotor;
 
-    SparkAbsoluteEncoder absolueEncoder;
+    SparkAbsoluteEncoder absoluteEncoder;
     RelativeEncoder relativeEncoder;
     DigitalInput limitSwitch;
 
@@ -41,15 +41,15 @@ public class ArmIOReal implements ArmIO {
             alphaMotor.getPIDController().setD(ArmConstants.AlphaConstants.PID.getD());
             alphaMotor.getPIDController().setFF(ArmConstants.AlphaConstants.PID.getF());
 
-            absolueEncoder = alphaMotor.getAbsoluteEncoder();
+            absoluteEncoder = alphaMotor.getAbsoluteEncoder();
             relativeEncoder = alphaMotor.getAlternateEncoder(8192); //according to the documentation, https://docs.revrobotics.com/through-bore-encoder/specifications
 
-            relativeEncoder.setPosition(absolueEncoder.getPosition());
+            relativeEncoder.setPosition(absoluteEncoder.getPosition());
 
-            absolueEncoder.setPositionConversionFactor(1 / ArmConstants.AlphaConstants.alphaGearRatio); //just takes the encoder position and multiply it by the value given
+            absoluteEncoder.setPositionConversionFactor(1 / ArmConstants.AlphaConstants.alphaGearRatio); //just takes the encoder position and multiply it by the value given
             relativeEncoder.setPositionConversionFactor(1 / ArmConstants.AlphaConstants.alphaGearRatio); //just takes the encoder position and multiply it by the value given
 
-            alphaMotor.getPIDController().setFeedbackDevice(relativeEncoder); //this is the encoder that will be used for the PID loop
+            alphaMotor.getPIDController().setFeedbackDevice(absoluteEncoder); //this is the encoder that will be used for the PID loop
 
             alphaMotor.getPIDController().setOutputRange(ArmConstants.AlphaConstants.minOutputRange_alpha, ArmConstants.AlphaConstants.maxOutputRange_alpha);
 
@@ -97,7 +97,7 @@ public class ArmIOReal implements ArmIO {
 
     public void update(ArmInputsAutoLogged inputs){
         inputs.motorAlphaPosition = relativeEncoder.getPosition();
-        inputs.absAlphaEncoderPosition = absolueEncoder.getPosition();
+        inputs.absAlphaEncoderPosition = absoluteEncoder.getPosition();
         inputs.motorBetaPosition = betaMotor.getEncoder().getPosition();
         inputs.betaLimitSwitch = limitSwitch.get();
         inputs.alphaAppliedOutput = alphaMotor.getAppliedOutput();
