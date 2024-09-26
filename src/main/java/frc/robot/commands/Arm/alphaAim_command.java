@@ -10,11 +10,11 @@ import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Arm.Arm;
 
-public class alphaAim_command extends Command {
+public class AlphaAim_command extends Command {
   /** Creates a new alphaAim_command. */
   private final Arm arm;
   private final Supplier<Measure<Angle>> alphaTarget;
-  public alphaAim_command(Arm arm, Supplier<Measure<Angle>> alphaTarget) {
+  public AlphaAim_command(Arm arm, Supplier<Measure<Angle>> alphaTarget) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.arm = arm;
     this.alphaTarget= alphaTarget;

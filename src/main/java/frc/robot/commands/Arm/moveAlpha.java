@@ -7,11 +7,11 @@ package frc.robot.commands.Arm;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Arm.Arm;
 
-public class moveAlpha extends Command {
+public class MoveAlpha extends Command {
   /** Creates a new moveAlpha. */
   private final Arm arm;
   private final double wantedAlphaPos;
-  public moveAlpha(Arm arm, double wantedAlphaPos) {
+  public MoveAlpha(Arm arm, double wantedAlphaPos) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.arm = arm;
     this.wantedAlphaPos = wantedAlphaPos;

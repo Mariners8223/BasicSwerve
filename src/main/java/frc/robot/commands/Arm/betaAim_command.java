@@ -9,11 +9,11 @@ import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Arm.Arm;
 
-public class betaAim_command extends Command {
+public class BetaAim_command extends Command {
   private final Arm arm;
   private final Supplier<Measure<Angle>> betaTarget;
   
-  public betaAim_command(Arm arm, Supplier<Measure<Angle>> betaTarget){
+  public BetaAim_command(Arm arm, Supplier<Measure<Angle>> betaTarget){
     this.arm = arm;
     this.betaTarget = betaTarget;
       addRequirements(arm);

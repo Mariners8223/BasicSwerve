@@ -14,15 +14,15 @@ import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class alphaAim extends SequentialCommandGroup {
+public class AlphaAim extends SequentialCommandGroup {
   /** Creates a new alphaAim. */
-  public alphaAim(Arm arm, Supplier<Measure<Angle>> alphaTarget) {
+  public AlphaAim(Arm arm, Supplier<Measure<Angle>> alphaTarget) {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
     addCommands(
-     new moveArmToPosition(arm, ArmPosition.FREE_POSITION),
-     new moveBeta(arm,ArmPosition.AIM_POSITION.getBeta()),
-     new alphaAim_command(arm, alphaTarget)
+     new MoveArmToPosition(arm, ArmPosition.FREE_POSITION),
+     new MoveBeta(arm,ArmPosition.AIM_POSITION.getBeta()),
+     new AlphaAim_command(arm, alphaTarget)
     );          
   }
 }
