@@ -31,6 +31,7 @@ public class RobotContainer{
     public static DriveBase driveBase;
     public static Arm arm;
     public static CommandPS5Controller driveController;
+    public static CommandPS5Controller armController;
 
     public static Field2d field;
     public static LoggedDashboardChooser<Command> autoChooser;
@@ -39,6 +40,7 @@ public class RobotContainer{
     public RobotContainer()
     {
         driveController = new CommandPS5Controller(0);
+        armController = new CommandPS5Controller(1);
         driveBase = new DriveBase();
         arm = new Arm();
 
@@ -112,6 +114,8 @@ public class RobotContainer{
         driveController.options().onTrue(driveBase.resetOnlyDirection());
         driveController.cross().onTrue(driveBase.runModuleDriveCalibration());
         driveController.triangle().onTrue(driveBase.stopModuleDriveCalibration());
+
+        
     }
     
     

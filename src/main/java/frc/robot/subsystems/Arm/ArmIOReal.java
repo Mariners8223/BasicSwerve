@@ -59,8 +59,8 @@ public class ArmIOReal implements ArmIO {
             alphaMotor.setSmartCurrentLimit(ArmConstants.AlphaConstants.SMART_CURRENT_LIMIT);
             alphaMotor.setSecondaryCurrentLimit(ArmConstants.AlphaConstants.SECONDARY_CURRENT_LIMIT);
 
-            alphaMotor.setSoftLimit(SoftLimitDirection.kForward, ArmConstants.AlphaConstants.FORWARD_SOFT_LIMIT);
-            alphaMotor.setSoftLimit(SoftLimitDirection.kReverse, ArmConstants.AlphaConstants.REVERSE_SOFT_LIMIT);
+            alphaMotor.setSoftLimit(SoftLimitDirection.kForward, (float)ArmConstants.AlphaConstants.FORWARD_SOFT_LIMIT);
+            alphaMotor.setSoftLimit(SoftLimitDirection.kReverse, (float)ArmConstants.AlphaConstants.REVERSE_SOFT_LIMIT);
 
             return alphaMotor;
     }
@@ -82,8 +82,8 @@ public class ArmIOReal implements ArmIO {
             betaMotor.setSmartCurrentLimit(ArmConstants.BetaConstants.SMART_CURRENT_LIMIT);
             betaMotor.setSecondaryCurrentLimit(ArmConstants.BetaConstants.SECONDARY_CURRENT_LIMIT);
 
-            betaMotor.setSoftLimit(SoftLimitDirection.kForward, ArmConstants.BetaConstants.FORWARD_SOFT_LIMIT);
-            betaMotor.setSoftLimit(SoftLimitDirection.kReverse, ArmConstants.BetaConstants.REVERSE_SOFT_LIMIT);
+            betaMotor.setSoftLimit(SoftLimitDirection.kForward, (float)ArmConstants.BetaConstants.FORWARD_SOFT_LIMIT);
+            betaMotor.setSoftLimit(SoftLimitDirection.kReverse, (float)ArmConstants.BetaConstants.REVERSE_SOFT_LIMIT);
 
             return betaMotor;
     }
@@ -97,7 +97,7 @@ public class ArmIOReal implements ArmIO {
     }
 
     public void resetBetaEncoder(){
-        betaMotor.getEncoder().setPosition(0);
+        betaMotor.getEncoder().setPosition(ArmConstants.LIMIT_SWITCH_OFFSET);
     }
 
     public void update(ArmInputsAutoLogged inputs){

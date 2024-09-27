@@ -4,13 +4,13 @@ import frc.util.PIDFGains;
 
 public class ArmConstants {
     public enum ArmPosition{
-        HOME_POSITION(0.0, 0),
-        COLLECT_FLOOR_POSITION(0.0, 0),
-        COLLECT_SOURCE_POSITION(0.0, 0),
-        SHOOT_SUBWOFFER_POSITION(0.0, 0),
-        FREE_POSITION(0.0, 0),
-        AIM_POSITION(0,0),
-        AMP_POSITION(0,0),
+        HOME_POSITION(0.002, 0.04),
+        COLLECT_FLOOR_POSITION(-0.04, 0.4),
+        COLLECT_SOURCE_POSITION(0.135, 0.04),
+        SHOOT_SUBWOFFER_POSITION(0.135, 0.04),
+        FREE_POSITION(0.137, 0.04),
+        AIM_POSITION(0,0.04),
+        AMP_POSITION(0.177,0.266),
         UNKNOWN(100, 100);
 
         private final double alpha;
@@ -30,9 +30,11 @@ public class ArmConstants {
 
     }
 
-    public static final double ARM_POSITION_TOLERANCE = 5 * Math.PI / 180;
+    public static final double ARM_POSITION_TOLERANCE = 5 / 360;
     public static final int LIMIT_SWITCH_PORT = 5;
-    public static final double RELATIVE_ENCODER = 0.8819624;
+    public static final double RELATIVE_ENCODER_OFFSET = 0.8819624;
+    public static final double LIMIT_SWITCH_OFFSET = -0.4698357899983724 + 0.5;
+
     
     public class AlphaConstants{
         public static final int MOTOR_ID = 12;
@@ -43,8 +45,8 @@ public class ArmConstants {
         public static final double MAX_OUTPUT_RANGE = 0.2;
         public static final int SMART_CURRENT_LIMIT = 35;
         public static final double SECONDARY_CURRENT_LIMIT = 50;
-        public static final float FORWARD_SOFT_LIMIT = 0;
-        public static final float REVERSE_SOFT_LIMIT = 0;
+        public static final double FORWARD_SOFT_LIMIT = -0.04;
+        public static final double REVERSE_SOFT_LIMIT = 0.25;
         public static final double GEAR_RATIO = 9 * 5 * 2; 
     }
     
@@ -52,13 +54,13 @@ public class ArmConstants {
         public static final int MOTOR_ID = 13;
         public static final boolean IS_INVERTED = false;
 
-        public static final PIDFGains PID = new PIDFGains(0, 0, 0, 0, ArmConstants.ARM_POSITION_TOLERANCE,0);
-        public static final double MIN_OUTPUT_RANGE = -0.1;
-        public static final double MAX_OUTPUT_RANGE = 0.1;
+        public static final PIDFGains PID = new PIDFGains(0.1, 0, 0, 0.005, ArmConstants.ARM_POSITION_TOLERANCE,0);
+        public static final double MIN_OUTPUT_RANGE = 0.3;
+        public static final double MAX_OUTPUT_RANGE = 0.3;
         public static final int SMART_CURRENT_LIMIT = 35;
         public static final double SECONDARY_CURRENT_LIMIT = 50;
-        public static final float FORWARD_SOFT_LIMIT = 0;
-        public static final float REVERSE_SOFT_LIMIT = 0;
-        public static final double GEAR_RATIO = (32 / 12) * 9 * 5; //TODO: check the ratio  32 / 12 * 9 * 5
+        public static final double FORWARD_SOFT_LIMIT = 0.5;
+        public static final double REVERSE_SOFT_LIMIT = LIMIT_SWITCH_OFFSET;
+        public static final double GEAR_RATIO = 45 * 32 / 12; //TODO: check the ratio  32 / 12 * 9 * 5
     }
 }
