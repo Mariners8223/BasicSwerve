@@ -12,10 +12,10 @@ import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 public class Arm extends SubsystemBase {
   /** Creates a new arm. */
   ArmIOReal io;
-  ArmInputsAutoLogged inputs;
-  public ArmPosition currentPos;
+  ArmInputsAutoLogged inputs = new ArmInputsAutoLogged();
+  public ArmPosition currentPos = ArmPosition.HOME_POSITION;
 
-  public Arm(){} // TODO: check if sould be empty
+  public Arm(){io = new ArmIOReal();} 
 
   public void MoveAlpha(double AlphaTarget){
     io.setAlphaTargetRotation(AlphaTarget);
@@ -32,6 +32,12 @@ public class Arm extends SubsystemBase {
   
   @Override
   public void periodic(){
+    io.update(inputs);
+
+    if(inputs.betaLimitSwitch){
+      io.resetBetaEncoder();
+    }
+
     double alpha = GetAlphaPosition();
     double beta = GetBetaPosition();
 
@@ -48,9 +54,6 @@ public class Arm extends SubsystemBase {
     currentPos = ArmPosition.UNKNOWN;
 
 
-
-
-    io.update(inputs);
     Logger.processInputs("Arm", inputs);
     Logger.recordOutput("Current Pos", currentPos);
   }

@@ -13,6 +13,7 @@ import com.revrobotics.CANSparkBase.SoftLimitDirection;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import frc.robot.subsystems.Arm.ArmConstants.BetaConstants;
 
 /** Add your docs here. */
 public class ArmIOReal implements ArmIO {
@@ -46,8 +47,10 @@ public class ArmIOReal implements ArmIO {
 
             relativeEncoder.setPosition(absoluteEncoder.getPosition());
 
-            absoluteEncoder.setPositionConversionFactor(1 / ArmConstants.AlphaConstants.GEAR_RATIO); //just takes the encoder position and multiply it by the value given
-            relativeEncoder.setPositionConversionFactor(1 / ArmConstants.AlphaConstants.GEAR_RATIO); //just takes the encoder position and multiply it by the value given
+            absoluteEncoder.setPositionConversionFactor(ArmConstants.AlphaConstants.GEAR_RATIO); //just takes the encoder position and multiply it by the value given
+            relativeEncoder.setPositionConversionFactor(ArmConstants.AlphaConstants.GEAR_RATIO); //just takes the encoder position and multiply it by the value given
+
+            alphaMotor.getEncoder().setPosition(absoluteEncoder.getPosition());
 
             alphaMotor.getPIDController().setFeedbackDevice(relativeEncoder); //this is the encoder that will be used for the PID loop
 
@@ -74,6 +77,8 @@ public class ArmIOReal implements ArmIO {
             betaMotor.getPIDController().setFF(ArmConstants.BetaConstants.PID.getF());
             betaMotor.getPIDController().setOutputRange(ArmConstants.BetaConstants.MIN_OUTPUT_RANGE, ArmConstants.BetaConstants.MAX_OUTPUT_RANGE);
 
+            betaMotor.getEncoder().setPositionConversionFactor(1);
+
             betaMotor.setSmartCurrentLimit(ArmConstants.BetaConstants.SMART_CURRENT_LIMIT);
             betaMotor.setSecondaryCurrentLimit(ArmConstants.BetaConstants.SECONDARY_CURRENT_LIMIT);
 
@@ -96,10 +101,10 @@ public class ArmIOReal implements ArmIO {
     }
 
     public void update(ArmInputsAutoLogged inputs){
-        inputs.motorAlphaPosition = relativeEncoder.getPosition();
-        inputs.absAlphaEncoderPosition = absoluteEncoder.getPosition();
-        inputs.motorBetaPosition = betaMotor.getEncoder().getPosition();
-        inputs.betaLimitSwitch = limitSwitch.get();
+        inputs.motorAlphaPosition = relativeEncoder.getPosition() / ArmConstants.AlphaConstants.GEAR_RATIO;
+        inputs.absAlphaEncoderPosition = absoluteEncoder.getPosition() / ArmConstants.AlphaConstants.GEAR_RATIO;
+        inputs.motorBetaPosition = betaMotor.getEncoder().getPosition() / ArmConstants.BetaConstants.GEAR_RATIO;
+        inputs.betaLimitSwitch = !limitSwitch.get(); //TODO add qeution for inverted
         inputs.alphaAppliedOutput = alphaMotor.getAppliedOutput();
         inputs.betaAppliedOutput = alphaMotor.getAppliedOutput();
     }

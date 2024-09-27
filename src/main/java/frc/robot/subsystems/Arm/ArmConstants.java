@@ -38,27 +38,27 @@ public class ArmConstants {
         public static final int MOTOR_ID = 12;
         public static final boolean IS_INVERTED = false;
 
-        public static final PIDFGains PID = new PIDFGains(0, 0, 0, 0, ARM_POSITION_TOLERANCE);
+        public static final PIDFGains PID = new PIDFGains(0.1, 0, 0, 0.0028, ArmConstants.ARM_POSITION_TOLERANCE,0);
         public static final double MIN_OUTPUT_RANGE = -0.1;
         public static final double MAX_OUTPUT_RANGE = 0.2;
         public static final int SMART_CURRENT_LIMIT = 35;
         public static final double SECONDARY_CURRENT_LIMIT = 50;
         public static final float FORWARD_SOFT_LIMIT = 0;
         public static final float REVERSE_SOFT_LIMIT = 0;
-        public static final double GEAR_RATIO = 9*3*2; //TODO: check the ratio
+        public static final double GEAR_RATIO = 9 * 5 * 2; 
     }
     
     public class BetaConstants{
         public static final int MOTOR_ID = 13;
         public static final boolean IS_INVERTED = false;
 
-        public static final PIDFGains PID = new PIDFGains(0, 0, 0, 0, ARM_POSITION_TOLERANCE);
+        public static final PIDFGains PID = new PIDFGains(0, 0, 0, 0, ArmConstants.ARM_POSITION_TOLERANCE,0);
         public static final double MIN_OUTPUT_RANGE = -0.1;
         public static final double MAX_OUTPUT_RANGE = 0.1;
         public static final int SMART_CURRENT_LIMIT = 35;
         public static final double SECONDARY_CURRENT_LIMIT = 50;
         public static final float FORWARD_SOFT_LIMIT = 0;
         public static final float REVERSE_SOFT_LIMIT = 0;
-        public static final double GEAR_RATIO = 30 / 12 * 9 *3; //TODO: check the ratio
+        public static final double GEAR_RATIO = (32 / 12) * 9 * 5; //TODO: check the ratio  32 / 12 * 9 * 5
     }
 }
