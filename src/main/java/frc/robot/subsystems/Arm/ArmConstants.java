@@ -1,5 +1,6 @@
 package frc.robot.subsystems.Arm;
 
+import edu.wpi.first.math.geometry.Translation3d;
 import frc.util.PIDFGains;
 
 public class ArmConstants {
@@ -34,6 +35,9 @@ public class ArmConstants {
     public static final int LIMIT_SWITCH_PORT = 5;
     public static final double RELATIVE_ENCODER_OFFSET = 0.8819624;
     public static final double LIMIT_SWITCH_OFFSET = -0.4698357899983724 + 0.5;
+
+    public static final Translation3d ALPHA_DISTANCE_FROM_CENTER = new Translation3d(12.5, 0, 25);
+    public static final double DISTANCE_BETWEEN_PIVOTS = 31;
 
     
     public class AlphaConstants{
