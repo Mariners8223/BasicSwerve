@@ -46,10 +46,10 @@ public class ArmIOReal implements ArmIO {
 
             relativeEncoder.setPosition(absoluteEncoder.getPosition());
 
-            absoluteEncoder.setPositionConversionFactor(1 / ArmConstants.AlphaConstants.GEAR_RATION); //just takes the encoder position and multiply it by the value given
-            relativeEncoder.setPositionConversionFactor(1 / ArmConstants.AlphaConstants.GEAR_RATION); //just takes the encoder position and multiply it by the value given
+            absoluteEncoder.setPositionConversionFactor(1 / ArmConstants.AlphaConstants.GEAR_RATIO); //just takes the encoder position and multiply it by the value given
+            relativeEncoder.setPositionConversionFactor(1 / ArmConstants.AlphaConstants.GEAR_RATIO); //just takes the encoder position and multiply it by the value given
 
-            alphaMotor.getPIDController().setFeedbackDevice(absoluteEncoder); //this is the encoder that will be used for the PID loop
+            alphaMotor.getPIDController().setFeedbackDevice(relativeEncoder); //this is the encoder that will be used for the PID loop
 
             alphaMotor.getPIDController().setOutputRange(ArmConstants.AlphaConstants.MIN_OUTPUT_RANGE, ArmConstants.AlphaConstants.MAX_OUTPUT_RANGE);
 
@@ -84,11 +84,11 @@ public class ArmIOReal implements ArmIO {
     }
 
     public void setAlphaTargetRotation(double alphaTarget){
-        alphaMotor.getPIDController().setReference(alphaTarget * ArmConstants.AlphaConstants.GEAR_RATION, ControlType.kPosition);
+        alphaMotor.getPIDController().setReference(alphaTarget * ArmConstants.AlphaConstants.GEAR_RATIO, ControlType.kPosition);
     }
 
     public void setBetaTargetRotation(double BetaTarget){
-        betaMotor.getPIDController().setReference(BetaTarget * ArmConstants.BetaConstants.GEAR_RATION ,ControlType.kPosition);
+        betaMotor.getPIDController().setReference(BetaTarget * ArmConstants.BetaConstants.GEAR_RATIO ,ControlType.kPosition);
     }
 
     public void resetBetaEncoder(){
