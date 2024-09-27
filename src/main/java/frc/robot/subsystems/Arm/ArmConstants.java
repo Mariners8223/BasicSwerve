@@ -5,7 +5,7 @@ import frc.util.PIDFGains;
 
 public class ArmConstants {
     public enum ArmPosition{
-        HOME_POSITION(0.002, 0.04),
+        HOME_POSITION(0.004, 0.04),
         COLLECT_FLOOR_POSITION(-0.04, 0.4),
         COLLECT_SOURCE_POSITION(0.135, 0.04),
         SHOOT_SUBWOFFER_POSITION(0.135, 0.04),
