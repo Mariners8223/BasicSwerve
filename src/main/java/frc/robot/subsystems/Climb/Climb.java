@@ -12,11 +12,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Climb extends SubsystemBase {
   /** Creates a new Climb. */
   ClimbIO io ;
-  ClimbInputsAutoLogged input;
+  ClimbInputsAutoLogged input = new ClimbInputsAutoLogged();
   boolean hasLimit;
   Pose3d hookPosition;
   
-  public Climb() {  }
+  public Climb() {
+    io = new ClimbIOReal(); // TODO: Check if I need to do Encapsulation
+  }
 
   public void startMotor(double power){
     power = MathUtil.clamp(power, 0, 1);
