@@ -22,11 +22,11 @@ public class MoveArmToPosition extends SequentialCommandGroup {
       new MoveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> arm.currentPos == ArmPosition.COLLECT_FLOOR_POSITION || arm.currentPos == ArmPosition.AMP_POSITION),
       new MoveBeta(arm, ArmPosition.FREE_POSITION.getBeta()).onlyIf(() -> arm.currentPos == ArmPosition.COLLECT_FLOOR_POSITION || arm.currentPos == ArmPosition.AMP_POSITION),
 
-      new MoveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> arm.currentPos != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION),
-      new MoveBeta(arm, ArmPosition.COLLECT_FLOOR_POSITION.getBeta()).onlyIf(() -> arm.currentPos != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION),
+      new MoveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> arm.currentPos != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION && arm.isCalibrated),
+      new MoveBeta(arm, ArmPosition.COLLECT_FLOOR_POSITION.getBeta()).onlyIf(() -> arm.currentPos != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION && arm.isCalibrated),
 
-      new MoveAlpha(arm, targetPos.getAlpha()),
-      new MoveBeta(arm, ArmPosition.AMP_POSITION.getBeta()).onlyIf(() -> targetPos == ArmPosition.AMP_POSITION)
+      new MoveAlpha(arm, targetPos.getAlpha()).onlyIf(() -> arm.isCalibrated),
+      new MoveBeta(arm, ArmPosition.AMP_POSITION.getBeta()).onlyIf(() -> targetPos == ArmPosition.AMP_POSITION).onlyIf(() -> arm.isCalibrated)
     );
 
   }

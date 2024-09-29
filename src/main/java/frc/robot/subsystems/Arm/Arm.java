@@ -12,10 +12,16 @@ import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 public class Arm extends SubsystemBase {
   /** Creates a new arm. */
   ArmIOReal io;
-  ArmInputsAutoLogged inputs = new ArmInputsAutoLogged();
-  public ArmPosition currentPos = ArmPosition.HOME_POSITION;
+  ArmInputsAutoLogged inputs;
+  public boolean isCalibrated;
+  public ArmPosition currentPos;
 
-  public Arm(){io = new ArmIOReal();} 
+  public Arm(){
+    io = new ArmIOReal();
+    inputs = new ArmInputsAutoLogged();
+    isCalibrated = false;
+    currentPos = ArmPosition.HOME_POSITION;
+  } 
 
   public void MoveAlpha(double AlphaTarget){
     io.setAlphaTargetRotation(AlphaTarget);
@@ -25,6 +31,22 @@ public class Arm extends SubsystemBase {
   public void MoveBeta(double BetaTarget){
     io.setBetaTargetRotation(BetaTarget);
     inputs.wantedBetaAlngle = BetaTarget;
+  }
+
+  public void MoveBetaInConstanceSpeed(double speed){
+    io.moveBetaInConstanceSpeed(speed);
+  }
+
+  public void StopAlpha(){
+    io.stopAlpha();
+  }
+
+  public void StopBeta(){
+    io.stopBeta();
+  }
+
+  public void ResetBetaEncoder(){
+    io.resetBetaEncoder();
   }
 
   public double GetAlphaPosition() { return inputs.motorAlphaPosition; }

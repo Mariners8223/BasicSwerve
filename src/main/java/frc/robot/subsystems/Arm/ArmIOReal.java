@@ -13,7 +13,6 @@ import com.revrobotics.CANSparkBase.SoftLimitDirection;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DigitalInput;
-import frc.robot.subsystems.Arm.ArmConstants.BetaConstants;
 
 /** Add your docs here. */
 public class ArmIOReal implements ArmIO {
@@ -50,7 +49,7 @@ public class ArmIOReal implements ArmIO {
             absoluteEncoder.setPositionConversionFactor(ArmConstants.AlphaConstants.GEAR_RATIO); //just takes the encoder position and multiply it by the value given
             relativeEncoder.setPositionConversionFactor(ArmConstants.AlphaConstants.GEAR_RATIO); //just takes the encoder position and multiply it by the value given
 
-            alphaMotor.getEncoder().setPosition(absoluteEncoder.getPosition());
+            alphaMotor.getEncoder().setPosition(checkJumpsInAbsoluteEncoder(absoluteEncoder.getPosition()));
 
             alphaMotor.getPIDController().setFeedbackDevice(relativeEncoder); //this is the encoder that will be used for the PID loop
 
@@ -99,6 +98,23 @@ public class ArmIOReal implements ArmIO {
     public void resetBetaEncoder(){
         betaMotor.getEncoder().setPosition(ArmConstants.LIMIT_SWITCH_OFFSET);
     }
+
+    public double checkJumpsInAbsoluteEncoder(double value){
+        return (value < 0.5) ? value : 1 - value;
+    }
+
+    public void moveBetaInConstanceSpeed(double speed){
+        betaMotor.set(speed);
+    }
+
+    public void stopAlpha(){
+        alphaMotor.set(0);
+    }
+
+    public void stopBeta(){
+        betaMotor.set(0);
+    }
+
 
     public void update(ArmInputsAutoLogged inputs){
         inputs.motorAlphaPosition = relativeEncoder.getPosition() / ArmConstants.AlphaConstants.GEAR_RATIO;
