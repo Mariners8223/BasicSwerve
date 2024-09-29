@@ -4,6 +4,7 @@
 
 package frc.robot.commands.Arm;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Arm.Arm;
 import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
@@ -13,7 +14,7 @@ import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class MoveArmToPosition extends SequentialCommandGroup {
   /** Creates a new moveArmToPosition. */
-  public MoveArmToPosition(Arm arm, ArmPosition targetPos) {
+  private MoveArmToPosition(Arm arm, ArmPosition targetPos) {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
 
@@ -29,5 +30,9 @@ public class MoveArmToPosition extends SequentialCommandGroup {
       new MoveBeta(arm, ArmPosition.AMP_POSITION.getBeta()).onlyIf(() -> targetPos == ArmPosition.AMP_POSITION).onlyIf(() -> arm.isCalibrated)
     );
 
+  }
+
+  public static Command getCommand(Arm arm, ArmPosition targetPos){
+    return new MoveArmToPosition(arm, targetPos).onlyIf(() -> arm.isCalibrated && arm.currentPos != targetPos);
   }
 }

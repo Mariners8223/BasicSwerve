@@ -11,22 +11,20 @@ import frc.robot.subsystems.Arm.ArmInputsAutoLogged;
 public class CalibrateLimitSwitch extends Command {
   /** Creates a new CalibrateLimitSwitch. */
   private final Arm arm;
-  private final boolean isCalibrated;
-  ArmInputsAutoLogged inputs = new ArmInputsAutoLogged();
-  public CalibrateLimitSwitch(Arm arm, boolean isCalibrated) {
+  public CalibrateLimitSwitch(Arm arm) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.arm = arm;
-    this.isCalibrated = isCalibrated;
     addRequirements(arm);
+  }
+
+  public static Command getCommand(Arm arm){
+    return new CalibrateLimitSwitch(arm).onlyIf(() -> !arm.isCalibrated);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    if(!isCalibrated){
-      arm.MoveBetaInConstanceSpeed(-0.1);
-      arm.isCalibrated = true;
-    }
+    arm.MoveBetaInConstanceSpeed(-0.1);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -38,11 +36,12 @@ public class CalibrateLimitSwitch extends Command {
   public void end(boolean interrupted) {
     arm.StopBeta();
     arm.ResetBetaEncoder();
+    arm.isCalibrated = true;
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return(inputs.betaLimitSwitch || isCalibrated);
+    return(arm.getLimitSwitch());
   }
 }

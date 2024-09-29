@@ -45,6 +45,10 @@ public class Arm extends SubsystemBase {
     io.stopBeta();
   }
 
+  public boolean getLimitSwitch(){
+    return inputs.betaLimitSwitch;
+  }
+
   public void ResetBetaEncoder(){
     io.resetBetaEncoder();
   }
