@@ -22,7 +22,7 @@ public class MoveBeta extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    arm.MoveBeta(wantedBetaPos);
+    arm.moveBeta(wantedBetaPos);
   }
   
  
@@ -35,6 +35,6 @@ public class MoveBeta extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return (arm.GetBetaPosition()== wantedBetaPos);
+    return (arm.getBetaPosition()== wantedBetaPos);
   }
 }

@@ -3,6 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.subsystems.Arm;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -10,77 +11,85 @@ import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 
 
 public class Arm extends SubsystemBase {
-  /** Creates a new arm. */
-  ArmIOReal io;
-  ArmInputsAutoLogged inputs;
-  public boolean isCalibrated;
-  public ArmPosition currentPos;
+    /**
+     * Creates a new arm.
+     */
+    ArmIO io;
+    ArmInputsAutoLogged inputs;
+    public boolean isCalibrated;
+    public ArmPosition currentPos;
 
-  public Arm(){
-    io = new ArmIOReal();
-    inputs = new ArmInputsAutoLogged();
-    isCalibrated = false;
-    currentPos = ArmPosition.HOME_POSITION;
-  } 
-
-  public void MoveAlpha(double AlphaTarget){
-    io.setAlphaTargetRotation(AlphaTarget);
-    inputs.wantedAlphaAlngle = AlphaTarget;
-  }
- 
-  public void MoveBeta(double BetaTarget){
-    io.setBetaTargetRotation(BetaTarget);
-    inputs.wantedBetaAlngle = BetaTarget;
-  }
-
-  public void MoveBetaInConstanceSpeed(double speed){
-    io.moveBetaInConstanceSpeed(speed);
-  }
-
-  public void StopAlpha(){
-    io.stopAlpha();
-  }
-
-  public void StopBeta(){
-    io.stopBeta();
-  }
-
-  public boolean getLimitSwitch(){
-    return inputs.betaLimitSwitch;
-  }
-
-  public void ResetBetaEncoder(){
-    io.resetBetaEncoder();
-  }
-
-  public double GetAlphaPosition() { return inputs.motorAlphaPosition; }
-  public double GetBetaPosition() { return inputs.motorBetaPosition; }
-  
-  @Override
-  public void periodic(){
-    io.update(inputs);
-
-    if(inputs.betaLimitSwitch){
-      io.resetBetaEncoder();
+    public Arm() {
+        io = new ArmIOReal();
+        inputs = new ArmInputsAutoLogged();
+        isCalibrated = false;
+        currentPos = ArmPosition.HOME_POSITION;
     }
 
-    double alpha = GetAlphaPosition();
-    double beta = GetBetaPosition();
-
-    ArmPosition[] positions = ArmPosition.values();
-
-    for (ArmPosition armPos : positions) {
-      if(Math.abs(alpha - armPos.getAlpha()) < ArmConstants.ARM_POSITION_TOLERANCE &&
-      Math.abs(beta - armPos.getBeta()) < ArmConstants.ARM_POSITION_TOLERANCE);
-      // return armPos;
-      currentPos = armPos;
+    public void moveAlpha(double AlphaTarget) {
+        io.setAlphaTargetRotation(AlphaTarget);
+        inputs.wantedAlphaAlngle = AlphaTarget;
     }
- 
-    // return ArmPosition.UNKNOWN;
-    currentPos = ArmPosition.UNKNOWN;
+
+    public void moveBeta(double BetaTarget) {
+        io.setBetaTargetRotation(BetaTarget);
+        inputs.wantedBetaAlngle = BetaTarget;
+    }
+
+    public void moveBetaDutyCycle(double speed) {
+        io.moveBetaDutyCycle(speed);
+    }
+
+    public void StopAlpha() {
+        io.stopAlpha();
+    }
+
+    public void StopBeta() {
+        io.stopBeta();
+    }
+
+    public boolean getLimitSwitch() {
+        return inputs.betaLimitSwitch;
+    }
+
+    public void resetBetaEncoder() {
+        io.resetBetaEncoder();
+    }
+
+    public double getAlphaPosition() {
+        return inputs.motorAlphaPosition;
+    }
+
+    public double getBetaPosition() {
+        return inputs.motorBetaPosition;
+    }
+
+    @Override
+    public void periodic() {
+        io.update(inputs);
+
+        if (inputs.betaLimitSwitch) {
+            io.resetBetaEncoder();
+        }
+
+        double alpha = getAlphaPosition();
+        double beta = getBetaPosition();
+
+        currentPos = findArmPosition(alpha, beta);
 
 
-    Logger.processInputs("Arm", inputs);
-    Logger.recordOutput("Current Pos", currentPos);
-  }
+        Logger.processInputs("Arm", inputs);
+        Logger.recordOutput("Current Pos", currentPos);
+    }
+
+    private ArmPosition findArmPosition(double alpha, double beta) {
+        ArmPosition[] positions = ArmPosition.values();
+
+        for (ArmPosition armPos : positions) {
+            if (Math.abs(alpha - armPos.getAlpha()) < ArmConstants.ARM_POSITION_TOLERANCE &&
+                    Math.abs(beta - armPos.getBeta()) < ArmConstants.ARM_POSITION_TOLERANCE) return armPos;
+        }
+
+        return ArmPosition.UNKNOWN;
+    }
 }

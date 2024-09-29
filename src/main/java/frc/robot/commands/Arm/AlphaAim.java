@@ -7,6 +7,7 @@ package frc.robot.commands.Arm;
 import java.util.function.Supplier;
 
 import edu.wpi.first.units.*;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Arm.Arm;
 import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
@@ -16,13 +17,17 @@ import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class AlphaAim extends SequentialCommandGroup {
   /** Creates a new alphaAim. */
-  public AlphaAim(Arm arm, Supplier<Measure<Angle>> alphaTarget) {
+  private AlphaAim(Arm arm, Supplier<Measure<Angle>> alphaTarget) {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
     addCommands(
-     new MoveArmToPosition(arm, ArmPosition.FREE_POSITION),
+     MoveArmToPosition.getCommand(arm, ArmPosition.FREE_POSITION),
      new MoveBeta(arm,ArmPosition.AIM_POSITION.getBeta()),
      new AlphaAim_command(arm, alphaTarget)
     );          
+  }
+
+  public static Command getCommand(Arm arm, Supplier<Measure<Angle>> alphaTarget){
+    return new AlphaAim(arm, alphaTarget).onlyIf(() -> arm.isCalibrated);
   }
 }

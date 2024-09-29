@@ -6,12 +6,11 @@ package frc.robot.commands.Arm;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Arm.Arm;
-import frc.robot.subsystems.Arm.ArmInputsAutoLogged;
 
 public class CalibrateLimitSwitch extends Command {
   /** Creates a new CalibrateLimitSwitch. */
   private final Arm arm;
-  public CalibrateLimitSwitch(Arm arm) {
+  private CalibrateLimitSwitch(Arm arm) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.arm = arm;
     addRequirements(arm);
@@ -24,7 +23,7 @@ public class CalibrateLimitSwitch extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    arm.MoveBetaInConstanceSpeed(-0.1);
+    arm.moveBetaDutyCycle(-0.1);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -35,7 +34,7 @@ public class CalibrateLimitSwitch extends Command {
   @Override
   public void end(boolean interrupted) {
     arm.StopBeta();
-    arm.ResetBetaEncoder();
+    arm.resetBetaEncoder();
     arm.isCalibrated = true;
   }
 

@@ -20,6 +20,9 @@ public interface ArmIO {
     public void setAlphaTargetRotation(double AlphaTarget);
     public void setBetaTargetRotation(double BetaTarget);
     public void resetBetaEncoder();
+    public void moveBetaDutyCycle(double speed);
+    public void stopAlpha();
+    public void stopBeta();
 
     public void update(ArmInputsAutoLogged inputs);
 }
