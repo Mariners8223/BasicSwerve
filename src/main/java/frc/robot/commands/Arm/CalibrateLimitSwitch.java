@@ -17,7 +17,7 @@ public class CalibrateLimitSwitch extends Command {
   }
 
   public static Command getCommand(Arm arm){
-    return new CalibrateLimitSwitch(arm).onlyIf(() -> !arm.isCalibrated);
+    return new CalibrateLimitSwitch(arm).onlyIf(() -> !arm.isCalibrated());
   }
 
   // Called when the command is initially scheduled.
@@ -33,9 +33,9 @@ public class CalibrateLimitSwitch extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    arm.StopBeta();
+    arm.stopBeta();
     arm.resetBetaEncoder();
-    arm.isCalibrated = true;
+    arm.setArmCalibrated();
   }
 
   // Returns true when the command should end.

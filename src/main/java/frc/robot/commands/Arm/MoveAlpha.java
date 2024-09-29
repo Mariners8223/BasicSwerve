@@ -6,6 +6,7 @@ package frc.robot.commands.Arm;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Arm.Arm;
+import frc.robot.subsystems.Arm.ArmConstants;
 import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 
 public class MoveAlpha extends Command {
@@ -31,12 +32,15 @@ public class MoveAlpha extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    if(interrupted){arm.currentPos = ArmPosition.UNKNOWN;}
+    if(interrupted){
+        arm.moveAlpha(arm.getAlphaPosition());
+        arm.setArmPositionUnknown();
+    }
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return (arm.getAlphaPosition() == wantedAlphaPos); //TODO: Check if this case is correct
+    return (Math.abs(arm.getAlphaPosition() - wantedAlphaPos) <= ArmConstants.ARM_POSITION_TOLERANCE); //TODO: Check if this case is correct
   }
 }

@@ -28,6 +28,6 @@ public class AlphaAim extends SequentialCommandGroup {
   }
 
   public static Command getCommand(Arm arm, Supplier<Measure<Angle>> alphaTarget){
-    return new AlphaAim(arm, alphaTarget).onlyIf(() -> arm.isCalibrated);
+    return new AlphaAim(arm, alphaTarget).onlyIf(arm::isCalibrated);
   }
 }

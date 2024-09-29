@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.Arm;
 
+import edu.wpi.first.math.MathUtil;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -14,10 +15,10 @@ public class Arm extends SubsystemBase {
     /**
      * Creates a new arm.
      */
-    ArmIO io;
-    ArmInputsAutoLogged inputs;
-    public boolean isCalibrated;
-    public ArmPosition currentPos;
+    private final ArmIO io;
+    private final ArmInputsAutoLogged inputs;
+    private boolean isCalibrated;
+    private ArmPosition currentPos;
 
     public Arm() {
         io = new ArmIOReal();
@@ -26,25 +27,38 @@ public class Arm extends SubsystemBase {
         currentPos = ArmPosition.HOME_POSITION;
     }
 
-    public void moveAlpha(double AlphaTarget) {
-        io.setAlphaTargetRotation(AlphaTarget);
-        inputs.wantedAlphaAlngle = AlphaTarget;
+    public void moveAlpha(double alphaTarget) {
+
+        double target = Math.max(ArmConstants.AlphaConstants.REVERSE_SOFT_LIMIT,
+                Math.min(alphaTarget, ArmConstants.AlphaConstants.FORWARD_SOFT_LIMIT));
+
+        io.setAlphaTargetRotation(target);
+
+        Logger.recordOutput("Arm/Alpha Target", target);
     }
 
-    public void moveBeta(double BetaTarget) {
-        io.setBetaTargetRotation(BetaTarget);
-        inputs.wantedBetaAlngle = BetaTarget;
+    public void moveBeta(double betaTarget) {
+
+        double target = Math.max(ArmConstants.BetaConstants.REVERSE_SOFT_LIMIT,
+                Math.min(betaTarget, ArmConstants.BetaConstants.FORWARD_SOFT_LIMIT));
+
+        io.setBetaTargetRotation(target);
+
+        Logger.recordOutput("Arm/Beta Target", target);
     }
 
     public void moveBetaDutyCycle(double speed) {
+        speed = MathUtil.clamp(speed,
+                ArmConstants.BetaConstants.MIN_OUTPUT_RANGE, ArmConstants.BetaConstants.MAX_OUTPUT_RANGE);
+
         io.moveBetaDutyCycle(speed);
     }
 
-    public void StopAlpha() {
+    public void stopAlpha() {
         io.stopAlpha();
     }
 
-    public void StopBeta() {
+    public void stopBeta() {
         io.stopBeta();
     }
 
@@ -64,6 +78,22 @@ public class Arm extends SubsystemBase {
         return inputs.motorBetaPosition;
     }
 
+    public boolean isCalibrated() {
+        return isCalibrated;
+    }
+
+    public void setArmCalibrated() {
+        isCalibrated = true;
+    }
+
+    public ArmPosition getCurrentPos() {
+        return currentPos;
+    }
+
+    public void setArmPositionUnknown() {
+        currentPos = ArmPosition.UNKNOWN;
+    }
+
     @Override
     public void periodic() {
         io.update(inputs);
@@ -76,7 +106,6 @@ public class Arm extends SubsystemBase {
         double beta = getBetaPosition();
 
         currentPos = findArmPosition(alpha, beta);
-
 
         Logger.processInputs("Arm", inputs);
         Logger.recordOutput("Current Pos", currentPos);
