@@ -6,9 +6,11 @@ package frc.robot.commands.Arm;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Arm.Arm;
+import frc.robot.subsystems.Arm.ArmConstants;
 
 public class AlphaAim_command extends Command {
     /**
@@ -32,7 +34,11 @@ public class AlphaAim_command extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        arm.moveAlpha(alphaTarget.get().in(Units.Rotations));
+        double value = MathUtil.clamp(alphaTarget.get().in(Units.Rotations),
+        ArmConstants.ArmPosition.HOME_POSITION.getAlpha(),
+        ArmConstants.AlphaConstants.FORWARD_SOFT_LIMIT);
+
+        arm.moveAlpha(value - ArmConstants.LIMIT_SWITCH_OFFSET);
     }
 
     // Called once the command ends or is interrupted.

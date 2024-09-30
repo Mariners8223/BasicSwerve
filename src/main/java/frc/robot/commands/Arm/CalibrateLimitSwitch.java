@@ -26,7 +26,7 @@ public class CalibrateLimitSwitch extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    arm.moveBetaDutyCycle(-0.1);
+    arm.moveBetaDutyCycle(-0.3);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
