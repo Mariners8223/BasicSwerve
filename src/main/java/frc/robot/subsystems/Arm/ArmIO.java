@@ -12,6 +12,8 @@ public interface ArmIO {
         public boolean betaLimitSwitch;
         public double alphaAppliedOutput;
         public double betaAppliedOutput;
+
+        public double alphaAppliedCurrent;
     }
 
     public void setAlphaTargetRotation(double AlphaTarget);

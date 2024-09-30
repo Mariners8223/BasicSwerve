@@ -6,6 +6,7 @@ package frc.robot.commands.Arm;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Arm.Arm;
+import frc.robot.subsystems.Arm.ArmConstants;
 
 public class CalibrateLimitSwitch extends Command {
   /** Creates a new CalibrateLimitSwitch. */
@@ -17,7 +18,9 @@ public class CalibrateLimitSwitch extends Command {
   }
 
   public static Command getCommand(Arm arm){
-    return new CalibrateLimitSwitch(arm).onlyIf(() -> !arm.isCalibrated());
+    // return new CalibrateLimitSwitch(arm).onlyIf(() -> !arm.isCalibrated());
+    return new MoveAlpha(arm, ArmConstants.ArmPosition.FREE_POSITION.getAlpha())
+    .andThen(new CalibrateLimitSwitch(arm)).onlyIf(() -> !arm.isCalibrated());
   }
 
   // Called when the command is initially scheduled.
@@ -35,7 +38,7 @@ public class CalibrateLimitSwitch extends Command {
   public void end(boolean interrupted) {
     arm.stopBeta();
     arm.resetBetaEncoder();
-    arm.setArmCalibrated();
+    if(!interrupted) arm.setArmCalibrated();
   }
 
   // Returns true when the command should end.

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -17,6 +18,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.units.Measure;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -24,7 +26,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.Arm.CalibrateLimitSwitch;
+import frc.robot.commands.Arm.MoveAlpha;
+import frc.robot.commands.Arm.MoveArmToPosition;
 import frc.robot.subsystems.Arm.Arm;
+import frc.robot.subsystems.Arm.ArmConstants;
+import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 import frc.robot.subsystems.DriveTrain.DriveBase;
 
 public class RobotContainer{
@@ -45,6 +52,8 @@ public class RobotContainer{
         arm = new Arm();
 
         configureBindings();
+        // configureArmBindings();
+        calibration();
 
         field = new Field2d();
 
@@ -114,8 +123,28 @@ public class RobotContainer{
         driveController.options().onTrue(driveBase.resetOnlyDirection());
         driveController.cross().onTrue(driveBase.runModuleDriveCalibration());
         driveController.triangle().onTrue(driveBase.stopModuleDriveCalibration());
+    }
 
-        
+    private static void configureArmBindings() {
+        Command moveToHome = MoveArmToPosition.getCommand(arm, ArmPosition.HOME_POSITION);
+
+        armController.cross().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.COLLECT_FLOOR_POSITION))
+                .whileFalse(moveToHome);
+
+        armController.circle().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.COLLECT_SOURCE_POSITION))
+                .whileFalse(moveToHome);
+
+        armController.triangle().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.AMP_POSITION))
+                .whileFalse(moveToHome);
+
+        armController.circle().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.FREE_POSITION))
+                .whileFalse(moveToHome); 
+    }
+
+    private void calibration(){
+        armController.touchpad().onTrue(CalibrateLimitSwitch.getCommand(arm));
+
+        armController.options().onTrue(new MoveAlpha(arm, ArmConstants.ArmPosition.FREE_POSITION.getAlpha()));
     }
     
     

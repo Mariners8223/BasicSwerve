@@ -5,10 +5,12 @@
 package frc.robot.subsystems.Arm;
 
 
-import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkBase;
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAbsoluteEncoder;
 import com.revrobotics.CANSparkBase.ControlType;
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkBase.SoftLimitDirection;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
@@ -18,11 +20,10 @@ import edu.wpi.first.wpilibj.DigitalInput;
  * Add your docs here.
  */
 public class ArmIOReal implements ArmIO {
-    CANSparkMax alphaMotor;
-    CANSparkMax betaMotor;
+    CANSparkFlex alphaMotor;
+    CANSparkFlex betaMotor;
 
     SparkAbsoluteEncoder absoluteEncoder;
-    RelativeEncoder relativeEncoder;
     DigitalInput limitSwitch;
 
 
@@ -32,9 +33,12 @@ public class ArmIOReal implements ArmIO {
         limitSwitch = new DigitalInput(ArmConstants.LIMIT_SWITCH_PORT);
     }
 
-    public CANSparkMax configAlphaMotor() {
-        CANSparkMax alphaMotor;
-        alphaMotor = new CANSparkMax(ArmConstants.AlphaConstants.MOTOR_ID, MotorType.kBrushless);
+    public CANSparkFlex configAlphaMotor() {
+        CANSparkFlex alphaMotor;
+        alphaMotor = new CANSparkFlex(ArmConstants.AlphaConstants.MOTOR_ID, MotorType.kBrushless);
+
+        // alphaMotor.restoreFactoryDefaults();
+
         alphaMotor.setInverted(ArmConstants.AlphaConstants.IS_INVERTED);
 
         alphaMotor.getPIDController().setP(ArmConstants.AlphaConstants.PID.getP());
@@ -42,34 +46,37 @@ public class ArmIOReal implements ArmIO {
         alphaMotor.getPIDController().setD(ArmConstants.AlphaConstants.PID.getD());
         alphaMotor.getPIDController().setFF(ArmConstants.AlphaConstants.PID.getF());
 
-        alphaMotor.getEncoder().setPositionConversionFactor(1);
-
         absoluteEncoder = alphaMotor.getAbsoluteEncoder();
-        relativeEncoder = alphaMotor.getAlternateEncoder(8192); //according to the documentation, https://docs.revrobotics.com/through-bore-encoder/specifications
 
-        relativeEncoder.setPosition(checkJumpsInAbsoluteEncoder(absoluteEncoder.getPosition()));
+        absoluteEncoder.setInverted(true);
+
+        absoluteEncoder.setPositionConversionFactor(1);
+
+        absoluteEncoder.setZeroOffset(ArmConstants.ABSOLUTE_ENCODER_OFFSET);
 
         alphaMotor.getEncoder().setPosition(checkJumpsInAbsoluteEncoder(absoluteEncoder.getPosition()) * ArmConstants.AlphaConstants.GEAR_RATIO);
 
-        absoluteEncoder.setPositionConversionFactor(ArmConstants.AlphaConstants.GEAR_RATIO); //just takes the encoder position and multiply it by the value given
-        relativeEncoder.setPositionConversionFactor(ArmConstants.AlphaConstants.GEAR_RATIO); //just takes the encoder position and multiply it by the value given
-
-        alphaMotor.getPIDController().setFeedbackDevice(relativeEncoder); //this is the encoder that will be used for the PID loop
-
         alphaMotor.getPIDController().setOutputRange(ArmConstants.AlphaConstants.MIN_OUTPUT_RANGE, ArmConstants.AlphaConstants.MAX_OUTPUT_RANGE);
 
-        alphaMotor.setSmartCurrentLimit(ArmConstants.AlphaConstants.SMART_CURRENT_LIMIT);
-        alphaMotor.setSecondaryCurrentLimit(ArmConstants.AlphaConstants.SECONDARY_CURRENT_LIMIT);
+        // alphaMotor.setSmartCurrentLimit(ArmConstants.AlphaConstants.SMART_CURRENT_LIMIT);
+        // alphaMotor.setSecondaryCurrentLimit(ArmConstants.AlphaConstants.SECONDARY_CURRENT_LIMIT);
 
-        alphaMotor.setSoftLimit(SoftLimitDirection.kForward, (float) (ArmConstants.AlphaConstants.FORWARD_SOFT_LIMIT * ArmConstants.AlphaConstants.GEAR_RATIO));
-        alphaMotor.setSoftLimit(SoftLimitDirection.kReverse, (float) (ArmConstants.AlphaConstants.REVERSE_SOFT_LIMIT * ArmConstants.AlphaConstants.GEAR_RATIO));
+        // alphaMotor.setSoftLimit(SoftLimitDirection.kForward, (float) (ArmConstants.AlphaConstants.FORWARD_SOFT_LIMIT * ArmConstants.AlphaConstants.GEAR_RATIO));
+        // alphaMotor.setSoftLimit(SoftLimitDirection.kReverse, (float) (ArmConstants.AlphaConstants.REVERSE_SOFT_LIMIT * ArmConstants.AlphaConstants.GEAR_RATIO));
+        // alphaMotor.enableSoftLimit(SoftLimitDirection.kForward, false);
+        // alphaMotor.enableSoftLimit(SoftLimitDirection.kReverse, false);
+
+        alphaMotor.setIdleMode(IdleMode.kBrake);
+        alphaMotor.enableVoltageCompensation(12);
+
+        alphaMotor.burnFlash();
 
         return alphaMotor;
     }
 
-    public CANSparkMax configBetaMotor() {
-        CANSparkMax betaMotor;
-        betaMotor = new CANSparkMax(ArmConstants.BetaConstants.MOTOR_ID, MotorType.kBrushless);
+    public CANSparkFlex configBetaMotor() {
+        CANSparkFlex betaMotor;
+        betaMotor = new CANSparkFlex(ArmConstants.BetaConstants.MOTOR_ID, MotorType.kBrushless);
         betaMotor.setInverted(ArmConstants.BetaConstants.IS_INVERTED);
 
 
@@ -81,11 +88,18 @@ public class ArmIOReal implements ArmIO {
 
         betaMotor.getEncoder().setPositionConversionFactor(1);
 
-        betaMotor.setSmartCurrentLimit(ArmConstants.BetaConstants.SMART_CURRENT_LIMIT);
-        betaMotor.setSecondaryCurrentLimit(ArmConstants.BetaConstants.SECONDARY_CURRENT_LIMIT);
+        // betaMotor.setSmartCurrentLimit(ArmConstants.BetaConstants.SMART_CURRENT_LIMIT);
+        // betaMotor.setSecondaryCurrentLimit(ArmConstants.BetaConstants.SECONDARY_CURRENT_LIMIT);
 
         betaMotor.setSoftLimit(SoftLimitDirection.kForward, (float) (ArmConstants.BetaConstants.FORWARD_SOFT_LIMIT * ArmConstants.BetaConstants.GEAR_RATIO));
         betaMotor.setSoftLimit(SoftLimitDirection.kReverse, (float) (ArmConstants.BetaConstants.REVERSE_SOFT_LIMIT * ArmConstants.BetaConstants.GEAR_RATIO));
+        betaMotor.enableSoftLimit(SoftLimitDirection.kForward, false);
+        betaMotor.enableSoftLimit(SoftLimitDirection.kReverse, false);
+
+        betaMotor.setIdleMode(IdleMode.kBrake);
+        betaMotor.enableVoltageCompensation(12);
+
+        betaMotor.burnFlash();
 
         return betaMotor;
     }
@@ -93,6 +107,9 @@ public class ArmIOReal implements ArmIO {
     @Override
     public void setAlphaTargetRotation(double alphaTarget) {
         alphaMotor.getPIDController().setReference(alphaTarget * ArmConstants.AlphaConstants.GEAR_RATIO, ControlType.kPosition);
+        // alphaMotor.getPIDController().setReference(20, CANSparkBase.ControlType.kPosition);
+
+        // alphaMotor.getPIDController().setReference(alphaTarget, CANSparkBase.ControlType.kPosition, 0);
     }
 
     @Override
@@ -124,11 +141,12 @@ public class ArmIOReal implements ArmIO {
 
 
     public void update(ArmInputsAutoLogged inputs) {
-        inputs.motorAlphaPosition = relativeEncoder.getPosition() / ArmConstants.AlphaConstants.GEAR_RATIO;
-        inputs.absAlphaEncoderPosition = absoluteEncoder.getPosition() / ArmConstants.AlphaConstants.GEAR_RATIO;
+        inputs.motorAlphaPosition = alphaMotor.getEncoder().getPosition() / ArmConstants.AlphaConstants.GEAR_RATIO;
+        inputs.absAlphaEncoderPosition = absoluteEncoder.getPosition();
         inputs.motorBetaPosition = betaMotor.getEncoder().getPosition() / ArmConstants.BetaConstants.GEAR_RATIO;
         inputs.betaLimitSwitch = !limitSwitch.get(); //TODO add qeution for inverted
         inputs.alphaAppliedOutput = alphaMotor.getAppliedOutput();
         inputs.betaAppliedOutput = alphaMotor.getAppliedOutput();
+        inputs.alphaAppliedCurrent = alphaMotor.getOutputCurrent();
     }
 }   
