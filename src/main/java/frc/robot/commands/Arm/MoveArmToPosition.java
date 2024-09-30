@@ -13,6 +13,8 @@ import frc.robot.subsystems.Arm.ArmConstants.ArmPosition;
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class MoveArmToPosition extends SequentialCommandGroup {
+
+  private ArmPosition currentPosition = ArmPosition.UNKNOWN;
   /** Creates a new moveArmToPosition. */
   private MoveArmToPosition(Arm arm, ArmPosition targetPos) {
     // Add your commands in the addCommands() call, e.g.
@@ -20,11 +22,15 @@ public class MoveArmToPosition extends SequentialCommandGroup {
 
     addCommands(
 
-      new MoveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> arm.getCurrentPos() == ArmPosition.COLLECT_FLOOR_POSITION || arm.getCurrentPos() == ArmPosition.AMP_POSITION),
-      new MoveBeta(arm, ArmPosition.FREE_POSITION.getBeta()).onlyIf(() -> arm.getCurrentPos() == ArmPosition.COLLECT_FLOOR_POSITION || arm.getCurrentPos() == ArmPosition.AMP_POSITION),
+      new MoveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> {
+        currentPosition = arm.getCurrentPos();
 
-      new MoveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> arm.getCurrentPos() != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION),
-      new MoveBeta(arm, ArmPosition.COLLECT_FLOOR_POSITION.getBeta()).onlyIf(() -> arm.getCurrentPos() != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION),
+        return currentPosition == ArmPosition.COLLECT_FLOOR_POSITION || currentPosition == ArmPosition.AMP_POSITION || currentPosition == ArmPosition.UNKNOWN;
+      }),
+      new MoveBeta(arm, ArmPosition.FREE_POSITION.getBeta()).onlyIf(() -> currentPosition == ArmPosition.COLLECT_FLOOR_POSITION || currentPosition == ArmPosition.AMP_POSITION || currentPosition == ArmPosition.UNKNOWN),
+
+      new MoveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> currentPosition != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION),
+      new MoveBeta(arm, ArmPosition.COLLECT_FLOOR_POSITION.getBeta()).onlyIf(() -> currentPosition != ArmPosition.COLLECT_FLOOR_POSITION && targetPos == ArmPosition.COLLECT_FLOOR_POSITION),
 
       new MoveAlpha(arm, targetPos.getAlpha()),
       new MoveBeta(arm, ArmPosition.AMP_POSITION.getBeta()).onlyIf(() -> targetPos == ArmPosition.AMP_POSITION)

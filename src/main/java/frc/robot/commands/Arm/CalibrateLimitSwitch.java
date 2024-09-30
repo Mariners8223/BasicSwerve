@@ -37,8 +37,11 @@ public class CalibrateLimitSwitch extends Command {
   @Override
   public void end(boolean interrupted) {
     arm.stopBeta();
-    arm.resetBetaEncoder();
-    if(!interrupted) arm.setArmCalibrated();
+    if(!interrupted){
+      arm.resetBetaEncoder();
+      arm.enableBetaSoftLimits();
+      arm.setArmCalibrated();
+    } 
   }
 
   // Returns true when the command should end.

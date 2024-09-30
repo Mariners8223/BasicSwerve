@@ -29,7 +29,7 @@ public class Arm extends SubsystemBase {
 
     public void moveAlpha(double alphaTarget) {
 
-        double target = Math.max(ArmConstants.AlphaConstants.REVERSE_SOFT_LIMIT,
+        double target = Math.max(-ArmConstants.AlphaConstants.REVERSE_SOFT_LIMIT,
                 Math.min(alphaTarget, ArmConstants.AlphaConstants.FORWARD_SOFT_LIMIT));
 
         io.setAlphaTargetRotation(target);
@@ -52,6 +52,10 @@ public class Arm extends SubsystemBase {
                 ArmConstants.BetaConstants.MIN_OUTPUT_RANGE, ArmConstants.BetaConstants.MAX_OUTPUT_RANGE);
 
         io.moveBetaDutyCycle(speed);
+    }
+
+    public void enableBetaSoftLimits(){
+        io.enableBetaSoftLimits();
     }
 
     public void stopAlpha() {
@@ -109,6 +113,10 @@ public class Arm extends SubsystemBase {
 
         Logger.processInputs("Arm", inputs);
         Logger.recordOutput("Current Pos", currentPos);
+
+        String currentCommand = getCurrentCommand() != null ? getCurrentCommand().getName() : "None";
+
+        Logger.recordOutput("Arm/Current Command", currentCommand);
     }
 
     private ArmPosition findArmPosition(double alpha, double beta) {

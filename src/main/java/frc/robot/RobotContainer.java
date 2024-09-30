@@ -52,7 +52,7 @@ public class RobotContainer{
         arm = new Arm();
 
         configureBindings();
-        // configureArmBindings();
+        configureArmBindings();
         calibration();
 
         field = new Field2d();
@@ -129,16 +129,16 @@ public class RobotContainer{
         Command moveToHome = MoveArmToPosition.getCommand(arm, ArmPosition.HOME_POSITION);
 
         armController.cross().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.COLLECT_FLOOR_POSITION))
-                .whileFalse(moveToHome);
+                .whileFalse(moveToHome).debounce(0.02);
 
         armController.circle().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.COLLECT_SOURCE_POSITION))
-                .whileFalse(moveToHome);
+                .whileFalse(moveToHome).debounce(0.02);
 
         armController.triangle().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.AMP_POSITION))
-                .whileFalse(moveToHome);
+                .whileFalse(moveToHome).debounce(0.02);
 
-        armController.circle().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.FREE_POSITION))
-                .whileFalse(moveToHome); 
+        armController.square().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.FREE_POSITION))
+                .whileFalse(moveToHome).debounce(0.02); 
     }
 
     private void calibration(){

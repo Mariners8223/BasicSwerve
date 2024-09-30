@@ -20,6 +20,7 @@ public interface ArmIO {
     public void setBetaTargetRotation(double BetaTarget);
     public void resetBetaEncoder();
     public void moveBetaDutyCycle(double speed);
+    public void enableBetaSoftLimits();
     public void stopAlpha();
     public void stopBeta();
 

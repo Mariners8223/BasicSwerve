@@ -5,9 +5,7 @@
 package frc.robot.subsystems.Arm;
 
 
-import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkFlex;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAbsoluteEncoder;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
@@ -61,10 +59,10 @@ public class ArmIOReal implements ArmIO {
         // alphaMotor.setSmartCurrentLimit(ArmConstants.AlphaConstants.SMART_CURRENT_LIMIT);
         // alphaMotor.setSecondaryCurrentLimit(ArmConstants.AlphaConstants.SECONDARY_CURRENT_LIMIT);
 
-        // alphaMotor.setSoftLimit(SoftLimitDirection.kForward, (float) (ArmConstants.AlphaConstants.FORWARD_SOFT_LIMIT * ArmConstants.AlphaConstants.GEAR_RATIO));
-        // alphaMotor.setSoftLimit(SoftLimitDirection.kReverse, (float) (ArmConstants.AlphaConstants.REVERSE_SOFT_LIMIT * ArmConstants.AlphaConstants.GEAR_RATIO));
-        // alphaMotor.enableSoftLimit(SoftLimitDirection.kForward, false);
-        // alphaMotor.enableSoftLimit(SoftLimitDirection.kReverse, false);
+        alphaMotor.setSoftLimit(SoftLimitDirection.kForward, (float) (ArmConstants.AlphaConstants.FORWARD_SOFT_LIMIT * ArmConstants.AlphaConstants.GEAR_RATIO));
+        alphaMotor.setSoftLimit(SoftLimitDirection.kReverse, (float) (ArmConstants.AlphaConstants.REVERSE_SOFT_LIMIT * ArmConstants.AlphaConstants.GEAR_RATIO));
+        alphaMotor.enableSoftLimit(SoftLimitDirection.kForward, false);
+        alphaMotor.enableSoftLimit(SoftLimitDirection.kReverse, false);
 
         alphaMotor.setIdleMode(IdleMode.kBrake);
         alphaMotor.enableVoltageCompensation(12);
@@ -119,7 +117,7 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void resetBetaEncoder() {
-        betaMotor.getEncoder().setPosition(ArmConstants.LIMIT_SWITCH_OFFSET);
+        betaMotor.getEncoder().setPosition(ArmConstants.LIMIT_SWITCH_OFFSET * ArmConstants.BetaConstants.GEAR_RATIO);
     }
 
     private double checkJumpsInAbsoluteEncoder(double value) {
@@ -131,6 +129,13 @@ public class ArmIOReal implements ArmIO {
         betaMotor.set(speed);
     }
 
+    @Override
+    public void enableBetaSoftLimits(){
+        betaMotor.enableSoftLimit(SoftLimitDirection.kForward, true);
+        betaMotor.enableSoftLimit(SoftLimitDirection.kReverse, true);
+    }
+
+    @Override
     public void stopAlpha() {
         alphaMotor.stopMotor();
     }

@@ -5,8 +5,8 @@ import frc.util.PIDFGains;
 
 public class ArmConstants {
     public enum ArmPosition{
-        HOME_POSITION(0.004, 0.04),
-        COLLECT_FLOOR_POSITION(-0.04, 0.4),
+        HOME_POSITION(0.05, 0.04),
+        COLLECT_FLOOR_POSITION(-0.04, 0.42),
         COLLECT_SOURCE_POSITION(0.135, 0.04),
         SHOOT_SUBWOFFER_POSITION(0.135, 0.04),
         FREE_POSITION(0.137, 0.04),
@@ -58,7 +58,7 @@ public class ArmConstants {
         public static final int MOTOR_ID = 13;
         public static final boolean IS_INVERTED = false;
 
-        public static final PIDFGains PID = new PIDFGains(0.1, 0, 0, 0.005, ArmConstants.ARM_POSITION_TOLERANCE,0);
+        public static final PIDFGains PID = new PIDFGains(0.1, 0, 0, 0, ArmConstants.ARM_POSITION_TOLERANCE,0);
         public static final double MIN_OUTPUT_RANGE = -0.3;
         public static final double MAX_OUTPUT_RANGE = 0.3;
         public static final int SMART_CURRENT_LIMIT = 35;
