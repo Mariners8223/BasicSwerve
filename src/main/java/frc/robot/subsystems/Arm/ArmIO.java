@@ -5,15 +5,15 @@ import org.littletonrobotics.junction.AutoLog;
 public interface ArmIO {
     @AutoLog
     public class ArmInputs{
-        public double motorAlphaPosition;
-        public double absAlphaEncoderPosition;
+        public double motorAlphaPosition = 0;
+        public double absAlphaEncoderPosition = 0;
 
-        public double motorBetaPosition;
-        public boolean betaLimitSwitch;
-        public double alphaAppliedOutput;
-        public double betaAppliedOutput;
+        public double motorBetaPosition = 0;
+        public boolean betaLimitSwitch = false;
+        public double alphaAppliedOutput = 0;
+        public double betaAppliedOutput = 0;
 
-        public double alphaAppliedCurrent;
+        public double alphaAppliedCurrent = 0;
     }
 
     public void setAlphaTargetRotation(double AlphaTarget);

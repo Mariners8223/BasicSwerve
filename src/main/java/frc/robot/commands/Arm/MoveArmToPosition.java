@@ -39,6 +39,10 @@ public class MoveArmToPosition extends SequentialCommandGroup {
   }
 
   public static Command getCommand(Arm arm, ArmPosition targetPos){
-    return new MoveArmToPosition(arm, targetPos).onlyIf(() -> arm.isCalibrated() && arm.getCurrentPos() != targetPos);
+    Command command = new MoveArmToPosition(arm, targetPos).onlyIf(() -> arm.isCalibrated() && arm.getCurrentPos() != targetPos);
+
+    command.setName("Move Arm To " + targetPos);
+
+    return command;
   }
 }

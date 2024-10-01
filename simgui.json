@@ -20,6 +20,16 @@
       "/SmartDashboard/steerPIDController": "PIDController"
     }
   },
+  "NetworkTables": {
+    "transitory": {
+      "AdvantageKit": {
+        "open": true
+      },
+      "SmartDashboard": {
+        "open": true
+      }
+    }
+  },
   "NetworkTables Info": {
     "Clients": {
       "open": true

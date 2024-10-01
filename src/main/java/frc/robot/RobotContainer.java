@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -18,7 +17,6 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotState;
@@ -142,7 +140,7 @@ public class RobotContainer{
         SmartDashboard.putNumber("angle", 25);
 
         armController.square().whileTrue(AlphaAim.getCommand(arm, () -> Units.Degrees.of(SmartDashboard.getNumber("angle", 25))))
-                .whileFalse(moveToHome).debounce(0.02); 
+                .whileFalse(moveToHome).debounce(0.02);
     }
 
     private void calibration(){

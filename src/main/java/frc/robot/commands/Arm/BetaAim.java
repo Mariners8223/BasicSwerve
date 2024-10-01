@@ -28,6 +28,10 @@ public class BetaAim extends SequentialCommandGroup {
   }
 
     public static Command getCommand(Arm arm, Supplier<Measure<Angle>> betaTarget){
-        return new BetaAim(arm, betaTarget).onlyIf(arm::isCalibrated);
+        Command command = new BetaAim(arm, betaTarget).onlyIf(arm::isCalibrated);
+
+        command.setName("Beta Aim");
+
+        return command;
     }
 }
