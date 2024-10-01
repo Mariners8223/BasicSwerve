@@ -5,9 +5,12 @@
 package frc.robot.commands.Arm;
 
 import java.util.function.Supplier;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Arm.Arm;
+import frc.robot.subsystems.Arm.ArmConstants;
 
 public class BetaAim_command extends Command {
   private final Arm arm;
@@ -29,7 +32,11 @@ public class BetaAim_command extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    arm.moveBeta(Math.PI - betaTarget.get().in(Units.Radian));
+      double value = MathUtil.clamp(0.5 - betaTarget.get().in(Units.Rotations),
+      ArmConstants.BetaConstants.AIM_REVERSE_SOFT_LIMIT,
+      ArmConstants.BetaConstants.FORWARD_SOFT_LIMIT);
+
+      arm.moveBeta(value);
   }
 
   // Called once the command ends or is interrupted.

@@ -25,7 +25,7 @@ public class MoveArmToPosition extends SequentialCommandGroup {
       new MoveAlpha(arm, ArmPosition.FREE_POSITION.getAlpha()).onlyIf(() -> {
         currentPosition = arm.getCurrentPos();
 
-        return currentPosition == ArmPosition.COLLECT_FLOOR_POSITION || currentPosition == ArmPosition.AMP_POSITION || currentPosition == ArmPosition.UNKNOWN;
+        return currentPosition == ArmPosition.COLLECT_FLOOR_POSITION || currentPosition == ArmPosition.UNKNOWN;
       }),
       new MoveBeta(arm, ArmPosition.FREE_POSITION.getBeta()).onlyIf(() -> currentPosition == ArmPosition.COLLECT_FLOOR_POSITION || currentPosition == ArmPosition.AMP_POSITION || currentPosition == ArmPosition.UNKNOWN),
 

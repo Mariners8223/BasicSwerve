@@ -7,6 +7,7 @@ public interface ArmIO {
     public class ArmInputs{
         public double motorAlphaPosition = 0;
         public double absAlphaEncoderPosition = 0;
+        public double relativeEncoderPosition = 0;
 
         public double motorBetaPosition = 0;
         public boolean betaLimitSwitch = false;

@@ -50,7 +50,7 @@ public class ArmIOReal implements ArmIO {
         relativeEncoder = alphaMotor.getExternalEncoder(8192);
 
         absoluteEncoder.setInverted(true);
-        relativeEncoder.setInverted(true);
+        relativeEncoder.setInverted(false);
 
         absoluteEncoder.setPositionConversionFactor(1);
         relativeEncoder.setPositionConversionFactor(ArmConstants.AlphaConstants.GEAR_RATIO);
@@ -129,7 +129,7 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void resetBetaEncoder() {
-        betaMotor.getEncoder().setPosition(ArmConstants.BetaConstants.LIMIT_SWITCH_OFFSET * ArmConstants.BetaConstants.GEAR_RATIO);
+        betaMotor.getEncoder().setPosition(ArmConstants.LIMIT_SWITCH_OFFSET * ArmConstants.BetaConstants.GEAR_RATIO);
     }
 
     private double checkJumpsInAbsoluteEncoder(double value) {
@@ -159,6 +159,7 @@ public class ArmIOReal implements ArmIO {
 
     public void update(ArmInputsAutoLogged inputs) {
         inputs.motorAlphaPosition = alphaMotor.getEncoder().getPosition() / ArmConstants.AlphaConstants.GEAR_RATIO;
+        inputs.relativeEncoderPosition = relativeEncoder.getPosition() / ArmConstants.AlphaConstants.GEAR_RATIO;
         inputs.absAlphaEncoderPosition = absoluteEncoder.getPosition();
         inputs.motorBetaPosition = betaMotor.getEncoder().getPosition() / ArmConstants.BetaConstants.GEAR_RATIO;
         inputs.betaLimitSwitch = !limitSwitch.get(); //TODO add qeution for inverted

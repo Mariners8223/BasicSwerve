@@ -102,10 +102,6 @@ public class Arm extends SubsystemBase {
     public void periodic() {
         io.update(inputs);
 
-        if (inputs.betaLimitSwitch) {
-            io.resetBetaEncoder();
-        }
-
         double alpha = getAlphaPosition();
         double beta = getBetaPosition();
 

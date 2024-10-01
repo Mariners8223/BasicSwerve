@@ -21,7 +21,7 @@ public class BetaAim extends SequentialCommandGroup {
     // addCommands(new FooCommand(), new BarCommand());
     
    addCommands(
-     MoveArmToPosition.getCommand(arm, ArmPosition.FREE_POSITION),
+     MoveArmToPosition.getCommand(arm, ArmPosition.COLLECT_FLOOR_POSITION),
      new MoveAlpha(arm, ArmPosition.AIM_POSITION.getAlpha()),
      new BetaAim_command(arm, betaTarget)
     );

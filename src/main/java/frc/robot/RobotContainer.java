@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.Arm.AlphaAim;
+import frc.robot.commands.Arm.BetaAim;
 import frc.robot.commands.Arm.CalibrateLimitSwitch;
 import frc.robot.commands.Arm.MoveAlpha;
 import frc.robot.commands.Arm.MoveArmToPosition;
@@ -129,18 +130,18 @@ public class RobotContainer{
         Command moveToHome = MoveArmToPosition.getCommand(arm, ArmPosition.HOME_POSITION);
 
         armController.cross().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.COLLECT_FLOOR_POSITION))
-                .whileFalse(moveToHome).debounce(0.02);
+                .whileFalse(moveToHome).debounce(0.04);
 
         armController.circle().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.COLLECT_SOURCE_POSITION))
-                .whileFalse(moveToHome).debounce(0.02);
+                .whileFalse(moveToHome).debounce(0.04);
 
         armController.triangle().whileTrue(MoveArmToPosition.getCommand(arm, ArmConstants.ArmPosition.AMP_POSITION))
-                .whileFalse(moveToHome).debounce(0.02);
+                .whileFalse(moveToHome).debounce(0.04);
 
         SmartDashboard.putNumber("angle", 25);
 
-        armController.square().whileTrue(AlphaAim.getCommand(arm, () -> Units.Degrees.of(SmartDashboard.getNumber("angle", 25))))
-                .whileFalse(moveToHome).debounce(0.02);
+        armController.square().whileTrue(BetaAim.getCommand(arm, () -> Units.Degrees.of(SmartDashboard.getNumber("angle", 25))))
+                .whileFalse(moveToHome).debounce(0.04);
     }
 
     private void calibration(){
