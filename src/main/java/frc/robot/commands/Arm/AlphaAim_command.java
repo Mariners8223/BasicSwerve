@@ -38,7 +38,7 @@ public class AlphaAim_command extends Command {
         ArmConstants.ArmPosition.HOME_POSITION.getAlpha(),
         ArmConstants.AlphaConstants.FORWARD_SOFT_LIMIT);
 
-        arm.moveAlpha(value - ArmConstants.LIMIT_SWITCH_OFFSET);
+        arm.moveAlpha(value - ArmConstants.BetaConstants.LIMIT_SWITCH_OFFSET);
     }
 
     // Called once the command ends or is interrupted.

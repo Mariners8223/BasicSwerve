@@ -6,6 +6,7 @@ package frc.robot.subsystems.Arm;
 
 
 import com.revrobotics.CANSparkFlex;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAbsoluteEncoder;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
@@ -22,13 +23,14 @@ public class ArmIOReal implements ArmIO {
     CANSparkFlex betaMotor;
 
     SparkAbsoluteEncoder absoluteEncoder;
+    RelativeEncoder relativeEncoder;
     DigitalInput limitSwitch;
 
 
     public ArmIOReal() {
         alphaMotor = configAlphaMotor();
         betaMotor = configBetaMotor();
-        limitSwitch = new DigitalInput(ArmConstants.LIMIT_SWITCH_PORT);
+        limitSwitch = new DigitalInput(ArmConstants.BetaConstants.LIMIT_SWITCH_PORT);
     }
 
     public CANSparkFlex configAlphaMotor() {
@@ -45,16 +47,24 @@ public class ArmIOReal implements ArmIO {
         alphaMotor.getPIDController().setFF(ArmConstants.AlphaConstants.PID.getF());
 
         absoluteEncoder = alphaMotor.getAbsoluteEncoder();
+        relativeEncoder = alphaMotor.getExternalEncoder(8192);
 
         absoluteEncoder.setInverted(true);
+        relativeEncoder.setInverted(true);
 
         absoluteEncoder.setPositionConversionFactor(1);
+        relativeEncoder.setPositionConversionFactor(ArmConstants.AlphaConstants.GEAR_RATIO);
 
-        absoluteEncoder.setZeroOffset(ArmConstants.ABSOLUTE_ENCODER_OFFSET);
+        absoluteEncoder.setZeroOffset(ArmConstants.AlphaConstants.ABSOLUTE_ENCODER_OFFSET);
 
         alphaMotor.getEncoder().setPosition(checkJumpsInAbsoluteEncoder(absoluteEncoder.getPosition()) * ArmConstants.AlphaConstants.GEAR_RATIO);
+        relativeEncoder.setPosition(checkJumpsInAbsoluteEncoder(absoluteEncoder.getPosition()) * ArmConstants.AlphaConstants.GEAR_RATIO);
 
         alphaMotor.getPIDController().setOutputRange(ArmConstants.AlphaConstants.MIN_OUTPUT_RANGE, ArmConstants.AlphaConstants.MAX_OUTPUT_RANGE);
+
+        alphaMotor.getPIDController().setFeedbackDevice(relativeEncoder);
+
+        alphaMotor.setClosedLoopRampRate(ArmConstants.AlphaConstants.RAMP_RATE);
 
         // alphaMotor.setSmartCurrentLimit(ArmConstants.AlphaConstants.SMART_CURRENT_LIMIT);
         // alphaMotor.setSecondaryCurrentLimit(ArmConstants.AlphaConstants.SECONDARY_CURRENT_LIMIT);
@@ -85,6 +95,8 @@ public class ArmIOReal implements ArmIO {
         betaMotor.getPIDController().setOutputRange(ArmConstants.BetaConstants.MIN_OUTPUT_RANGE, ArmConstants.BetaConstants.MAX_OUTPUT_RANGE);
 
         betaMotor.getEncoder().setPositionConversionFactor(1);
+
+        betaMotor.setClosedLoopRampRate(ArmConstants.BetaConstants.RAMP_RATE);
 
         // betaMotor.setSmartCurrentLimit(ArmConstants.BetaConstants.SMART_CURRENT_LIMIT);
         // betaMotor.setSecondaryCurrentLimit(ArmConstants.BetaConstants.SECONDARY_CURRENT_LIMIT);
@@ -117,7 +129,7 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void resetBetaEncoder() {
-        betaMotor.getEncoder().setPosition(ArmConstants.LIMIT_SWITCH_OFFSET * ArmConstants.BetaConstants.GEAR_RATIO);
+        betaMotor.getEncoder().setPosition(ArmConstants.BetaConstants.LIMIT_SWITCH_OFFSET * ArmConstants.BetaConstants.GEAR_RATIO);
     }
 
     private double checkJumpsInAbsoluteEncoder(double value) {
