@@ -37,12 +37,10 @@ public class Arm extends SubsystemBase {
         isCalibrated = false;
         currentPos = ArmPosition.HOME_POSITION;
         
-        armMechanism = new Mechanism2d(1.3, 1, new Color8Bit(Color.kCyan));
+        armMechanism = new Mechanism2d(1.3, 1, new Color8Bit(Color.kBlack));
         root = armMechanism.getRoot("Arm Root", 0.3, 0);
-        alpha2d = new MechanismLigament2d("Alpha Arm", 0.43, 0, 6, new Color8Bit(Color.kDarkRed));
-        beta2d = new MechanismLigament2d("Beta Arm", 0.36, 0, 4, new Color8Bit(Color.kSeaGreen));
-        root.append(alpha2d);
-        alpha2d.append(beta2d);
+        alpha2d = root.append(new MechanismLigament2d("Alpha Arm", 0.43, 0, 6, new Color8Bit(Color.kBlue)));
+        beta2d = alpha2d.append(new MechanismLigament2d("Beta Arm", 0.36, 0, 4, new Color8Bit(Color.kLightBlue)));
     }
 
     public void moveAlpha(double alphaTarget) {
@@ -125,12 +123,14 @@ public class Arm extends SubsystemBase {
 
         alpha2d.setAngle(Units.rotationsToDegrees(inputs.motorAlphaPosition));
         beta2d.setAngle(Units.rotationsToDegrees(inputs.motorBetaPosition));
+        // alpha2d.setAngle(alpha2d.getAngle()+0.3);
+        // beta2d.setAngle(beta2d.getAngle()+0.6);
 
         currentPos = findArmPosition(alpha, beta);
 
         Logger.processInputs("Arm", inputs);
         Logger.recordOutput("Current Pos", currentPos);
-        Logger.recordOutput("Mechanism2D", armMechanism);
+        Logger.recordOutput("Arm/Mechanism2D", armMechanism);
 
         String currentCommand = getCurrentCommand() != null ? getCurrentCommand().getName() : "None";
         Logger.recordOutput("Arm/Current Command", currentCommand);

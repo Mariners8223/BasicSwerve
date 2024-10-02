@@ -25,7 +25,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.Arm.AlphaAim;
 import frc.robot.commands.Arm.BetaAim;
 import frc.robot.commands.Arm.CalibrateLimitSwitch;
 import frc.robot.commands.Arm.MoveAlpha;

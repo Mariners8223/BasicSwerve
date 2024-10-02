@@ -1,6 +1,7 @@
 {
   "NTProvider": {
     "types": {
+      "/AdvantageKit/RealOutputs/Mechanism2D": "Mechanism2d",
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Drive PID": "PIDController",
       "/SmartDashboard/Field": "Field2d",
