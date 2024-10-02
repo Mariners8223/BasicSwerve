@@ -5,6 +5,13 @@
 package frc.robot.subsystems.Arm;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -19,12 +26,23 @@ public class Arm extends SubsystemBase {
     private final ArmInputsAutoLogged inputs;
     private boolean isCalibrated;
     private ArmPosition currentPos;
+    private Mechanism2d armMechanism;
+    private MechanismRoot2d root;
+    private MechanismLigament2d alpha2d;
+    private MechanismLigament2d beta2d;
 
     public Arm() {
         io = new ArmIOReal();
         inputs = new ArmInputsAutoLogged();
         isCalibrated = false;
         currentPos = ArmPosition.HOME_POSITION;
+        
+        armMechanism = new Mechanism2d(1.3, 1, new Color8Bit(Color.kCyan));
+        root = armMechanism.getRoot("Arm Root", 0.3, 0);
+        alpha2d = new MechanismLigament2d("Alpha Arm", 0.43, 0, 6, new Color8Bit(Color.kDarkRed));
+        beta2d = new MechanismLigament2d("Beta Arm", 0.36, 0, 4, new Color8Bit(Color.kSeaGreen));
+        root.append(alpha2d);
+        alpha2d.append(beta2d);
     }
 
     public void moveAlpha(double alphaTarget) {
@@ -105,13 +123,16 @@ public class Arm extends SubsystemBase {
         double alpha = getAlphaPosition();
         double beta = getBetaPosition();
 
+        alpha2d.setAngle(Units.rotationsToDegrees(inputs.motorAlphaPosition));
+        beta2d.setAngle(Units.rotationsToDegrees(inputs.motorBetaPosition));
+
         currentPos = findArmPosition(alpha, beta);
 
         Logger.processInputs("Arm", inputs);
         Logger.recordOutput("Current Pos", currentPos);
+        Logger.recordOutput("Mechanism2D", armMechanism);
 
         String currentCommand = getCurrentCommand() != null ? getCurrentCommand().getName() : "None";
-
         Logger.recordOutput("Arm/Current Command", currentCommand);
     }
 
