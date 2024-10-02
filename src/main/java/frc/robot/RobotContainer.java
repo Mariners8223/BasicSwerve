@@ -107,8 +107,6 @@ public class RobotContainer{
     
     private void configureBindings() {
         driveController.options().onTrue(driveBase.resetOnlyDirection());
-        driveController.cross().onTrue(driveBase.runModuleDriveCalibration());
-        driveController.triangle().onTrue(driveBase.stopModuleDriveCalibration());
     }
     
     
