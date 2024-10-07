@@ -1,33 +1,42 @@
 package frc.util;
 
-import com.revrobotics.CANSparkLowLevel;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkAbsoluteEncoder;
-import com.revrobotics.SparkRelativeEncoder;
+import com.revrobotics.*;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
-public class RoborioSpark extends RoborioController {
+public class RoborioSparkMax extends RoborioController {
+
+    public enum ControlMode{
+        DutyCycle,
+        Voltage,
+        Position,
+        Velocity,
+    }
+
+
     private final CANSparkMax spark;
     private final ProfiledPIDController[] controllers = new ProfiledPIDController[3];
     private final Double[] feedforward = new Double[3];
 
     private final AtomicReference<Double>[] setpoints = new AtomicReference[3];
 
+    private ControlMode controlMode = ControlMode.DutyCycle;
+
     private int currentController = 0;
 
-    private Supplier<Double> referenceDevice;
+    private Supplier<Double> positionSupplier;
+    private Supplier<Double> velocitySupplier;
 
     private double maxOutput = 12;
     private double minOutput = -12;
 
 
-    public RoborioSpark(int id, CANSparkLowLevel.MotorType type) {
+    public RoborioSparkMax(int id, CANSparkLowLevel.MotorType type) {
         spark = new CANSparkMax(0, type);
         spark.restoreFactoryDefaults();
 
@@ -42,7 +51,8 @@ public class RoborioSpark extends RoborioController {
         }
 
         var encoder = spark.getEncoder();
-        referenceDevice = encoder::getPosition;
+        positionSupplier = encoder::getPosition;
+        velocitySupplier = encoder::getVelocity;
 
         addRunnable(this);
     }
@@ -64,16 +74,29 @@ public class RoborioSpark extends RoborioController {
         this.minOutput = minOutput;
     }
 
-    public void setReferenceDevice(Supplier<Double> referenceDevice){
-        this.referenceDevice = referenceDevice;
+    public void setReferenceDevice(RelativeEncoder referenceDevice){
+        setReferenceDevice(referenceDevice::getPosition, referenceDevice::getVelocity);
     }
 
-    public void setReferenceDevice(SparkRelativeEncoder referenceDevice){
-        this.referenceDevice = referenceDevice::getPosition;
+    public void setReferenceDevice(AbsoluteEncoder referenceDevice){
+        setReferenceDevice(referenceDevice::getPosition, referenceDevice::getVelocity);
     }
 
-    public void setReferenceDevice(SparkAbsoluteEncoder referenceDevice){
-        this.referenceDevice = referenceDevice::getPosition;
+    public void setReferenceDevice(Supplier<Double> positionSupplier, Supplier<Double> velocitySupplier){
+        this.positionSupplier = positionSupplier;
+        this.velocitySupplier = velocitySupplier;
+    }
+
+    public void setReference(double reference, ControlMode mode){
+        controlMode = mode;
+        setpoints[0].set(reference);
+    }
+
+    public void setReference(double reference, ControlMode mode, int index){
+        checkIndex(index);
+
+        controlMode = mode;
+        setpoints[index].set(reference);
     }
 
     public ProfiledPIDController getPIDController(){
@@ -143,15 +166,26 @@ public class RoborioSpark extends RoborioController {
 
         double setpoint = setpoints[currentController].get();
 
-        double reference = referenceDevice.get();
+        if(controlMode == ControlMode.DutyCycle){
+            spark.set(MathUtil.clamp(setpoint, minOutput / 12, maxOutput / 12));
+            return;
+        }
+        else if(controlMode == ControlMode.Voltage){
+            spark.setVoltage(MathUtil.clamp(setpoint, minOutput, maxOutput));
+            return;
+        }
+
+        double reference = switch (controlMode) {
+            case Position -> positionSupplier.get();
+            case Velocity -> velocitySupplier.get();
+            default -> 0;
+        };
 
         double output = controller.calculate(reference, setpoint);
 
         output += feedforward[currentController] * setpoint;
 
-        output = Math.min(maxOutput, Math.max(minOutput, output));
-
-        spark.setVoltage(output);
+        spark.setVoltage(MathUtil.clamp(output, minOutput, maxOutput));
     }
 
     @Override

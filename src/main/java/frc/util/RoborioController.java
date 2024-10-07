@@ -33,4 +33,10 @@ public abstract class RoborioController {
         subsystem.setName("RoborioControllers");
     }
 
+    public static class RoborioControllerInputs{
+        public double position;
+        public double velocity;
+        public double appliedVoltage;
+    }
+
 }
