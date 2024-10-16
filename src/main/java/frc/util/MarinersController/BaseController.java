@@ -1,8 +1,12 @@
 package frc.util.MarinersController;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.util.PIDFGains;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -21,7 +25,11 @@ public abstract class BaseController implements Runnable{
      * can be position or velocity controllers
      * have an option to be a profiled controller (for motion profiling)
      */
-    private ProfiledPIDController[] controllers = new ProfiledPIDController[3];
+    private PIDController[] controllers = new PIDController[3];
+
+    private Optional<TrapezoidProfile.Constraints>[] constraints = new Optional[3];
+
+    private final TrapezoidProfile.State currentState = new TrapezoidProfile.State();
 
     /**
      * The suppliers for the position of the motor (in the chosen units)
@@ -32,6 +40,8 @@ public abstract class BaseController implements Runnable{
      * The suppliers for the velocity of the motor (in the chosen units)
      */
     private Supplier<Double> velocitySupplier;
+
+    private Supplier<Double> accelerationSupplier;
 
     /**
      * Feedforward functions for each controller
@@ -59,20 +69,22 @@ public abstract class BaseController implements Runnable{
      * The setpoints for the controllers
      * used for setting the setpoint of the controller
      */
-    private AtomicReference<Double>[] setpoints = new AtomicReference[3];
+    private AtomicReference<Double> setpoints = new AtomicReference();
+
+    private AtomicReference<TrapezoidProfile.State> goal = new AtomicReference<>(new TrapezoidProfile.State());
 
     /**
      * The current controller being used
      */
     private int currentController = 0;
 
+    protected double voltageOutput = 0;
+
     protected BaseController(Supplier<Double> positionSupplier, Supplier<Double> velocitySupplier, PIDFGains[] pidfGains, double[] minMaxOutput, Function<Double, Double>[] feedforward) {
         for (int i = 0; i < controllers.length; i++) {
-            this.controllers[i] = pidfGains[i].createProfiledPIDController();
+            this.controllers[i] = pidfGains[i].createPIDController();
 
             this.feedforward[i] = feedforward[i];
-
-            this.setpoints[i] = new AtomicReference<Double>(0.0);
         }
 
         this.minMaxOutput = minMaxOutput;
@@ -108,7 +120,7 @@ public abstract class BaseController implements Runnable{
 
     protected BaseController(Supplier<Double> positionSupplier, Supplier<Double> velocitySupplier, PIDFGains pidfGains) {
         this(positionSupplier, velocitySupplier);
-        this.controllers[0] = pidfGains.createProfiledPIDController();
+        this.controllers[0] = pidfGains.createPIDController();
         this.feedforward[0] = (x) -> pidfGains.getF();
     }
 
@@ -117,7 +129,63 @@ public abstract class BaseController implements Runnable{
         this.minMaxOutput = minMaxOutput;
     }
 
-    public void runController(){}
+    public void runController(){
+
+        if(goal.get() != null){
+            runWithProfile();
+        }
+        else{
+            runWithOutProfile();
+        }
+    }
+
+    private void runWithProfile(){
+        TrapezoidProfile.State target = goal.get();
+
+        if(controlMode == ControlMode.Voltage || controlMode == ControlMode.DutyCycle){
+            voltageOutput = 0;
+            return;
+        }
+
+        currentState.position = switch (controlMode) {
+            case Position -> positionSupplier.get();
+            case Velocity -> velocitySupplier.get();
+            default -> 0;
+        };
+
+        currentState.velocity = switch (controlMode) {
+            case Position -> velocitySupplier.get();
+            case Velocity -> accelerationSupplier.get();
+            default -> 0;
+        };
+
+        double setPoint = pro
+    }
+
+    private void runWithOutProfile(){
+        double reference = setpoints.get();
+
+        if(controlMode == ControlMode.Voltage){
+            voltageOutput = MathUtil.clamp(reference, minMaxOutput[0], minMaxOutput[1]);
+            return;
+        }
+        else if(controlMode == ControlMode.DutyCycle){
+            voltageOutput = MathUtil.clamp(reference * 12, minMaxOutput[0], minMaxOutput[1]);
+            return;
+        }
+
+        double measurement = switch (controlMode) {
+            case Position -> positionSupplier.get();
+            case Velocity -> velocitySupplier.get();
+            default -> 0;
+        };
+
+        double output = controllers[currentController].calculate(measurement, setpoints.get());
+
+        output += feedforward[currentController].apply(measurement) * setpoints.get();
+
+        voltageOutput = MathUtil.clamp(output, minMaxOutput[0], minMaxOutput[1]);
+    }
 
     public void update(){}
 }
