@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -28,7 +29,7 @@ import frc.robot.subsystems.DriveTrain.DriveBase;
 
 public class RobotContainer{
     public static DriveBase driveBase;
-    public static CommandPS5Controller driveController;
+    public static CommandXboxController driveController;
 
     public static Field2d field;
     public static LoggedDashboardChooser<Command> autoChooser;
@@ -36,7 +37,7 @@ public class RobotContainer{
 
     public RobotContainer()
     {
-        driveController = new CommandPS5Controller(0);
+        driveController = new CommandXboxController(0);
         driveBase = new DriveBase();
 
         configureBindings();
@@ -106,7 +107,8 @@ public class RobotContainer{
     
     
     private void configureBindings() {
-        driveController.options().onTrue(driveBase.resetOnlyDirection());
+//        driveController.options().onTrue(driveBase.resetOnlyDirection());
+        driveController.start().onTrue(driveBase.resetOnlyDirection());
     }
     
     
