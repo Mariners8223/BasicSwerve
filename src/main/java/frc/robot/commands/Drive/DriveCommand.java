@@ -4,7 +4,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.DriveTrain.DriveBase;
 
 import static frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModule.DISTANCE_BETWEEN_WHEELS;
@@ -12,9 +11,9 @@ import static frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModule.DISTANC
 public class DriveCommand extends Command {
 
     private final DriveBase driveBase;
-    private final CommandXboxController controller;
+    private final CommandPS5Controller controller;
 
-    public DriveCommand(DriveBase driveBase, CommandXboxController controller) {
+    public DriveCommand(DriveBase driveBase, CommandPS5Controller controller) {
         this.driveBase = driveBase;
         this.controller = controller;
         addRequirements(this.driveBase);
@@ -35,7 +34,7 @@ public class DriveCommand extends Command {
     public void execute() {
         //calculates a value from 1 to the max wheel speed based on the R2 axis
 //        double R2Axis = (1 - (0.5 + controller.getR2Axis() / 2)) * (driveBase.MAX_FREE_WHEEL_SPEED - 1) + 1;
-        double R2Axis = (1 - (0.5 + controller.getRightTriggerAxis() / 2)) * (driveBase.MAX_FREE_WHEEL_SPEED - 1) + 1;
+        double R2Axis = (1 - (0.5 + controller.getR2Axis() / 2)) * (driveBase.MAX_FREE_WHEEL_SPEED - 1) + 1;
 
         double povAngle = controller.getHID().getPOV();
 

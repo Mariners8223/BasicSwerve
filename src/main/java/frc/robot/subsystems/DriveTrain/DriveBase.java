@@ -117,7 +117,7 @@ public class DriveBase extends SubsystemBase {
         modules[3] = new SwerveModule(SwerveModule.ModuleName.Back_Right);
 
         if (RobotBase.isReal()) {
-            gyro = new NavxIO(Constants.ROBOT_TYPE == RobotType.DEVELOPMENT);
+            gyro = new NavxIO(false);
             gyro.reset(new Pose2d());
         } else gyro = new SimGyroIO(() -> driveTrainKinematics.toTwist2d(moduleDeltas), this::getChassisSpeeds);
 

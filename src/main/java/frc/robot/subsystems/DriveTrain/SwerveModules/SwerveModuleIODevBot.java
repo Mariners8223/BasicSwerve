@@ -38,6 +38,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
     @Override
     public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
         inputs.currentState.angle = Rotation2d.fromRotations(absEncoder.get() * absEncoderMultiplier);
+        steerMotor.getEncoder().setPosition(absEncoder.get() * constants.STEER_GEAR_RATIO);
         // inputs.currentState.angle = Rotation2d.fromRotations(steerMotor.getEncoder().getPosition() / DevBotConstants.steerGearRatio);
 
         inputs.currentState.speedMetersPerSecond =

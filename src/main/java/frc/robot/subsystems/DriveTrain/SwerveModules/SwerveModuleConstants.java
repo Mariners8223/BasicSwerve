@@ -7,21 +7,21 @@ public enum SwerveModuleConstants {
      * usually the chassis
      */
     DEVBOT(6.75, 12.5, 0.0508, 4.75,
-            false, true, true,
+            false, true, false,
 
-            0.298, -0.41, -0.152, 0.322,
+            0.15312, 0.323, 0.036, 0.2222,
 
             new PIDFGains[]{
-                    new PIDFGains(0.3, 0, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //FL
-                    new PIDFGains(0.3, 0, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //FR
-                    new PIDFGains(0.3, 0, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //BL
-                    new PIDFGains(0.3, 0, 0, 1 / SwerveModule.MODULE_THREAD_HZ) //BR
+                new PIDFGains(0.525, 0, 0.0025, 0, 0.2, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //FL
+                new PIDFGains(0.666, 0, 0.0058, 0, 0.2, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //FR
+                new PIDFGains(0.625, 0, 0.0083, 0, 0.2, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //BL
+                new PIDFGains(0.541, 0, 0.0025, 0, 0.2, 0, 1 / SwerveModule.MODULE_THREAD_HZ)  //BR
             },
             new PIDFGains[]{
-                    new PIDFGains(0.01, 0, 0),
-                    new PIDFGains(0.01, 0, 0),
-                    new PIDFGains(0.01, 0, 0),
-                    new PIDFGains(0.01, 0, 0)
+                    new PIDFGains(1, 0, 0, 0.07,0.15,0),
+                    new PIDFGains(1, 0, 0, 0.07,0.15,0),
+                    new PIDFGains(1, 0, 0, 0.07,0.15,0),
+                    new PIDFGains(1, 0, 0, 0.07,0.15,0)
             }),
 
     /**

@@ -29,7 +29,7 @@ import frc.robot.subsystems.DriveTrain.DriveBase;
 
 public class RobotContainer{
     public static DriveBase driveBase;
-    public static CommandXboxController driveController;
+    public static CommandPS5Controller driveController;
 
     public static Field2d field;
     public static LoggedDashboardChooser<Command> autoChooser;
@@ -37,7 +37,7 @@ public class RobotContainer{
 
     public RobotContainer()
     {
-        driveController = new CommandXboxController(0);
+        driveController = new CommandPS5Controller(0);
         driveBase = new DriveBase();
 
         configureBindings();
@@ -108,7 +108,7 @@ public class RobotContainer{
     
     private void configureBindings() {
 //        driveController.options().onTrue(driveBase.resetOnlyDirection());
-        driveController.start().onTrue(driveBase.resetOnlyDirection());
+        driveController.options().onTrue(driveBase.resetOnlyDirection());
     }
     
     
