@@ -4,6 +4,8 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.trajectory.ExponentialProfile;
 import frc.util.PIDFGains;
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -17,6 +19,21 @@ public abstract class BaseController implements Runnable {
         Velocity,
         ProfiledPosition,
         ProfiledVelocity,
+    }
+
+    @AutoLog
+    public static class BaseControllerInputs{
+        public double position = 0;
+        public double velocity = 0;
+        public String controlMode = "DutyCycle";
+        public double setpoint = 0;
+        public double goal = 0;
+        public double temperature = 0;
+        public double currentDraw = 0;
+        public double currentOutput = 0;
+        public double voltageOutput = 0;
+        public double voltageInput = 0;
+        public double dutyCycle = 0;
     }
 
     /**
@@ -65,11 +82,18 @@ public abstract class BaseController implements Runnable {
     private final AtomicReference<ExponentialProfile.State> goal = new AtomicReference<>(new ExponentialProfile.State());
 
     /**
+     * The inputs of the controller
+     */
+    private final BaseControllerInputsAutoLogged inputs = new BaseControllerInputsAutoLogged();
+
+    private final String name;
+
+    /**
      * The output voltage of the controller
      */
     protected double outputVoltage = 0;
 
-    public void run() {
+    public void runController() {
         measurements.update((double) 1 / RUN_HZ);
 
         switch (controlMode.get()) {
@@ -111,6 +135,20 @@ public abstract class BaseController implements Runnable {
 
         run();
     }
+
+    public void update(){
+        inputs.controlMode = controlMode.get().name();
+        inputs.setpoint = setpoint.get();
+        inputs.goal = goal.get().position;
+        inputs.position = measurements.getPosition();
+        inputs.velocity = measurements.getVelocity();
+
+        updateInputs(inputs);
+
+        Logger.processInputs("Motors/" + name, inputs);
+    }
+
+    protected abstract void updateInputs(BaseControllerInputsAutoLogged inputs);
 
     public ControlMode getControlMode() {
         return controlMode.get();
@@ -158,60 +196,92 @@ public abstract class BaseController implements Runnable {
         profile = new ExponentialProfile(constraints);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements) {
+    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, String name) {
         this.measurements = measurements;
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
+
+        this.name = name;
+
+        ControllerMaster.getInstance().addController(this);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile) {
-        this.measurements = measurements;
-        feedForward = (measurement) -> gains.getF();
-        pidController = gains.createPIDController();
-        this.profile = profile;
-    }
-
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, Function<Double, Double> feedForward) {
-        this.measurements = measurements;
-        this.feedForward = feedForward;
-        pidController = gains.createPIDController();
-    }
-
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile, Function<Double, Double> feedForward) {
-        this.measurements = measurements;
-        this.feedForward = feedForward;
-        pidController = gains.createPIDController();
-        this.profile = profile;
-    }
-
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, double[] maxMinOutput) {
-        this.measurements = measurements;
-        feedForward = (measurement) -> gains.getF();
-        pidController = gains.createPIDController();
-        this.maxMinOutput = maxMinOutput;
-    }
-
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile, double[] maxMinOutput) {
+    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile, String name) {
         this.measurements = measurements;
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
         this.profile = profile;
-        this.maxMinOutput = maxMinOutput;
+
+        this.name = name;
+
+        ControllerMaster.getInstance().addController(this);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, Function<Double, Double> feedForward, double[] maxMinOutput) {
+    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, Function<Double, Double> feedForward, String name) {
+        this.measurements = measurements;
+        this.feedForward = feedForward;
+        pidController = gains.createPIDController();
+
+        this.name = name;
+
+        ControllerMaster.getInstance().addController(this);
+    }
+
+    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile, Function<Double, Double> feedForward, String name) {
+        this.measurements = measurements;
+        this.feedForward = feedForward;
+        pidController = gains.createPIDController();
+        this.profile = profile;
+
+        this.name = name;
+
+        ControllerMaster.getInstance().addController(this);
+    }
+
+    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, double[] maxMinOutput, String name) {
+        this.measurements = measurements;
+        feedForward = (measurement) -> gains.getF();
+        pidController = gains.createPIDController();
+        this.maxMinOutput = maxMinOutput;
+
+        this.name = name;
+
+        ControllerMaster.getInstance().addController(this);
+    }
+
+    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile, double[] maxMinOutput, String name) {
+        this.measurements = measurements;
+        feedForward = (measurement) -> gains.getF();
+        pidController = gains.createPIDController();
+        this.profile = profile;
+        this.maxMinOutput = maxMinOutput;
+
+        this.name = name;
+
+        ControllerMaster.getInstance().addController(this);
+    }
+
+    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, Function<Double, Double> feedForward, double[] maxMinOutput, String name) {
         this.measurements = measurements;
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
         this.maxMinOutput = maxMinOutput;
+
+        this.name = name;
+
+        ControllerMaster.getInstance().addController(this);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput) {
+    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput, String name) {
         this.measurements = measurements;
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
         this.profile = profile;
         this.maxMinOutput = maxMinOutput;
+
+        this.name = name;
+
+        ControllerMaster.getInstance().addController(this);
     }
 
 }
