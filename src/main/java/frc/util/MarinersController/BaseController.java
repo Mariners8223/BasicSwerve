@@ -113,6 +113,10 @@ public abstract class BaseController implements Runnable {
             throw new IllegalStateException("Profiled control mode requires a profile");
         }
 
+        if((controlMode.get() != ControlMode.DutyCycle && controlMode.get() != ControlMode.Voltage) && pidController == null){
+            throw new IllegalStateException("PID control mode requires pid gains");
+        }
+
         double setpoint = switch (controlMode.get()) {
             case ProfiledPosition -> profile.calculate((double) 1 / RUN_HZ,
                     new ExponentialProfile.State(measurements.getPosition(), measurements.getVelocity()), goal.get()).position;
@@ -196,8 +200,13 @@ public abstract class BaseController implements Runnable {
         profile = new ExponentialProfile(constraints);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, String name) {
-        this.measurements = measurements;
+    protected BaseController(String name) {
+        this.name = name;
+
+        ControllerMaster.getInstance().addController(this);
+    }
+
+    protected BaseController(PIDFGains gains, String name) {
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
 
@@ -206,8 +215,7 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile, String name) {
-        this.measurements = measurements;
+    protected BaseController(PIDFGains gains, ExponentialProfile profile, String name) {
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
         this.profile = profile;
@@ -217,8 +225,7 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, Function<Double, Double> feedForward, String name) {
-        this.measurements = measurements;
+    protected BaseController(PIDFGains gains, Function<Double, Double> feedForward, String name) {
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
 
@@ -227,8 +234,7 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile, Function<Double, Double> feedForward, String name) {
-        this.measurements = measurements;
+    protected BaseController(PIDFGains gains, ExponentialProfile profile, Function<Double, Double> feedForward, String name) {
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
         this.profile = profile;
@@ -238,8 +244,7 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, double[] maxMinOutput, String name) {
-        this.measurements = measurements;
+    protected BaseController(PIDFGains gains, double[] maxMinOutput, String name) {
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
         this.maxMinOutput = maxMinOutput;
@@ -249,8 +254,7 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile, double[] maxMinOutput, String name) {
-        this.measurements = measurements;
+    protected BaseController(PIDFGains gains, ExponentialProfile profile, double[] maxMinOutput, String name) {
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
         this.profile = profile;
@@ -261,8 +265,8 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, Function<Double, Double> feedForward, double[] maxMinOutput, String name) {
-        this.measurements = measurements;
+    protected BaseController(PIDFGains gains, Function<Double, Double> feedForward, double[] maxMinOutput, String name) {
+
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
         this.maxMinOutput = maxMinOutput;
@@ -272,8 +276,7 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
-    protected BaseController(PIDFGains gains, MarinersMeasurements measurements, ExponentialProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput, String name) {
-        this.measurements = measurements;
+    protected BaseController(PIDFGains gains, ExponentialProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput, String name) {
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
         this.profile = profile;

@@ -30,10 +30,14 @@ public class ControllerMaster extends SubsystemBase {
 
     @Override
     public void periodic() {
-        controllers.forEach(BaseController::update);
+        for(BaseController controller : controllers){
+            controller.update();
+        }
     }
 
     private void run(){
-        controllers.forEach(BaseController::run);
+        for(BaseController controller : controllers){
+            controller.runController();
+        }
     }
 }
