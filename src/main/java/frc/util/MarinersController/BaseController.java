@@ -44,7 +44,7 @@ public abstract class BaseController implements Runnable {
     /**
      * The measurements of the system (position, velocity, acceleration)
      */
-    private MarinersMeasurements measurements;
+    protected MarinersMeasurements measurements;
 
     /**
      * The PID controller used for the controller
