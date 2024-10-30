@@ -86,7 +86,7 @@ public abstract class BaseController implements Runnable {
      */
     private final BaseControllerInputsAutoLogged inputs = new BaseControllerInputsAutoLogged();
 
-    private final String name;
+    protected final String name;
 
     /**
      * The output voltage of the controller

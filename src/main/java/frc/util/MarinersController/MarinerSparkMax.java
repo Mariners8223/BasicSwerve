@@ -1,10 +1,8 @@
 package frc.util.MarinersController;
 
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkLowLevel;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkPIDController;
+import com.revrobotics.*;
 import edu.wpi.first.math.trajectory.ExponentialProfile;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.util.PIDFGains;
 
 public class MarinerSparkMax extends BaseController {
@@ -56,28 +54,68 @@ public class MarinerSparkMax extends BaseController {
     }
 
 
-    private CANSparkMax createSparkMax(int id, boolean isBrushless, PIDFGains gains) {
+    private CANSparkMax createSparkMax(int id, boolean isBrushless) {
         CANSparkMax sparkMax = new CANSparkMax(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
 
-        sparkMax.restoreFactoryDefaults();
+        REVLibError error = sparkMax.restoreFactoryDefaults();
+
+        reportError("Error restoring factory defaults", error);
 
         sparkMax.setControlFramePeriodMs(1000 / BaseController.RUN_HZ);
 
-        sparkMax.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus0, 1000 / BaseController.RUN_HZ);
-        sparkMax.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 1000 / BaseController.RUN_HZ);
-        sparkMax.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 1000 / BaseController.RUN_HZ);
+        error = sparkMax.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus0, 1000 / BaseController.RUN_HZ);
+
+        reportError("Error setting status 0 frame period", error);
+
+        error = sparkMax.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 1000 / BaseController.RUN_HZ);
+
+        reportError("Error setting status 1 frame period", error);
+
+        error = sparkMax.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 1000 / BaseController.RUN_HZ);
+
+        reportError("Error setting status 2 frame period", error);
 
         return sparkMax;
+    }
+
+    private void setCurrentLimits(int stallCurrentLimit, int freeSpeedCurrentLimit, int thresholdRPM, int thresholdCurrentLimit) {
+        REVLibError error = motor.setSmartCurrentLimit(stallCurrentLimit, freeSpeedCurrentLimit, thresholdRPM);
+
+        reportError("Error setting smart current limit", error);
+
+        error = motor.setSecondaryCurrentLimit(thresholdCurrentLimit);
+
+        reportError("Error setting secondary current limit", error);
     }
 
     private void setPIDController(PIDFGains gains) {
         SparkPIDController controller = motor.getPIDController();
 
-        controller.setP(gains.getP() / super.measurements.getGearRatio());
-        controller.setI(gains.getI() / super.measurements.getGearRatio());
-        controller.setD(gains.getD() / super.measurements.getGearRatio());
-        controller.setFF(gains.getF() / super.measurements.getGearRatio());
-        controller.setIZone(gains.getIZone() / super.measurements.getGearRatio());
+        REVLibError error =  controller.setP(gains.getP() / super.measurements.getGearRatio());
+
+        reportError("Error setting P gain", error);
+
+        error = controller.setI(gains.getI() / super.measurements.getGearRatio());
+
+        reportError("Error setting I gain", error);
+
+        error = controller.setD(gains.getD() / super.measurements.getGearRatio());
+
+        reportError("Error setting D gain", error);
+
+        error = controller.setFF(gains.getF() / super.measurements.getGearRatio());
+
+        reportError("Error setting F gain", error);
+
+        error = controller.setIZone(gains.getIZone() / super.measurements.getGearRatio());
+
+        reportError("Error setting I zone", error);
+    }
+
+    private void reportError(String message, REVLibError error) {
+        if(error != REVLibError.kOk){
+            DriverStation.reportError(message + "for motor" + name + "with ID" + motor.getDeviceId() + ": " + error, false);
+        }
     }
 
     @Override
