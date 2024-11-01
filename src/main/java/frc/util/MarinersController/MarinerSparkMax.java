@@ -1,7 +1,7 @@
 package frc.util.MarinersController;
 
 import com.revrobotics.*;
-import edu.wpi.first.math.trajectory.ExponentialProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.util.PIDFGains;
 
@@ -34,7 +34,7 @@ public class MarinerSparkMax extends BaseController {
         this(id, isBrushless, gains, 1, name);
     }
 
-    public MarinerSparkMax(int id, boolean isBrushless, PIDFGains gains, ExponentialProfile profile, double gearRatio, String name) {
+    public MarinerSparkMax(int id, boolean isBrushless, PIDFGains gains, TrapezoidProfile profile, double gearRatio, String name) {
         super(gains, profile, name);
 
         motor = new CANSparkMax(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
@@ -42,7 +42,7 @@ public class MarinerSparkMax extends BaseController {
         setMeasurements(gearRatio);
     }
 
-    public MarinerSparkMax(int id, boolean isBrushless, PIDFGains gains, ExponentialProfile profile, String name) {
+    public MarinerSparkMax(int id, boolean isBrushless, PIDFGains gains, TrapezoidProfile profile, String name) {
         this(id, isBrushless, gains, profile, 1, name);
     }
 
@@ -143,8 +143,15 @@ public class MarinerSparkMax extends BaseController {
         inputs.currentFaults = REVLibError.fromInt(faults).name();
     }
 
+    private ControlMode controlMode = ControlMode.DutyCycle;
+    @Override
+    protected void setControlMode(ControlMode controlMode) {
+        this.controlMode = controlMode;
+    }
+
     @Override
     public void run() {
-        motor.setVoltage(outputVoltage);
+        if(controlMode == ControlMode.DutyCycle) motor.set(motorOutput);
+        else motor.setVoltage(motorOutput);
     }
 }
