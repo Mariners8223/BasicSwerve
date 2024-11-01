@@ -34,6 +34,7 @@ public abstract class BaseController implements Runnable {
         public double voltageOutput = 0;
         public double voltageInput = 0;
         public double dutyCycle = 0;
+        public String currentFaults = "";
     }
 
     /**
@@ -143,7 +144,9 @@ public abstract class BaseController implements Runnable {
     public void update(){
         inputs.controlMode = controlMode.get().name();
         inputs.setpoint = setpoint.get();
-        inputs.goal = goal.get().position;
+        ExponentialProfile.State goal = this.goal.get();
+
+        inputs.goal = goal == null ? 0 : goal.position;
         inputs.position = measurements.getPosition();
         inputs.velocity = measurements.getVelocity();
 
@@ -174,6 +177,14 @@ public abstract class BaseController implements Runnable {
         this.goal.set(goal);
     }
 
+    public void setVoltage(double voltage){
+        setReference(voltage, ControlMode.Voltage);
+    }
+
+    public void setDutyCycle(double dutyCycle){
+        setReference(dutyCycle, ControlMode.DutyCycle);
+    }
+
     public void setPIDF(PIDFGains gains) {
         pidController = gains.createPIDController();
         feedForward = (measurement) -> gains.getF();
@@ -198,6 +209,10 @@ public abstract class BaseController implements Runnable {
 
     public void setProfile(ExponentialProfile.Constraints constraints) {
         profile = new ExponentialProfile(constraints);
+    }
+
+    public void setProfile(double first_derivative, double second_derivative) {
+        profile = new ExponentialProfile(ExponentialProfile.Constraints.fromCharacteristics(maxMinOutput[0], first_derivative, second_derivative));
     }
 
     protected BaseController(String name) {

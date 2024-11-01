@@ -27,6 +27,7 @@ public class MarinerSparkMax extends BaseController {
         motor = new CANSparkMax(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
 
         setMeasurements(gearRatio);
+        setPIDController(gains);
     }
 
     public MarinerSparkMax(int id, boolean isBrushless, PIDFGains gains, String name) {
@@ -88,6 +89,16 @@ public class MarinerSparkMax extends BaseController {
         reportError("Error setting secondary current limit", error);
     }
 
+    private void setCurrentLimits(int smartCurrentLimit, int thresholdCurrentLimit){
+        REVLibError error = motor.setSmartCurrentLimit(smartCurrentLimit);
+
+        reportError("Error setting smart current limit", error);
+
+        error = motor.setSecondaryCurrentLimit(thresholdCurrentLimit);
+
+        reportError("Error setting secondary current limit", error);
+    }
+
     private void setPIDController(PIDFGains gains) {
         SparkPIDController controller = motor.getPIDController();
 
@@ -126,6 +137,10 @@ public class MarinerSparkMax extends BaseController {
         inputs.voltageInput = motor.getBusVoltage();
         inputs.voltageOutput = inputs.dutyCycle * inputs.voltageInput;
         inputs.temperature = motor.getMotorTemperature();
+
+        short faults = motor.getFaults();
+
+        inputs.currentFaults = REVLibError.fromInt(faults).name();
     }
 
     @Override
