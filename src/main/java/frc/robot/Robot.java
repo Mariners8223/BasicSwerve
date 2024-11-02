@@ -12,7 +12,7 @@ import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.math.geometry.Pose2d;
 import frc.util.LocalADStarAK;
 
-import frc.util.RoborioController;
+import frc.util.MarinersController.ControllerMaster;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 
@@ -85,7 +85,7 @@ public class Robot extends LoggedRobot
         PathfindingCommand.warmupCommand().schedule();
 
 
-        RoborioController.start();
+        ControllerMaster.getInstance();
     }
     
     
