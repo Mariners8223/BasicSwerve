@@ -13,6 +13,7 @@ import java.util.function.Function;
 public abstract class BaseController implements Runnable {
 
     public enum ControlMode {
+        Stopped,
         DutyCycle,
         Voltage,
         Position,
@@ -70,7 +71,7 @@ public abstract class BaseController implements Runnable {
     /**
      * The control mode of the controller
      */
-    protected final AtomicReference<ControlMode> controlMode = new AtomicReference<>(ControlMode.DutyCycle);
+    protected final AtomicReference<ControlMode> controlMode = new AtomicReference<>(ControlMode.Stopped);
 
     /**
      * The setpoint of the controller
@@ -114,6 +115,10 @@ public abstract class BaseController implements Runnable {
             case Voltage -> {
                 motorOutput = MathUtil.clamp(setpoint.get(), maxMinOutput[1], maxMinOutput[0]);
                 run();
+                return;
+            }
+
+            case Stopped -> {
                 return;
             }
         }
@@ -225,6 +230,11 @@ public abstract class BaseController implements Runnable {
         this.goal.set(goal);
     }
 
+    public void stopMotor(){
+        controlMode.set(ControlMode.Stopped);
+        motorOutput = 0;
+        run();
+    }
 
     /**
      * sets the voltage output of the controller
