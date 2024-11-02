@@ -3,6 +3,8 @@ package frc.util.MarinersController;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Voltage;
 import frc.util.PIDFGains;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -243,6 +245,10 @@ public abstract class BaseController implements Runnable {
      */
     public void setVoltage(double voltage){
         setReference(voltage, ControlMode.Voltage);
+    }
+
+    public void setVoltage(Measure<Voltage> voltage){
+        setVoltage(voltage.baseUnitMagnitude());
     }
 
     /**
