@@ -36,6 +36,8 @@ public abstract class BaseController implements Runnable {
         public double currentOutput = 0;
         public double voltageOutput = 0;
         public double voltageInput = 0;
+        public double powerDraw = 0;
+        public double powerOutput = 0;
         public double dutyCycle = 0;
         public String currentFaults = "";
     }
