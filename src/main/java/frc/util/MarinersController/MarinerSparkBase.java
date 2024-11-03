@@ -5,9 +5,16 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.util.PIDFGains;
 
-public class MarinerSparkMax extends BaseController {
+public class MarinerSparkBase extends BaseController {
 
-    private final CANSparkMax motor;
+    public enum MotorType {
+        SPARK_MAX,
+        SPAR_FLEX
+    }
+
+    private final CANSparkBase motor;
+
+    private final MotorType type;
 
     private void setMeasurements(double gearRatio) {
         RelativeEncoder encoder = motor.getEncoder();
@@ -21,62 +28,71 @@ public class MarinerSparkMax extends BaseController {
         );
     }
 
-    public MarinerSparkMax(int id, boolean isBrushless, PIDFGains gains, double gearRatio, String name) {
+    public MarinerSparkBase(int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio, String name) {
         super(gains, name);
 
-        motor = new CANSparkMax(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
+        this.type = type;
+        motor = createSparkBase(id, isBrushless, type);
 
         setMeasurements(gearRatio);
         setPIDController(gains);
     }
 
-    public MarinerSparkMax(int id, boolean isBrushless, PIDFGains gains, String name) {
-        this(id, isBrushless, gains, 1, name);
+    public MarinerSparkBase(int id, boolean isBrushless, MotorType type, PIDFGains gains, String name) {
+        this(id, isBrushless, type, gains, 1, name);
     }
 
-    public MarinerSparkMax(int id, boolean isBrushless, PIDFGains gains, TrapezoidProfile profile, double gearRatio, String name) {
+    public MarinerSparkBase(int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile, double gearRatio, String name) {
         super(gains, profile, name);
 
-        motor = new CANSparkMax(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
+        this.type = type;
+        motor = createSparkBase(id, isBrushless, type);
 
         setMeasurements(gearRatio);
     }
 
-    public MarinerSparkMax(int id, boolean isBrushless, PIDFGains gains, TrapezoidProfile profile, String name) {
-        this(id, isBrushless, gains, profile, 1, name);
+    public MarinerSparkBase(int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile, String name) {
+        this(id, isBrushless, type, gains, profile, 1, name);
     }
 
-    public MarinerSparkMax(int id, boolean isBrushless, String name) {
+    public MarinerSparkBase(int id, boolean isBrushless, MotorType type, String name) {
         super(name);
 
-        motor = new CANSparkMax(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
+        this.type = type;
+        motor = createSparkBase(id, isBrushless, type);
 
         setMeasurements(1);
     }
 
 
-    private CANSparkMax createSparkMax(int id, boolean isBrushless) {
-        CANSparkMax sparkMax = new CANSparkMax(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
+    private CANSparkBase createSparkBase(int id, boolean isBrushless, MotorType type) {
 
-        REVLibError error = sparkMax.restoreFactoryDefaults();
+        CANSparkBase sparkBase = switch (type) {
+            case SPARK_MAX ->
+                    new CANSparkMax(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
+            case SPAR_FLEX ->
+                    new CANSparkFlex(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
+        };
+
+        REVLibError error = sparkBase.restoreFactoryDefaults();
 
         reportError("Error restoring factory defaults", error);
 
-        sparkMax.setControlFramePeriodMs(1000 / BaseController.RUN_HZ);
+        sparkBase.setControlFramePeriodMs(1000 / BaseController.RUN_HZ);
 
-        error = sparkMax.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus0, 1000 / BaseController.RUN_HZ);
+        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus0, 1000 / BaseController.RUN_HZ);
 
         reportError("Error setting status 0 frame period", error);
 
-        error = sparkMax.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 1000 / BaseController.RUN_HZ);
+        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 1000 / BaseController.RUN_HZ);
 
         reportError("Error setting status 1 frame period", error);
 
-        error = sparkMax.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 1000 / BaseController.RUN_HZ);
+        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 1000 / BaseController.RUN_HZ);
 
         reportError("Error setting status 2 frame period", error);
 
-        return sparkMax;
+        return sparkBase;
     }
 
     private void setCurrentLimits(int stallCurrentLimit, int freeSpeedCurrentLimit, int thresholdRPM, int thresholdCurrentLimit) {
@@ -144,9 +160,15 @@ public class MarinerSparkMax extends BaseController {
     }
 
     private ControlMode controlMode = ControlMode.DutyCycle;
+
     @Override
     protected void setControlMode(ControlMode controlMode) {
         this.controlMode = controlMode;
+    }
+
+    @Override
+    protected void stopMotorOutput(){
+        motor.stopMotor();
     }
 
     @Override

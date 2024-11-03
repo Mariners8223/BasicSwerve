@@ -156,8 +156,12 @@ public abstract class BaseController implements Runnable {
         // calculate the output of the pid controller
         double output = pidController.calculate(measurement, setpoint);
 
-        // calculate the feed forward output
-        output += feedForward.apply(measurements.getPosition()) * setpoint;
+        // if the pid controller is at the setpoint, set the output to the feed forward
+        if(pidController.atSetpoint()){
+            output = feedForward.apply(measurement) * setpoint;
+        }else{
+            output += feedForward.apply(measurement) * setpoint;
+        }
 
         // makes sure the output is within the max and min output
         motorOutput = MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]);
@@ -232,11 +236,19 @@ public abstract class BaseController implements Runnable {
         this.goal.set(goal);
     }
 
+    /**
+     * stops the motor (stops the pid controller and motor output) until a new reference is set
+     */
     public void stopMotor(){
         controlMode.set(ControlMode.Stopped);
         motorOutput = 0;
-        run();
+        stopMotorOutput();
     }
+
+    /**
+     * actually sets the motor output to 0
+     */
+    protected abstract void stopMotorOutput();
 
     /**
      * sets the voltage output of the controller
@@ -247,6 +259,11 @@ public abstract class BaseController implements Runnable {
         setReference(voltage, ControlMode.Voltage);
     }
 
+    /**
+     * sets the voltage output of the controller
+     * equivalent to {@link #setReference(double, ControlMode)} with ControlMode.Voltage
+     * @param voltage the voltage output of the controller
+     */
     public void setVoltage(Measure<Voltage> voltage){
         setVoltage(voltage.baseUnitMagnitude());
     }
@@ -335,12 +352,21 @@ public abstract class BaseController implements Runnable {
         profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(first_derivative, second_derivative));
     }
 
+    /**
+     * creates the controller without any pid control or feed forward
+     * @param name the name of the motor
+     */
     protected BaseController(String name) {
         this.name = name;
 
         ControllerMaster.getInstance().addController(this);
     }
 
+    /**
+     * creates the controller with pid control and static feed forward
+     * @param gains the pid gains of the controller
+     * @param name the name of the motor
+     */
     protected BaseController(PIDFGains gains, String name) {
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
@@ -350,6 +376,12 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
+    /**
+     * creates the controller with pid control and static feed forward
+     * @param gains the pid gains of the controller
+     * @param profile the profile of the controller
+     * @param name the name of the motor
+     */
     protected BaseController(PIDFGains gains, TrapezoidProfile profile, String name) {
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
@@ -360,6 +392,12 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
+    /**
+     * creates the controller with pid control and feed forward
+     * @param gains the pid gains of the controller
+     * @param feedForward the function that calculates the feed forward of the controller based on the measurement
+     * @param name the name of the motor
+     */
     protected BaseController(PIDFGains gains, Function<Double, Double> feedForward, String name) {
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
@@ -369,6 +407,13 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
+    /**
+     * creates the controller with pid control and feed forward
+     * @param gains the pid gains of the controller
+     * @param profile the profile of the controller
+     * @param feedForward the function that calculates the feed forward of the controller based on the measurement
+     * @param name the name of the motor
+     */
     protected BaseController(PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward, String name) {
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
@@ -379,6 +424,12 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
+    /**
+     * creates the controller with pid control and static feed forward
+     * @param gains the pid gains of the controller
+     * @param maxMinOutput the max and min output of the controller in volts
+     * @param name the name of the motor
+     */
     protected BaseController(PIDFGains gains, double[] maxMinOutput, String name) {
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
@@ -389,6 +440,13 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
+    /**
+     * creates the controller with pid control and static feed forward
+     * @param gains the pid gains of the controller
+     * @param profile the profile of the controller
+     * @param maxMinOutput the max and min output of the controller in volts
+     * @param name the name of the motor
+     */
     protected BaseController(PIDFGains gains, TrapezoidProfile profile, double[] maxMinOutput, String name) {
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
@@ -400,6 +458,13 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
+    /**
+     * creates the controller with pid control and feed forward
+     * @param gains the pid gains of the controller
+     * @param feedForward the function that calculates the feed forward of the controller based on the measurement
+     * @param maxMinOutput the max and min output of the controller in volts
+     * @param name the name of the motor
+     */
     protected BaseController(PIDFGains gains, Function<Double, Double> feedForward, double[] maxMinOutput, String name) {
 
         this.feedForward = feedForward;
@@ -411,6 +476,14 @@ public abstract class BaseController implements Runnable {
         ControllerMaster.getInstance().addController(this);
     }
 
+    /**
+     * creates the controller with pid control and feed forward
+     * @param gains the pid gains of the controller
+     * @param profile the profile of the controller
+     * @param feedForward the function that calculates the feed forward of the controller based on the measurement
+     * @param maxMinOutput the max and min output of the controller in volts
+     * @param name the name of the motor
+     */
     protected BaseController(PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput, String name) {
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
