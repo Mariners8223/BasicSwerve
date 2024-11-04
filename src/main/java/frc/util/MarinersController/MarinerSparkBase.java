@@ -14,7 +14,7 @@ public class MarinerSparkBase extends BaseController {
      */
     public enum MotorType {
         SPARK_MAX,
-        SPAR_FLEX
+        SPARK_FLEX
     }
 
     /**
@@ -151,7 +151,7 @@ public class MarinerSparkBase extends BaseController {
         CANSparkBase sparkBase = switch (type) {
             case SPARK_MAX ->
                     new CANSparkMax(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
-            case SPAR_FLEX ->
+            case SPARK_FLEX ->
                     new CANSparkFlex(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
         };
 
