@@ -55,13 +55,13 @@ public class Robot extends LoggedRobot
         Logger.registerURCL(URCL.startExternal(Constants.SPARK_MAX_NAMES));
 
         if(isReal()){
-            Logger.addDataReceiver(new WPILOGWriter("/U/logs/AdvantageKit"));
+            // Logger.addDataReceiver(new WPILOGWriter("/U/logs/AdvantageKit"));
             // if(Constants.robotType == RobotType.DEVELOPMENT) Logger.addDataReceiver(new NT4Publisher());
             Logger.addDataReceiver(new NT4Publisher());
 
-            DataLogManager.start("U/logs/dataLogManager");
-            SignalLogger.setPath("U/logs/signalLogger");
-            SignalLogger.start();
+            // DataLogManager.start("U/logs/dataLogManager");
+            // SignalLogger.setPath("U/logs/signalLogger");
+            // SignalLogger.start();
         }
         else{
             if(Constants.ROBOT_TYPE == Constants.RobotType.REPLAY){
