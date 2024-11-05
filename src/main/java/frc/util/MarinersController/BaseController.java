@@ -151,13 +151,26 @@ public abstract class BaseController implements Runnable {
             throw new IllegalStateException("PID control on mode requires pid gains");
         }
 
+        // get the measurement and measurement change based on the control mode
+        double measurement = switch (controlMode) {
+            case Position, ProfiledPosition -> measurements.getPosition();
+            case Velocity, ProfiledVelocity -> measurements.getVelocity();
+            default -> 0;
+        };
+
+        // get the measurement change based on the control mode
+        // if the controller is in a profiled position control mode, the measurement change is the velocity
+        // if the controller is in a profiled velocity control mode, the measurement change is the acceleration
+        double measurementChange = switch (controlMode) {
+            case Position, ProfiledPosition -> measurements.getVelocity();
+            case Velocity, ProfiledVelocity -> measurements.getAcceleration();
+            default -> 0;
+        };
+
         // if the controller is in a profiled control mode, calculate the setpoint based on the profile
         // else set the setpoint to the setpoint
         double setpoint = switch (controlMode) {
-            case ProfiledPosition -> profile.calculate((double) 1 / RUN_HZ,
-                    new TrapezoidProfile.State(measurements.getPosition(), measurements.getVelocity()), goal.get()).position;
-            case ProfiledVelocity -> profile.calculate((double) 1 / RUN_HZ,
-                    new TrapezoidProfile.State(measurements.getVelocity(), measurements.getAcceleration()), goal.get()).position;
+            case ProfiledPosition, ProfiledVelocity -> profile.calculate((double)1 / RUN_HZ, new TrapezoidProfile.State(measurement, measurementChange), goal.get()).position;
             default -> this.setpoint.get();
         };
 
@@ -167,12 +180,6 @@ public abstract class BaseController implements Runnable {
             return;
         }
 
-        // calculate the measurement based on the control mode
-        double measurement = switch (controlMode) {
-            case Position, ProfiledPosition -> measurements.getPosition();
-            case Velocity, ProfiledVelocity -> measurements.getVelocity();
-            default -> 0;
-        };
 
         // calculate the output of the pid controller
         double output = pidController.calculate(measurement, setpoint);
@@ -187,6 +194,7 @@ public abstract class BaseController implements Runnable {
         // makes sure the output is within the max and min output
         motorOutput = MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]);
 
+        //sends the motor output to the motor on a different thread
         run();
     }
 
