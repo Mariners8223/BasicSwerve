@@ -19,19 +19,19 @@ public class MarinersTalonFX extends BaseController{
         );
     }
 
-    public MarinersTalonFX(int id, String name){
-        super(name);
+    public MarinersTalonFX(String name, ControllerLocation location, int id){
+        super(name, location);
 
         this.motor = createMotor(id);
         super.setMeasurements(createMeasurement(1));
     }
 
-    public MarinersTalonFX(int id, String name, PIDFGains gains){
-        this(id, name, gains, 1);
+    public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains){
+        this(name, location, id, gains, 1);
     }
 
-    public MarinersTalonFX(int id, String name, PIDFGains gains, double gearRatio){
-        super(gains, name);
+    public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains, double gearRatio){
+        super(name, location, gains);
 
         this.motor = createMotor(id);
         super.setMeasurements(createMeasurement(gearRatio));

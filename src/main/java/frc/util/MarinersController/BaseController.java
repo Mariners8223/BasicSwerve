@@ -105,7 +105,7 @@ public abstract class BaseController implements Runnable {
     /**
      * the location of the controller where it is running
      */
-    protected final ControllerLocation location = ControllerLocation.RIO;
+    protected final ControllerLocation location;
 
     /**
      * The output voltage of the controller
@@ -377,147 +377,146 @@ public abstract class BaseController implements Runnable {
         profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(first_derivative, second_derivative));
     }
 
+
+
+
     /**
      * creates the controller without any pid control or feed forward
      * @param name the name of the motor
+     * @param location the location of the controller where it is running
      */
-    protected BaseController(String name) {
+    protected BaseController(String name, ControllerLocation location) {
         this.name = name;
+        this.location = location;
 
         ControllerMaster.getInstance().addController(this);
     }
 
     /**
      * creates the controller with pid control and static feed forward
-     * @param gains the pid gains of the controller
      * @param name the name of the motor
+     * @param location the location of the controller where it is running
+     * @param gains the pid gains of the controller
      */
-    protected BaseController(PIDFGains gains, String name) {
+    protected BaseController(String name, ControllerLocation location, PIDFGains gains) {
+        this(name, location);
+
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
-
-        this.name = name;
-
-        ControllerMaster.getInstance().addController(this);
     }
 
     /**
      * creates the controller with pid control and static feed forward
+     * @param name the name of the motor
+     * @param location the location of the controller where it is running
      * @param gains the pid gains of the controller
      * @param profile the profile of the controller
-     * @param name the name of the motor
      */
-    protected BaseController(PIDFGains gains, TrapezoidProfile profile, String name) {
+    protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile) {
+        this(name, location);
+
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
         this.profile = profile;
 
-        this.name = name;
-
-        ControllerMaster.getInstance().addController(this);
     }
 
     /**
      * creates the controller with pid control and feed forward
+     * @param name the name of the motor
+     * @param location the location of the controller where it is running
      * @param gains the pid gains of the controller
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
-     * @param name the name of the motor
      */
-    protected BaseController(PIDFGains gains, Function<Double, Double> feedForward, String name) {
+    protected BaseController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward) {
+        this(name, location);
+
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
-
-        this.name = name;
-
-        ControllerMaster.getInstance().addController(this);
     }
 
     /**
      * creates the controller with pid control and feed forward
+     * @param name the name of the motor
+     * @param location the location of the controller where it is running
      * @param gains the pid gains of the controller
      * @param profile the profile of the controller
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
-     * @param name the name of the motor
      */
-    protected BaseController(PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward, String name) {
+    protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward) {
+        this(name, location);
+
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
         this.profile = profile;
-
-        this.name = name;
-
-        ControllerMaster.getInstance().addController(this);
     }
 
     /**
      * creates the controller with pid control and static feed forward
+     * @param name the name of the motor
+     * @param location the location of the controller where it is running
      * @param gains the pid gains of the controller
      * @param maxMinOutput the max and min output of the controller in volts
-     * @param name the name of the motor
      */
-    protected BaseController(PIDFGains gains, double[] maxMinOutput, String name) {
+    protected BaseController(String name, ControllerLocation location, PIDFGains gains, double[] maxMinOutput) {
+        this(name, location);
+
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
         this.maxMinOutput = maxMinOutput;
-
-        this.name = name;
-
-        ControllerMaster.getInstance().addController(this);
     }
 
     /**
      * creates the controller with pid control and static feed forward
+     * @param name the name of the motor
+     * @param location the location of the controller where it is running
      * @param gains the pid gains of the controller
      * @param profile the profile of the controller
      * @param maxMinOutput the max and min output of the controller in volts
-     * @param name the name of the motor
      */
-    protected BaseController(PIDFGains gains, TrapezoidProfile profile, double[] maxMinOutput, String name) {
+    protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, double[] maxMinOutput) {
+        this(name, location);
+
         feedForward = (measurement) -> gains.getF();
         pidController = gains.createPIDController();
         this.profile = profile;
         this.maxMinOutput = maxMinOutput;
-
-        this.name = name;
-
-        ControllerMaster.getInstance().addController(this);
     }
 
     /**
      * creates the controller with pid control and feed forward
+     * @param name the name of the motor
+     * @param location the location of the controller where it is running
      * @param gains the pid gains of the controller
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
      * @param maxMinOutput the max and min output of the controller in volts
-     * @param name the name of the motor
      */
-    protected BaseController(PIDFGains gains, Function<Double, Double> feedForward, double[] maxMinOutput, String name) {
+    protected BaseController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward, double[] maxMinOutput) {
+        this(name, location);
 
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
         this.maxMinOutput = maxMinOutput;
 
-        this.name = name;
-
-        ControllerMaster.getInstance().addController(this);
     }
 
     /**
      * creates the controller with pid control and feed forward
+     * @param name the name of the motor
+     * @param location the location of the controller where it is running
      * @param gains the pid gains of the controller
      * @param profile the profile of the controller
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
      * @param maxMinOutput the max and min output of the controller in volts
-     * @param name the name of the motor
      */
-    protected BaseController(PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput, String name) {
+    protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput) {
+        this(name, location);
+
         this.feedForward = feedForward;
         pidController = gains.createPIDController();
         this.profile = profile;
         this.maxMinOutput = maxMinOutput;
 
-        this.name = name;
-
-        ControllerMaster.getInstance().addController(this);
     }
 
 }

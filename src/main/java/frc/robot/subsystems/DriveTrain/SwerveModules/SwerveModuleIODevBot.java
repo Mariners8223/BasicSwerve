@@ -38,16 +38,21 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 //        driveMotor = configTalonFX(getTalonFXConfiguration(name), driveMotorID);
 //        steerMotor = configCanSparkMax(steerMotorID, absEncoder.get() * absEncoderMultiplier, name);
 
-        driveMotor = new MarinersTalonFX(driveMotorID, name.name() + " Drive Motor",
+        driveMotor = new MarinersTalonFX(
+                name.name() + " Drive Motor",
+                BaseController.ControllerLocation.RIO,
+                driveMotorID,
                 constants.DRIVE_MOTOR_PID[name.ordinal()],
                 constants.DRIVE_GEAR_RATIO);
 
-        steerMotor = new MarinerSparkBase(steerMotorID,
+        steerMotor = new MarinerSparkBase(
+                name.name() + " Steer Motor",
+                BaseController.ControllerLocation.RIO,
+                steerMotorID,
                 true,
                 MarinerSparkBase.MotorType.SPARK_MAX,
                 constants.STEER_MOTOR_PID[name.ordinal()],
-                constants.STEER_GEAR_RATIO,
-                name.name() + " Steer Motor");
+                constants.STEER_GEAR_RATIO);
 
         steerMotor.setMeasurements(
                 new MarinersMeasurements(

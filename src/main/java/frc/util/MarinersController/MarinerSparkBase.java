@@ -53,8 +53,8 @@ public class MarinerSparkBase extends BaseController {
      * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by)
      * @param name the name of the motor controller
      */
-    public MarinerSparkBase(int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio, String name) {
-        super(gains, name);
+    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio) {
+        super(name, location, gains);
 
         this.type = type;
         motor = createSparkBase(id, isBrushless, type);
@@ -70,8 +70,8 @@ public class MarinerSparkBase extends BaseController {
      * @param gains the PIDF gains for the motor controller
      * @param name the name of the motor controller
      */
-    public MarinerSparkBase(int id, boolean isBrushless, MotorType type, PIDFGains gains, String name) {
-        this(id, isBrushless, type, gains, 1, name);
+    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains) {
+        this(name, location, id, isBrushless, type, gains, 1);
     }
 
     /**
@@ -84,8 +84,8 @@ public class MarinerSparkBase extends BaseController {
      * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by)
      * @param name the name of the motor controller
      */
-    public MarinerSparkBase(int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile, double gearRatio, String name) {
-        super(gains, profile, name);
+    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile, double gearRatio) {
+        super(name, location, gains, profile);
 
         this.type = type;
         motor = createSparkBase(id, isBrushless, type);
@@ -102,8 +102,8 @@ public class MarinerSparkBase extends BaseController {
      * @param profile the trapezoid profile for the motor controller (used for motion profiling)
      * @param name the name of the motor controller
      */
-    public MarinerSparkBase(int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile, String name) {
-        this(id, isBrushless, type, gains, profile, 1, name);
+    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile) {
+        this(name, location, id, isBrushless, type, gains, profile, 1);
     }
 
     /**
@@ -115,8 +115,8 @@ public class MarinerSparkBase extends BaseController {
      * @param type the type of motor controller
      * @param name the name of the motor controller
      */
-    public MarinerSparkBase(int id, boolean isBrushless, MotorType type, String name) {
-        super(name);
+    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type) {
+        super(name, location);
 
         this.type = type;
         motor = createSparkBase(id, isBrushless, type);
@@ -135,8 +135,8 @@ public class MarinerSparkBase extends BaseController {
      * @param firstDerivativeLimit the first derivative limit for the motor controller (used for motion profiling)
      * @param secondDerivativeLimit the second derivative limit for the motor controller (used for motion profiling)
      */
-    public MarinerSparkBase(int id, boolean isBrushless, MotorType type, String name, PIDFGains gains, double gearRatio, double firstDerivativeLimit, double secondDerivativeLimit) {
-        super(gains, name);
+    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio, double firstDerivativeLimit, double secondDerivativeLimit) {
+        super(name, location, gains);
         super.setProfile(firstDerivativeLimit, secondDerivativeLimit);
 
         this.type = type;
