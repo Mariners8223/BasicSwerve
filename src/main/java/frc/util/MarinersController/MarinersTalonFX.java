@@ -1,7 +1,9 @@
 package frc.util.MarinersController;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
 import frc.util.PIDFGains;
 
@@ -54,7 +56,6 @@ public class MarinersTalonFX extends BaseController{
 
     @Override
     protected void updateInputs(BaseControllerInputsAutoLogged inputs) {
-
         inputs.currentDraw = motor.getSupplyCurrent().getValueAsDouble();
         inputs.currentOutput = motor.getStatorCurrent().getValueAsDouble();
         inputs.voltageOutput = motor.getMotorVoltage().getValueAsDouble();
@@ -72,7 +73,20 @@ public class MarinersTalonFX extends BaseController{
 
     @Override
     public void run() {
-        if(controlMode == ControlMode.DutyCycle) motor.set(motorOutput);
-        else motor.setVoltage(motorOutput);
+        if(location == ControllerLocation.RIO){
+            if(controlMode == ControlMode.DutyCycle) motor.set(motorOutput);
+            else motor.setVoltage(motorOutput);
+        }
+        else{
+            ControlRequest request = switch (controlMode){
+                case Stopped -> new StaticBrake();
+                case Voltage -> new VoltageOut(motorOutput);
+                case DutyCycle -> new DutyCycleOut(motorOutput);
+                case Position, ProfiledPosition -> new PositionVoltage(motorOutput);
+                case Velocity, ProfiledVelocity -> new VelocityVoltage(motorOutput);
+            };
+
+            motor.setControl(request);
+        }
     }
 }

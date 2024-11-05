@@ -282,7 +282,19 @@ public class MarinerSparkBase extends BaseController {
 
     @Override
     public void run() {
-        if(controlMode == ControlMode.DutyCycle) motor.set(motorOutput);
-        else motor.setVoltage(motorOutput);
+        if(location == ControllerLocation.RIO){
+            if(controlMode == ControlMode.DutyCycle) motor.set(motorOutput);
+            else motor.setVoltage(motorOutput);
+        }
+        else{
+            CANSparkBase.ControlType controlType = switch (controlMode){
+                case Stopped, DutyCycle -> CANSparkBase.ControlType.kDutyCycle;
+                case Voltage -> CANSparkBase.ControlType.kVoltage;
+                case Velocity, ProfiledVelocity -> CANSparkBase.ControlType.kVelocity;
+                case Position, ProfiledPosition -> CANSparkBase.ControlType.kPosition;
+            };
+
+            motor.getPIDController().setReference(motorOutput, controlType);
+        }
     }
 }

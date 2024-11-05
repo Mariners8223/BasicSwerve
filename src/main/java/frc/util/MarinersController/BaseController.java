@@ -24,6 +24,11 @@ public abstract class BaseController implements Runnable {
         ProfiledVelocity,
     }
 
+    public enum ControllerLocation{
+        RIO,
+        MOTOR
+    }
+
     @AutoLog
     public static class BaseControllerInputs{
         public double position = 0;
@@ -92,7 +97,15 @@ public abstract class BaseController implements Runnable {
      */
     private final BaseControllerInputsAutoLogged inputs = new BaseControllerInputsAutoLogged();
 
+    /**
+     * motor name
+     */
     public final String name;
+
+    /**
+     * the location of the controller where it is running
+     */
+    protected final ControllerLocation location = ControllerLocation.RIO;
 
     /**
      * The output voltage of the controller
@@ -135,7 +148,7 @@ public abstract class BaseController implements Runnable {
 
         // If the controller is in a pid control mode, check if the pid gains are set
         if(pidController == null){
-            throw new IllegalStateException("PID control mode requires pid gains");
+            throw new IllegalStateException("PID control on mode requires pid gains");
         }
 
         // if the controller is in a profiled control mode, calculate the setpoint based on the profile
@@ -147,6 +160,12 @@ public abstract class BaseController implements Runnable {
                     new TrapezoidProfile.State(measurements.getVelocity(), measurements.getAcceleration()), goal.get()).position;
             default -> this.setpoint.get();
         };
+
+        if(location == ControllerLocation.MOTOR){
+            motorOutput = setpoint;
+            run();
+            return;
+        }
 
         // calculate the measurement based on the control mode
         double measurement = switch (controlMode) {
