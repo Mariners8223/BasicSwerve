@@ -10,11 +10,15 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.robot.MotorMap;
+import frc.util.MarinersController.BaseController;
+import frc.util.MarinersController.MarinerSparkBase;
+import frc.util.MarinersController.MarinersMeasurements;
+import frc.util.MarinersController.MarinersTalonFX;
 import frc.util.PIDFGains;
 
 public class SwerveModuleIODevBot extends SwerveModuleIO {
-    private final TalonFX driveMotor;
-    private final CANSparkMax steerMotor;
+    private final BaseController driveMotor;
+    private final BaseController steerMotor;
     private final DutyCycleEncoder absEncoder;
     private final int absEncoderMultiplier = constants.ABSOLUTE_ENCODER_INVERTED ? -1 : 1;
 
@@ -31,8 +35,26 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
         absEncoder = configDutyCycleEncoder(absEncoderID, zeroOffset);
 
-        driveMotor = configTalonFX(getTalonFXConfiguration(name), driveMotorID);
-        steerMotor = configCanSparkMax(steerMotorID, absEncoder.get() * absEncoderMultiplier, name);
+//        driveMotor = configTalonFX(getTalonFXConfiguration(name), driveMotorID);
+//        steerMotor = configCanSparkMax(steerMotorID, absEncoder.get() * absEncoderMultiplier, name);
+
+        driveMotor = new MarinersTalonFX(driveMotorID, name.name() + " Drive Motor",
+                constants.DRIVE_MOTOR_PID[name.ordinal()],
+                constants.DRIVE_GEAR_RATIO);
+
+        steerMotor = new MarinerSparkBase(steerMotorID,
+                true,
+                MarinerSparkBase.MotorType.SPARK_MAX,
+                constants.STEER_MOTOR_PID[name.ordinal()],
+                constants.STEER_GEAR_RATIO,
+                name.name() + " Steer Motor");
+
+        steerMotor.setMeasurements(
+                new MarinersMeasurements(
+                        absEncoder::get,
+                        constants.STEER_GEAR_RATIO
+                )
+        );
     }
 
     @Override
@@ -40,26 +62,30 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
         inputs.currentState.angle = Rotation2d.fromRotations(absEncoder.get() * absEncoderMultiplier);
         // inputs.currentState.angle = Rotation2d.fromRotations(steerMotor.getEncoder().getPosition() / DevBotConstants.steerGearRatio);
 
-        inputs.currentState.speedMetersPerSecond =
-                (driveMotor.getVelocity().getValueAsDouble() / constants.DRIVE_GEAR_RATIO) * constants.WHEEL_CIRCUMFERENCE_METERS;
+//        inputs.currentState.speedMetersPerSecond =
+//                (driveMotor.getVelocity().getValueAsDouble() / constants.DRIVE_GEAR_RATIO) * constants.WHEEL_CIRCUMFERENCE_METERS;
 
-        inputs.driveMotorRPM = driveMotor.getVelocity().getValueAsDouble() * 60;
+        inputs.currentState.speedMetersPerSecond = driveMotor.getMeasurements().getVelocity() * constants.WHEEL_CIRCUMFERENCE_METERS;
+
+//        inputs.driveMotorRPM = driveMotor.getVelocity().getValueAsDouble() * 60;
+//        inputs.driveMotorRPM = driveMotor.getMeasurements().getVelocity() * 60;
 
         inputs.absEncoderPosition = (absEncoder.getAbsolutePosition() - absEncoder.getPositionOffset()) * absEncoderMultiplier;
 
-        inputs.steerVelocityRadPerSec =
-                Units.rotationsPerMinuteToRadiansPerSecond(steerMotor.getEncoder().getVelocity() / constants.STEER_GEAR_RATIO);
+//        inputs.steerVelocityRadPerSec =
+//                Units.rotationsPerMinuteToRadiansPerSecond(steerMotor.getEncoder().getVelocity() / constants.STEER_GEAR_RATIO);
 
-        inputs.drivePositionMeters =
-                (driveMotor.getPosition().getValueAsDouble() / constants.DRIVE_GEAR_RATIO) * constants.WHEEL_CIRCUMFERENCE_METERS;
+//        inputs.drivePositionMeters =
+//                (driveMotor.getPosition().getValueAsDouble() / constants.DRIVE_GEAR_RATIO) * constants.WHEEL_CIRCUMFERENCE_METERS;
+//        inputs.
 
-        inputs.driveMotorAppliedOutput = driveMotor.getDutyCycle().getValueAsDouble();
-        inputs.steerMotorAppliedOutput = steerMotor.getAppliedOutput();
-
-        inputs.driveMotorAppliedVoltage = driveMotor.getMotorVoltage().getValueAsDouble();
-        inputs.steerMotorAppliedVoltage = inputs.steerMotorAppliedOutput * steerMotor.getBusVoltage();
-
-        inputs.driveMotorTemperature = driveMotor.getDeviceTemp().getValueAsDouble();
+//        inputs.driveMotorAppliedOutput = driveMotor.getDutyCycle().getValueAsDouble();
+//        inputs.steerMotorAppliedOutput = steerMotor.getAppliedOutput();
+//
+//        inputs.driveMotorAppliedVoltage = driveMotor.getMotorVoltage().getValueAsDouble();
+//        inputs.steerMotorAppliedVoltage = inputs.steerMotorAppliedOutput * steerMotor.getBusVoltage();
+//
+//        inputs.driveMotorTemperature = driveMotor.getDeviceTemp().getValueAsDouble();
     }
 
     @Override
@@ -67,19 +93,19 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
         double driveMotorOut = (driveMotorReference / constants.WHEEL_CIRCUMFERENCE_METERS) * constants.DRIVE_GEAR_RATIO;
         double steerMotorOut = steerMotorReference * constants.STEER_GEAR_RATIO;
 
-        driveMotor.setControl(driveMotorVelocityDutyCycle.withVelocity(driveMotorOut));
-        steerMotor.getPIDController().setReference(steerMotorOut, CANSparkBase.ControlType.kPosition);
+//        driveMotor.setControl(driveMotorVelocityDutyCycle.withVelocity(driveMotorOut));
+//        steerMotor.getPIDController().setReference(steerMotorOut, CANSparkBase.ControlType.kPosition);
     }
 
     @Override
     public void setIdleMode(boolean isBrakeMode) {
-        driveMotor.setNeutralMode(isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast);
-        steerMotor.setIdleMode(isBrakeMode ? CANSparkBase.IdleMode.kBrake : CANSparkBase.IdleMode.kCoast);
+//        driveMotor.setNeutralMode(isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast);
+//        steerMotor.setIdleMode(isBrakeMode ? CANSparkBase.IdleMode.kBrake : CANSparkBase.IdleMode.kCoast);
     }
 
     @Override
     public void resetDriveEncoder() {
-        driveMotor.setPosition(0);
+//        driveMotor.setPosition(0);
     }
 
     @Override
@@ -91,7 +117,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
         config.kD = pidGains.getD();
         config.kV = pidGains.getF();
 
-        driveMotor.getConfigurator().apply(config);
+//        driveMotor.getConfigurator().apply(config);
     }
 
 }

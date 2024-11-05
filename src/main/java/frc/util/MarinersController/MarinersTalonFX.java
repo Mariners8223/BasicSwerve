@@ -54,7 +54,6 @@ public class MarinersTalonFX extends BaseController{
 
     @Override
     protected void updateInputs(BaseControllerInputsAutoLogged inputs) {
-        BaseStatusSignal.getLatencyCompensatedValue()
 
         inputs.currentDraw = motor.getSupplyCurrent().getValueAsDouble();
         inputs.currentOutput = motor.getStatorCurrent().getValueAsDouble();

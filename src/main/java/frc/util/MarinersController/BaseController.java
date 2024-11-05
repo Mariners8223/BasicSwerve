@@ -92,7 +92,7 @@ public abstract class BaseController implements Runnable {
      */
     private final BaseControllerInputsAutoLogged inputs = new BaseControllerInputsAutoLogged();
 
-    protected final String name;
+    public final String name;
 
     /**
      * The output voltage of the controller
@@ -305,6 +305,10 @@ public abstract class BaseController implements Runnable {
      */
     public void setMeasurements(MarinersMeasurements measurements) {
         this.measurements = measurements;
+    }
+
+    public MarinersMeasurements getMeasurements() {
+        return measurements;
     }
 
     /**
