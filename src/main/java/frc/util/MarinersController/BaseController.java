@@ -12,7 +12,7 @@ import org.littletonrobotics.junction.Logger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-public abstract class BaseController implements Runnable {
+public abstract class BaseController{
 
     public enum ControlMode {
         Stopped,
@@ -48,11 +48,6 @@ public abstract class BaseController implements Runnable {
     }
 
     /**
-     * The frequency at which the controller runs in Hz
-     */
-    public static final int RUN_HZ = 200;
-
-    /**
      * The measurements of the system (position, velocity, acceleration)
      */
     protected MarinersMeasurements measurements;
@@ -65,7 +60,7 @@ public abstract class BaseController implements Runnable {
     /**
      * The feed forward function used for the controller
      */
-    private Function<Double, Double> feedForward;
+    protected Function<Double, Double> feedForward;
 
     /**
      * The profile used for the controller
@@ -107,31 +102,28 @@ public abstract class BaseController implements Runnable {
      */
     protected final ControllerLocation location;
 
-    /**
-     * The output voltage of the controller
-     */
-    protected double motorOutput = 0;
 
     /**
      * runs the controller
      */
     public void runController() {
-        measurements.update((double) 1 / RUN_HZ);
+        double dt = 1 / ControllerMaster.ON_RIO_CONTROLLER_HZ;
+
+        measurements.update(dt);
 
         ControlMode controlMode = this.controlMode.get();
-        setControlMode(controlMode);
 
         // If the controller is in a control mode that doesn't require pid control, set the output voltage to the setpoint
         switch (controlMode) {
             case DutyCycle -> {
-                motorOutput = MathUtil.clamp(setpoint.get(), maxMinOutput[1] / 12, maxMinOutput[0] / 12);
-                run();
+                setOutput(MathUtil.clamp(setpoint.get(), maxMinOutput[1] / 12, maxMinOutput[0] / 12),
+                        controlMode);
                 return;
             }
 
             case Voltage -> {
-                motorOutput = MathUtil.clamp(setpoint.get(), maxMinOutput[1], maxMinOutput[0]);
-                run();
+                setOutput(MathUtil.clamp(setpoint.get(), maxMinOutput[1], maxMinOutput[0]),
+                        controlMode);
                 return;
             }
 
@@ -170,13 +162,12 @@ public abstract class BaseController implements Runnable {
         // if the controller is in a profiled control mode, calculate the setpoint based on the profile
         // else set the setpoint to the setpoint
         double setpoint = switch (controlMode) {
-            case ProfiledPosition, ProfiledVelocity -> profile.calculate((double)1 / RUN_HZ, new TrapezoidProfile.State(measurement, measurementChange), goal.get()).position;
+            case ProfiledPosition, ProfiledVelocity -> profile.calculate(dt, new TrapezoidProfile.State(measurement, measurementChange), goal.get()).position;
             default -> this.setpoint.get();
         };
 
         if(location == ControllerLocation.MOTOR){
-            motorOutput = setpoint;
-            run();
+            setOutput(setpoint, controlMode);
             return;
         }
 
@@ -191,18 +182,12 @@ public abstract class BaseController implements Runnable {
             output += feedForward.apply(measurement) * setpoint;
         }
 
-        // makes sure the output is within the max and min output
-        motorOutput = MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]);
-
-        //sends the motor output to the motor on a different thread
-        run();
+        //sends the motor output to the motor
+        setOutput(MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]), controlMode);
     }
 
-    /**
-     * used to setting the control mode for the specific motor controller
-     * @param controlMode the control mode of the controller
-     */
-    protected abstract void setControlMode(ControlMode controlMode);
+
+    protected abstract void setOutput(double output, ControlMode controlMode);
 
     /**
      * updates the inputs of the controller
@@ -270,9 +255,14 @@ public abstract class BaseController implements Runnable {
      */
     public void stopMotor(){
         controlMode.set(ControlMode.Stopped);
-        motorOutput = 0;
         stopMotorOutput();
     }
+
+    /**
+     * sets the motor idle mode
+     * @param brake true if the motor should brake when idle, false if the motor should coast when idle
+     */
+    public abstract void setMotorIdleMode(boolean brake);
 
     /**
      * actually sets the motor output to 0
@@ -397,7 +387,7 @@ public abstract class BaseController implements Runnable {
         this.name = name;
         this.location = location;
 
-        ControllerMaster.getInstance().addController(this);
+        ControllerMaster.getInstance().addController(this, location);
     }
 
     /**

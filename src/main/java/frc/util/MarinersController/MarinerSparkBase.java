@@ -271,6 +271,11 @@ public class MarinerSparkBase extends BaseController {
     private ControlMode controlMode = ControlMode.DutyCycle;
 
     @Override
+    public void setMotorIdleMode(boolean brake){
+        motor.setIdleMode(brake ? CANSparkMax.IdleMode.kBrake : CANSparkMax.IdleMode.kCoast);
+    }
+
+    @Override
     protected void setControlMode(ControlMode controlMode) {
         this.controlMode = controlMode;
     }
@@ -287,14 +292,30 @@ public class MarinerSparkBase extends BaseController {
             else motor.setVoltage(motorOutput);
         }
         else{
-            CANSparkBase.ControlType controlType = switch (controlMode){
-                case Stopped, DutyCycle -> CANSparkBase.ControlType.kDutyCycle;
-                case Voltage -> CANSparkBase.ControlType.kVoltage;
-                case Velocity, ProfiledVelocity -> CANSparkBase.ControlType.kVelocity;
-                case Position, ProfiledPosition -> CANSparkBase.ControlType.kPosition;
-            };
+            double feedForwardValue;
+            CANSparkBase.ControlType controlType;
 
-            motor.getPIDController().setReference(motorOutput, controlType);
+            switch (controlMode){
+                case Voltage -> {
+                    controlType = CANSparkBase.ControlType.kVoltage;
+                    feedForwardValue = 0;
+                }
+                case Velocity, ProfiledVelocity -> {
+                    controlType = CANSparkBase.ControlType.kVelocity;
+                    feedForwardValue = feedForward.apply(measurements.getPosition()) * motorOutput;
+                }
+                case Position, ProfiledPosition -> {
+                    controlType = CANSparkBase.ControlType.kPosition;
+                    feedForwardValue = feedForward.apply(measurements.getVelocity()) * motorOutput;
+                }
+                default -> {
+                    controlType = CANSparkBase.ControlType.kDutyCycle;
+                    feedForwardValue = 0;
+                }
+            }
+
+
+            motor.getPIDController().setReference(motorOutput, controlType, 0, feedForwardValue);
         }
     }
 }

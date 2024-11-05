@@ -13,6 +13,10 @@ public class ControllerMaster extends SubsystemBase {
 
     private final ArrayList<Notifier> notifiers = new ArrayList<>();
 
+    public static final double ON_RIO_CONTROLLER_HZ = 50;
+
+    public static final double MOTOR_CONTROLLER_HZ = 1000;
+
     public static ControllerMaster getInstance(){
         if(instance == null){
             instance = new ControllerMaster();
@@ -24,12 +28,15 @@ public class ControllerMaster extends SubsystemBase {
 
     }
 
-    public void addController(BaseController controller){
+    public void addController(BaseController controller, BaseController.ControllerLocation location){
         controllers.add(controller);
         Notifier notifier = new Notifier(controller::runController);
         notifier.setName(controller.name + " Notifier");
         notifiers.add(notifier);
-        notifier.startPeriodic(1.0 / BaseController.RUN_HZ);
+        notifier.startPeriodic(1 / switch (location){
+            case MOTOR -> MOTOR_CONTROLLER_HZ;
+            case RIO -> ON_RIO_CONTROLLER_HZ;
+        });
     }
 
     public void stopLoop(){

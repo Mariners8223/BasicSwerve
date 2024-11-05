@@ -2,6 +2,7 @@ package frc.util.MarinersController;
 
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import frc.util.PIDFGains;
 
 public class MarinersTalonFX extends BaseController{
@@ -44,11 +45,9 @@ public class MarinersTalonFX extends BaseController{
         return talonFX;
     }
 
-    private ControlMode controlMode = ControlMode.DutyCycle;
-
     @Override
-    protected void setControlMode(ControlMode controlMode) {
-        this.controlMode = controlMode;
+    public void setMotorIdleMode(boolean brake){
+        motor.setNeutralMode(brake ? NeutralModeValue.Brake : NeutralModeValue.Coast);
     }
 
     @Override
@@ -69,18 +68,22 @@ public class MarinersTalonFX extends BaseController{
     }
 
     @Override
-    public void run() {
+    protected void setOutput(double motorOutput, ControlMode controlMode) {
         if(location == ControllerLocation.RIO){
             if(controlMode == ControlMode.DutyCycle) motor.set(motorOutput);
             else motor.setVoltage(motorOutput);
         }
         else{
             ControlRequest request = switch (controlMode){
-                case Stopped -> new StaticBrake();
                 case Voltage -> new VoltageOut(motorOutput);
-                case DutyCycle -> new DutyCycleOut(motorOutput);
-                case Position, ProfiledPosition -> new PositionVoltage(motorOutput);
-                case Velocity, ProfiledVelocity -> new VelocityVoltage(motorOutput);
+
+                case Position, ProfiledPosition -> new PositionVoltage(motorOutput)
+                        .withFeedForward(motorOutput * feedForward.apply(measurements.getPosition()));
+
+                case Velocity, ProfiledVelocity -> new VelocityVoltage(motorOutput)
+                        .withFeedForward(motorOutput * feedForward.apply(measurements.getVelocity()));
+
+                default -> new DutyCycleOut(motorOutput);
             };
 
             motor.setControl(request);
