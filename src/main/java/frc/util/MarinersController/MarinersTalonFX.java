@@ -38,9 +38,9 @@ public class MarinersTalonFX extends BaseController{
     private TalonFX createMotor(int id){
         TalonFX talonFX = new TalonFX(id);
 
-        talonFX.getPosition().setUpdateFrequency(BaseController.RUN_HZ);
-        talonFX.getVelocity().setUpdateFrequency(BaseController.RUN_HZ);
-        talonFX.getAcceleration().setUpdateFrequency(BaseController.RUN_HZ);
+        talonFX.getPosition().setUpdateFrequency(RUN_HZ);
+        talonFX.getVelocity().setUpdateFrequency(RUN_HZ);
+        talonFX.getAcceleration().setUpdateFrequency(RUN_HZ);
 
         return talonFX;
     }

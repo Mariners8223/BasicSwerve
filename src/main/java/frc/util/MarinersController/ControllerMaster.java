@@ -28,15 +28,19 @@ public class ControllerMaster extends SubsystemBase {
 
     }
 
-    public void addController(BaseController controller, BaseController.ControllerLocation location){
+    public double addController(BaseController controller, BaseController.ControllerLocation location){
         controllers.add(controller);
         Notifier notifier = new Notifier(controller::runController);
         notifier.setName(controller.name + " Notifier");
         notifiers.add(notifier);
-        notifier.startPeriodic(1 / switch (location){
+        double runningHZ = switch (location){
             case MOTOR -> MOTOR_CONTROLLER_HZ;
             case RIO -> ON_RIO_CONTROLLER_HZ;
-        });
+        };
+
+        notifier.startPeriodic(1 / runningHZ);
+
+        return runningHZ;
     }
 
     public void stopLoop(){

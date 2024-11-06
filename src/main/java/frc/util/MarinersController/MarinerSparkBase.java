@@ -159,17 +159,19 @@ public class MarinerSparkBase extends BaseController {
 
         reportError("Error restoring factory defaults", error);
 
-        sparkBase.setControlFramePeriodMs(1000 / BaseController.RUN_HZ);
+        int period = (int) (1000 / RUN_HZ);
 
-        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus0, 1000 / BaseController.RUN_HZ);
+        sparkBase.setControlFramePeriodMs(period);
+
+        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus0, period);
 
         reportError("Error setting status 0 frame period", error);
 
-        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 1000 / BaseController.RUN_HZ);
+        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, period);
 
         reportError("Error setting status 1 frame period", error);
 
-        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 1000 / BaseController.RUN_HZ);
+        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, period);
 
         reportError("Error setting status 2 frame period", error);
 
@@ -268,17 +270,12 @@ public class MarinerSparkBase extends BaseController {
         inputs.currentFaults = REVLibError.fromInt(faults).name();
     }
 
-    private ControlMode controlMode = ControlMode.DutyCycle;
 
     @Override
     public void setMotorIdleMode(boolean brake){
         motor.setIdleMode(brake ? CANSparkMax.IdleMode.kBrake : CANSparkMax.IdleMode.kCoast);
     }
 
-    @Override
-    protected void setControlMode(ControlMode controlMode) {
-        this.controlMode = controlMode;
-    }
 
     @Override
     protected void stopMotorOutput(){
@@ -286,10 +283,10 @@ public class MarinerSparkBase extends BaseController {
     }
 
     @Override
-    public void run() {
+    protected void setOutput(double output, ControlMode controlMode) {
         if(location == ControllerLocation.RIO){
-            if(controlMode == ControlMode.DutyCycle) motor.set(motorOutput);
-            else motor.setVoltage(motorOutput);
+            if(controlMode == ControlMode.DutyCycle) motor.set(output);
+            else motor.setVoltage(output);
         }
         else{
             double feedForwardValue;
@@ -302,11 +299,11 @@ public class MarinerSparkBase extends BaseController {
                 }
                 case Velocity, ProfiledVelocity -> {
                     controlType = CANSparkBase.ControlType.kVelocity;
-                    feedForwardValue = feedForward.apply(measurements.getPosition()) * motorOutput;
+                    feedForwardValue = feedForward.apply(measurements.getPosition()) * output;
                 }
                 case Position, ProfiledPosition -> {
                     controlType = CANSparkBase.ControlType.kPosition;
-                    feedForwardValue = feedForward.apply(measurements.getVelocity()) * motorOutput;
+                    feedForwardValue = feedForward.apply(measurements.getVelocity()) * output;
                 }
                 default -> {
                     controlType = CANSparkBase.ControlType.kDutyCycle;
@@ -315,7 +312,7 @@ public class MarinerSparkBase extends BaseController {
             }
 
 
-            motor.getPIDController().setReference(motorOutput, controlType, 0, feedForwardValue);
+            motor.getPIDController().setReference(output, controlType, 0, feedForwardValue);
         }
     }
 }

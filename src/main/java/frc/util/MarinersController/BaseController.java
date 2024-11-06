@@ -53,6 +53,11 @@ public abstract class BaseController{
     protected MarinersMeasurements measurements;
 
     /**
+     * The frequency that the controller runs at
+     */
+    protected final double RUN_HZ;
+
+    /**
      * The PID controller used for the controller
      */
     private PIDController pidController;
@@ -107,7 +112,7 @@ public abstract class BaseController{
      * runs the controller
      */
     public void runController() {
-        double dt = 1 / ControllerMaster.ON_RIO_CONTROLLER_HZ;
+        double dt = 1 / RUN_HZ;
 
         measurements.update(dt);
 
@@ -387,7 +392,7 @@ public abstract class BaseController{
         this.name = name;
         this.location = location;
 
-        ControllerMaster.getInstance().addController(this, location);
+        this.RUN_HZ = ControllerMaster.getInstance().addController(this, location);
     }
 
     /**
