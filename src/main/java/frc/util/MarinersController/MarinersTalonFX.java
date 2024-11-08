@@ -1,8 +1,11 @@
 package frc.util.MarinersController;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.util.PIDFGains;
 
 public class MarinersTalonFX extends BaseController{
@@ -35,6 +38,10 @@ public class MarinersTalonFX extends BaseController{
         super.setMeasurements(createMeasurement(gearRatio));
     }
 
+    public TalonFX getMotor(){
+        return motor;
+    }
+
     private TalonFX createMotor(int id){
         TalonFX talonFX = new TalonFX(id);
 
@@ -43,6 +50,39 @@ public class MarinersTalonFX extends BaseController{
         talonFX.getAcceleration().setUpdateFrequency(RUN_HZ);
 
         return talonFX;
+    }
+
+
+    @Override
+    protected void setPIDFMotor(PIDFGains gains) {
+        Slot0Configs slot0 = new Slot0Configs();
+
+        slot0.kP = gains.getP() / measurements.getGearRatio();
+
+        slot0.kI = gains.getI() / measurements.getGearRatio();
+
+        slot0.kD = gains.getD() / measurements.getGearRatio();
+
+        motor.getConfigurator().apply(slot0);
+    }
+
+    @Override
+    public void setCurrentLimits(double currentLimit, double currentThreshold) {
+
+        if(currentLimit <= 0 || currentThreshold <= 0){
+            DriverStation.reportError("Current limit and threshold must be greater than 0 for motor" + name, false);
+            return;
+        }
+
+        CurrentLimitsConfigs limit = new CurrentLimitsConfigs();
+
+        limit.SupplyCurrentLimit = currentLimit;
+
+        limit.SupplyCurrentLimitEnable = true;
+
+        limit.SupplyCurrentThreshold = currentThreshold;
+
+        motor.getConfigurator().apply(limit);
     }
 
     @Override

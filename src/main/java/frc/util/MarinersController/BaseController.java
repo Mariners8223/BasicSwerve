@@ -306,9 +306,19 @@ public abstract class BaseController{
      * @param gains the pid gains of the controller
      */
     public void setPIDF(PIDFGains gains) {
+        if(gains == null){
+            throw new IllegalArgumentException("Gains cannot be null");
+        }
+
         pidController = gains.createPIDController();
+        setPIDFMotor(gains);
+
         feedForward = (measurement) -> gains.getF();
     }
+
+    protected abstract void setPIDFMotor(PIDFGains gains);
+
+    public abstract void setCurrentLimits(double currentLimit, double currentThreshold);
 
     /**
      * sets the pid gains and feed forward of the controller
@@ -316,7 +326,19 @@ public abstract class BaseController{
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
      */
     public void setPIDF(PIDFGains gains, Function<Double, Double> feedForward) {
+
+        if(gains == null){
+            throw new IllegalArgumentException("Gains cannot be null");
+        }
+
+        if(feedForward == null){
+            throw new IllegalArgumentException("Feed forward cannot be null");
+        }
+
         pidController = gains.createPIDController();
+
+        setPIDFMotor(gains);
+
         this.feedForward = feedForward;
     }
 
