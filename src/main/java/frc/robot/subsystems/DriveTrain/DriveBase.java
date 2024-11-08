@@ -13,6 +13,7 @@ import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModule;
 import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleConstants;
 import frc.util.FastGyros.GyroIO;
 import frc.util.FastGyros.NavxIO;
+import frc.util.FastGyros.PigeonIO;
 import frc.util.FastGyros.SimGyroIO;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -117,7 +118,11 @@ public class DriveBase extends SubsystemBase {
         modules[3] = new SwerveModule(SwerveModule.ModuleName.Back_Right);
 
         if (RobotBase.isReal()) {
-            gyro = new NavxIO(Constants.ROBOT_TYPE == RobotType.DEVELOPMENT);
+            gyro = switch (Constants.ROBOT_TYPE){
+                case DEVELOPMENT -> new PigeonIO(13); //TODO change to pigeon id
+                case COMPETITION -> new NavxIO(false);
+                case REPLAY -> throw new IllegalArgumentException("Robot cannot be replay if it's real");
+            }
             gyro.reset(new Pose2d());
         } else gyro = new SimGyroIO(() -> driveTrainKinematics.toTwist2d(moduleDeltas), this::getChassisSpeeds);
 
