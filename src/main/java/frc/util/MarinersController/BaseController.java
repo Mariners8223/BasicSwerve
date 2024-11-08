@@ -399,7 +399,7 @@ public abstract class BaseController{
      * @param min the min output of the controller in volts
      */
     public void setMaxMinOutput(double max, double min) {
-        this.maxMinOutput = new double[]{max, min};
+        this.maxMinOutput = new double[]{max, -Math.abs(min)};
         setMaxMinOutputMotor(max, min);
     }
 
@@ -439,17 +439,37 @@ public abstract class BaseController{
         profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(first_derivative, second_derivative));
     }
 
+    /**
+     * sets the deadband of the motor in duty cycle
+     * if the motor output is less than this value, the motor will not put out any power
+     * @param deadBand the deadband of the motor in duty cycle
+     */
     public void setMotorDeadBandDutyCycle(double deadBand){
         motorVoltageDeadBand = deadBand;
         setMotorDeadBandDutyCycleMotor(deadBand);
     }
 
-    public abstract void setMotorDeadBandDutyCycleMotor(double deadBand);
+    /**
+     * sends the deadband to the motor
+     * @param deadBand the deadband of the motor in duty cycle
+     */
+    protected abstract void setMotorDeadBandDutyCycleMotor(double deadBand);
 
+    /**
+     * sets the deadband of the motor in voltage
+     * if the motor output is less than this value, the motor will not put out any power
+     * motors work in duty cycle, so this will convert the voltage to duty cycle (12 volts is 1)
+     * @param deadBand the deadband of the motor in voltage
+     */
     public void setMotorDeadBandVoltage(double deadBand){
         setMotorDeadBandDutyCycle(deadBand / 12);
     }
 
+    /**
+     * is the motor inverted
+     * true if counterclockwise is positive, false if clockwise is positive
+     * @param inverted true if the motor is inverted, false if the motor is not inverted
+     */
     public abstract void setMotorInverted(boolean inverted);
 
 

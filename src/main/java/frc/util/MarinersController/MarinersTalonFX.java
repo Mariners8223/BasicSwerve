@@ -184,7 +184,7 @@ public class MarinersTalonFX extends BaseController{
     }
 
     @Override
-    public void setMotorDeadBandDutyCycleMotor(double deadBand) {
+    protected void setMotorDeadBandDutyCycleMotor(double deadBand) {
         motorOutputConfig.DutyCycleNeutralDeadband = Math.abs(deadBand);
 
         StatusCode error = motor.getConfigurator().apply(motorOutputConfig);

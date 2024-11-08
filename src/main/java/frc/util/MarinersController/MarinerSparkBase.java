@@ -46,7 +46,7 @@ public class MarinerSparkBase extends BaseController {
         super.setMeasurements(
                 new MarinersMeasurements(
                         encoder::getPosition,
-                        encoder::getVelocity,
+                        () -> encoder.getVelocity() / 60,
                         gearRatio
                 )
         );
@@ -289,7 +289,7 @@ public class MarinerSparkBase extends BaseController {
     }
 
     @Override
-    public void setMotorDeadBandDutyCycleMotor(double deadBand) {
+    protected void setMotorDeadBandDutyCycleMotor(double deadBand) {
         DriverStation.reportError("Dead band for spark controllers is only available for controllers running on rio", false);
     }
 

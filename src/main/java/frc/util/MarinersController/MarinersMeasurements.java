@@ -2,6 +2,12 @@ package frc.util.MarinersController;
 
 import java.util.function.Supplier;
 
+/**
+ * A class to measure the position, velocity, and acceleration of a system
+ * used in conjunction with the {@link BaseController} class
+ * can calculate the velocity and acceleration from the position
+ * or can use the built in measurements of the motor controller
+ */
 public class MarinersMeasurements {
     /**
      * the supplier for the position of the system
