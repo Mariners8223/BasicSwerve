@@ -98,6 +98,12 @@ public abstract class BaseController{
     private final BaseControllerInputsAutoLogged inputs = new BaseControllerInputsAutoLogged();
 
     /**
+     * The deadband of the motor in voltage
+     * if the motor output is less than this value, the motor will not put out any power
+     */
+    private double motorVoltageDeadBand = 0.0;
+
+    /**
      * motor name
      */
     public final String name;
@@ -187,6 +193,10 @@ public abstract class BaseController{
             output += feedForward.apply(measurement) * setpoint;
         }
 
+        if(Math.abs(output) <= motorVoltageDeadBand){
+            output = 0;
+        }
+
         //sends the motor output to the motor
         setOutput(MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]), controlMode);
     }
@@ -232,6 +242,10 @@ public abstract class BaseController{
      * @param controlMode the control mode of the controller
      */
     public void setReference(double setpoint, ControlMode controlMode) {
+        if(controlMode == null){
+            throw new IllegalArgumentException("Control mode cannot be null");
+        }
+
         switch (controlMode) {
             case DutyCycle, Voltage, Position, Velocity -> this.setpoint.set(setpoint);
             case ProfiledPosition, ProfiledVelocity -> goal.set(new TrapezoidProfile.State(setpoint, 0));
@@ -248,6 +262,14 @@ public abstract class BaseController{
      * @param controlMode the control mode of the controller (needs to be ProfiledPosition or ProfiledVelocity)
      */
     public void setReference(TrapezoidProfile.State goal, ControlMode controlMode) {
+        if(goal == null){
+            throw new IllegalArgumentException("Goal cannot be null");
+        }
+
+        if(controlMode == null){
+            throw new IllegalArgumentException("Control mode cannot be null");
+        }
+
         if(controlMode != ControlMode.ProfiledPosition && controlMode != ControlMode.ProfiledVelocity){
             throw new IllegalArgumentException("Goal is only valid for Profiled control modes");
         }
@@ -348,6 +370,10 @@ public abstract class BaseController{
      *                     these are the position, velocity, and acceleration of the controlled value
      */
     public void setMeasurements(MarinersMeasurements measurements) {
+        if(measurements == null){
+            throw new IllegalArgumentException("Measurements cannot be null");
+        }
+
         this.measurements = measurements;
     }
 
@@ -360,7 +386,11 @@ public abstract class BaseController{
      * @param maxMinOutput the max and min output of the controller in volts
      */
     public void setMaxMinOutput(double[] maxMinOutput) {
-        this.maxMinOutput = maxMinOutput;
+        if (maxMinOutput == null) {
+            throw new IllegalArgumentException("Max min output cannot be null");
+        }
+
+        setMaxMinOutput(maxMinOutput[0], maxMinOutput[1]);
     }
 
     /**
@@ -370,7 +400,10 @@ public abstract class BaseController{
      */
     public void setMaxMinOutput(double max, double min) {
         this.maxMinOutput = new double[]{max, min};
+        setMaxMinOutputMotor(max, min);
     }
+
+    protected abstract void setMaxMinOutputMotor(double max, double min);
 
     /**
      * sets the profile of the controller
@@ -390,6 +423,10 @@ public abstract class BaseController{
      *                    but if used profiled velocity control, this would be the max acceleration and jerk
      */
     public void setProfile(TrapezoidProfile.Constraints constraints) {
+        if(constraints == null){
+            throw new IllegalArgumentException("Constraints cannot be null");
+        }
+
         profile = new TrapezoidProfile(constraints);
     }
 
@@ -402,6 +439,18 @@ public abstract class BaseController{
         profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(first_derivative, second_derivative));
     }
 
+    public void setMotorDeadBandDutyCycle(double deadBand){
+        motorVoltageDeadBand = deadBand;
+        setMotorDeadBandDutyCycleMotor(deadBand);
+    }
+
+    public abstract void setMotorDeadBandDutyCycleMotor(double deadBand);
+
+    public void setMotorDeadBandVoltage(double deadBand){
+        setMotorDeadBandDutyCycle(deadBand / 12);
+    }
+
+    public abstract void setMotorInverted(boolean inverted);
 
 
 
@@ -411,6 +460,14 @@ public abstract class BaseController{
      * @param location the location of the controller where it is running
      */
     protected BaseController(String name, ControllerLocation location) {
+        if(name == null){
+            throw new IllegalArgumentException("Name cannot be null");
+        }
+
+        if(location == null){
+            throw new IllegalArgumentException("Location cannot be null");
+        }
+
         this.name = name;
         this.location = location;
 
@@ -426,8 +483,7 @@ public abstract class BaseController{
     protected BaseController(String name, ControllerLocation location, PIDFGains gains) {
         this(name, location);
 
-        feedForward = (measurement) -> gains.getF();
-        pidController = gains.createPIDController();
+        setPIDF(gains);
     }
 
     /**
@@ -440,10 +496,8 @@ public abstract class BaseController{
     protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile) {
         this(name, location);
 
-        feedForward = (measurement) -> gains.getF();
-        pidController = gains.createPIDController();
-        this.profile = profile;
-
+        setPIDF(gains);
+        setProfile(profile);
     }
 
     /**
@@ -456,8 +510,7 @@ public abstract class BaseController{
     protected BaseController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward) {
         this(name, location);
 
-        this.feedForward = feedForward;
-        pidController = gains.createPIDController();
+        setPIDF(gains, feedForward);
     }
 
     /**
@@ -471,9 +524,8 @@ public abstract class BaseController{
     protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward) {
         this(name, location);
 
-        this.feedForward = feedForward;
-        pidController = gains.createPIDController();
-        this.profile = profile;
+        setPIDF(gains, feedForward);
+        setProfile(profile);
     }
 
     /**
@@ -486,9 +538,8 @@ public abstract class BaseController{
     protected BaseController(String name, ControllerLocation location, PIDFGains gains, double[] maxMinOutput) {
         this(name, location);
 
-        feedForward = (measurement) -> gains.getF();
-        pidController = gains.createPIDController();
-        this.maxMinOutput = maxMinOutput;
+        setPIDF(gains);
+        setMaxMinOutput(maxMinOutput);
     }
 
     /**
@@ -502,10 +553,9 @@ public abstract class BaseController{
     protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, double[] maxMinOutput) {
         this(name, location);
 
-        feedForward = (measurement) -> gains.getF();
-        pidController = gains.createPIDController();
-        this.profile = profile;
-        this.maxMinOutput = maxMinOutput;
+        setPIDF(gains);
+        setProfile(profile);
+        setMaxMinOutput(maxMinOutput);
     }
 
     /**
@@ -519,10 +569,8 @@ public abstract class BaseController{
     protected BaseController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward, double[] maxMinOutput) {
         this(name, location);
 
-        this.feedForward = feedForward;
-        pidController = gains.createPIDController();
-        this.maxMinOutput = maxMinOutput;
-
+        setPIDF(gains, feedForward);
+        setMaxMinOutput(maxMinOutput);
     }
 
     /**
@@ -537,11 +585,9 @@ public abstract class BaseController{
     protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput) {
         this(name, location);
 
-        this.feedForward = feedForward;
-        pidController = gains.createPIDController();
-        this.profile = profile;
-        this.maxMinOutput = maxMinOutput;
-
+        setPIDF(gains, feedForward);
+        setProfile(profile);
+        setMaxMinOutput(maxMinOutput);
     }
 
 }

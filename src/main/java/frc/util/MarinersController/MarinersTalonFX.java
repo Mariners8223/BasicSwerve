@@ -1,16 +1,40 @@
 package frc.util.MarinersController;
 
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.util.PIDFGains;
 
+/**
+ * A class to control a TalonFX motor controller
+ * @see BaseController
+ * @see TalonFX
+ */
 public class MarinersTalonFX extends BaseController{
+
+    /**
+     * the TalonFX motor controller
+     */
     private final TalonFX motor;
 
+    /**
+     * the configuration for the motor output
+     * (needed that info is not lost when changing the motor output)
+     */
+    private final MotorOutputConfigs motorOutputConfig = new MotorOutputConfigs();
+
+    /**
+     * create a new measurement object for the motor
+     * using the built in position, velocity, and acceleration
+     * @param gearRatio the gear ratio of the motor
+     * @return the new measurement object
+     */
     private MarinersMeasurements createMeasurement(double gearRatio){
         return new MarinersMeasurements(
             motor.getPosition()::getValueAsDouble,
@@ -20,6 +44,11 @@ public class MarinersTalonFX extends BaseController{
         );
     }
 
+    /**
+     * creates the controller
+     * @param name the name of the controller (for logging)
+     * @param location the location of the controller (RIO or MOTOR)
+     */
     public MarinersTalonFX(String name, ControllerLocation location, int id){
         super(name, location);
 
@@ -27,10 +56,23 @@ public class MarinersTalonFX extends BaseController{
         super.setMeasurements(createMeasurement(1));
     }
 
+    /**
+     * creates the controller
+     * @param name the name of the controller (for logging)
+     * @param location the location of the controller (RIO or MOTOR)
+     * @param gains the PIDF gains for the controller (the units are voltage to measurements units)
+     */
     public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains){
         this(name, location, id, gains, 1);
     }
 
+    /**
+     * creates the controller
+     * @param name the name of the controller (for logging)
+     * @param location the location of the controller (RIO or MOTOR)
+     * @param gains the PIDF gains for the controller
+     * @param gearRatio the gear ratio of the motor
+     */
     public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains, double gearRatio){
         super(name, location, gains);
 
@@ -38,16 +80,52 @@ public class MarinersTalonFX extends BaseController{
         super.setMeasurements(createMeasurement(gearRatio));
     }
 
+    /**
+     * @return the TalonFX motor controller
+     */
     public TalonFX getMotor(){
         return motor;
     }
 
+    /**
+     * creates a new TalonFX motor controller
+     * @param id the id of the motor controller
+     * @return the new motor controller
+     */
     private TalonFX createMotor(int id){
         TalonFX talonFX = new TalonFX(id);
 
-        talonFX.getPosition().setUpdateFrequency(RUN_HZ);
-        talonFX.getVelocity().setUpdateFrequency(RUN_HZ);
-        talonFX.getAcceleration().setUpdateFrequency(RUN_HZ);
+        StatusCode error;
+
+        error = talonFX.getPosition().setUpdateFrequency(RUN_HZ);
+        reportError("Error setting position update frequency", error);
+
+        error = talonFX.getVelocity().setUpdateFrequency(RUN_HZ);
+        reportError("Error setting velocity update frequency", error);
+
+        error = talonFX.getAcceleration().setUpdateFrequency(RUN_HZ);
+        reportError("Error setting acceleration update frequency", error);
+
+        error = talonFX.getDeviceTemp().setUpdateFrequency(50);
+        reportError("Error setting temperature update frequency", error);
+
+        error = talonFX.getSupplyCurrent().setUpdateFrequency(50);
+        reportError("Error setting supply current update frequency", error);
+
+        error = talonFX.getStatorCurrent().setUpdateFrequency(50);
+        reportError("Error setting stator current update frequency", error);
+
+        error = talonFX.getSupplyVoltage().setUpdateFrequency(50);
+        reportError("Error setting supply voltage update frequency", error);
+
+        error = talonFX.getMotorVoltage().setUpdateFrequency(50);
+        reportError("Error setting motor voltage update frequency", error);
+
+        error = talonFX.getDutyCycle().setUpdateFrequency(50);
+        reportError("Error setting duty cycle update frequency", error);
+
+        error = talonFX.optimizeBusUtilization();
+        reportError("Error optimizing bus utilization", error);
 
         return talonFX;
     }
@@ -63,7 +141,8 @@ public class MarinersTalonFX extends BaseController{
 
         slot0.kD = gains.getD() / measurements.getGearRatio();
 
-        motor.getConfigurator().apply(slot0);
+        StatusCode error = motor.getConfigurator().apply(slot0);
+        reportError("Error setting PIDF gains", error);
     }
 
     @Override
@@ -82,12 +161,43 @@ public class MarinersTalonFX extends BaseController{
 
         limit.SupplyCurrentThreshold = currentThreshold;
 
-        motor.getConfigurator().apply(limit);
+        StatusCode error = motor.getConfigurator().apply(limit);
+        reportError("Error setting current limits", error);
     }
 
     @Override
+    protected void setMaxMinOutputMotor(double max, double min) {
+        motorOutputConfig.PeakForwardDutyCycle = max;
+
+        motorOutputConfig.PeakReverseDutyCycle = Math.abs(min);
+
+        StatusCode error = motor.getConfigurator().apply(motorOutputConfig);
+        reportError("Error setting max and min output", error);
+    }
+
+    @Override
+    public void setMotorInverted(boolean inverted) {
+        motor.setInverted(inverted);
+
+        motorOutputConfig.Inverted =
+                inverted ? InvertedValue.CounterClockwise_Positive : InvertedValue.Clockwise_Positive;
+    }
+
+    @Override
+    public void setMotorDeadBandDutyCycleMotor(double deadBand) {
+        motorOutputConfig.DutyCycleNeutralDeadband = Math.abs(deadBand);
+
+        StatusCode error = motor.getConfigurator().apply(motorOutputConfig);
+        reportError("Error setting deadband", error);
+    }
+
+
+    @Override
     public void setMotorIdleMode(boolean brake){
-        motor.setNeutralMode(brake ? NeutralModeValue.Brake : NeutralModeValue.Coast);
+        NeutralModeValue mode = brake ? NeutralModeValue.Brake : NeutralModeValue.Coast;
+
+        motorOutputConfig.NeutralMode = mode;
+        motor.setNeutralMode(mode);
     }
 
     @Override
@@ -126,7 +236,19 @@ public class MarinersTalonFX extends BaseController{
                 default -> new DutyCycleOut(motorOutput);
             };
 
-            motor.setControl(request);
+            StatusCode error = motor.setControl(request);
+            reportError("Error setting motor output", error);
+        }
+    }
+
+    /**
+     * reports an error to the driver station
+     * @param message the message to report
+     * @param statusCode the status code of the error
+     */
+    private void reportError(String message, StatusCode statusCode){
+        if(!statusCode.isOK()){
+            DriverStation.reportError(message + " for motor" + name + "with ID" + motor.getDeviceID() + ": " + statusCode, false);
         }
     }
 }
