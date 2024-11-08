@@ -154,6 +154,13 @@ public class MarinerSparkBase extends BaseController {
     }
 
 
+    /**
+     * creates a new spark motor controller
+     * @param id the id of the motor controller
+     * @param isBrushless if the motor is brushless
+     * @param type the type of motor controller
+     * @return the new spark motor controller
+     */
     private CANSparkBase createSparkBase(int id, boolean isBrushless, MotorType type) {
 
         CANSparkBase sparkBase = switch (type) {
@@ -296,6 +303,11 @@ public class MarinerSparkBase extends BaseController {
     @Override
     public void setMotorInverted(boolean inverted) {
         motor.setInverted(inverted);
+    }
+
+    @Override
+    protected void resetMotorEncoder() {
+        motor.getEncoder().setPosition(0);
     }
 
     @Override

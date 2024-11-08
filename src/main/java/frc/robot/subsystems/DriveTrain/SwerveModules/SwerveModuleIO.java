@@ -114,10 +114,9 @@ public abstract class SwerveModuleIO implements Runnable {
      * @param absoluteEncoderZeroOffset the zero offsets of the abs encoder
      * @return the configured CANCoder
      */
-    protected CANcoder configCANCoder(int absEncoderID, double absoluteEncoderZeroOffset) {
+    protected CANcoder configCANCoder(int absEncoderID, double absoluteEncoderZeroOffset, int updateRate) {
         CANcoder canCoder = new CANcoder(absEncoderID);
 
-        canCoder.getPosition().setUpdateFrequency(SwerveModule.MODULE_THREAD_HZ);
         CANcoderConfiguration config = new CANcoderConfiguration();
         config.FutureProofConfigs = false;
 
@@ -126,8 +125,10 @@ public abstract class SwerveModuleIO implements Runnable {
                 SensorDirectionValue.Clockwise_Positive : SensorDirectionValue.CounterClockwise_Positive;
         config.MagnetSensor.MagnetOffset = -absoluteEncoderZeroOffset;
 
-        canCoder.getPosition().setUpdateFrequency(SwerveModule.MODULE_THREAD_HZ);
         canCoder.setPosition(canCoder.getAbsolutePosition().getValueAsDouble());
+
+        canCoder.getPosition().setUpdateFrequency(updateRate);
+        canCoder.getVelocity().setUpdateFrequency(updateRate);
 
         canCoder.getConfigurator().apply(config);
         canCoder.optimizeBusUtilization();

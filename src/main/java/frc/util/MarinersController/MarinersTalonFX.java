@@ -184,6 +184,11 @@ public class MarinersTalonFX extends BaseController{
     }
 
     @Override
+    protected void resetMotorEncoder() {
+        motor.setPosition(0);
+    }
+
+    @Override
     protected void setMotorDeadBandDutyCycleMotor(double deadBand) {
         motorOutputConfig.DutyCycleNeutralDeadband = Math.abs(deadBand);
 

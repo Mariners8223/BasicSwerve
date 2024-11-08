@@ -12,6 +12,19 @@ import org.littletonrobotics.junction.Logger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+/**
+ * A class to control a motor controller
+ * this holds the pid controller, feed forward, and profile of the controller
+ * this class is used to interface with the motor controller
+ * you can run a pid controller on the robo rio or the motor controller
+ * you can also add a motion profile to the controller
+ * also you can add a feed forward to the controller that is based on the measurement (or static)
+ * this class is abstract and is meant to be extended for specific motor controllers
+ *
+ * @see MarinersMeasurements
+ * @see PIDController
+ * @see TrapezoidProfile
+ */
 public abstract class BaseController{
 
     public enum ControlMode {
@@ -55,7 +68,7 @@ public abstract class BaseController{
     /**
      * The frequency that the controller runs at
      */
-    protected final double RUN_HZ;
+    public final double RUN_HZ;
 
     /**
      * The PID controller used for the controller
@@ -472,7 +485,7 @@ public abstract class BaseController{
      */
     public abstract void setMotorInverted(boolean inverted);
 
-
+    protected abstract void resetMotorEncoder();
 
     /**
      * creates the controller without any pid control or feed forward
@@ -492,6 +505,8 @@ public abstract class BaseController{
         this.location = location;
 
         this.RUN_HZ = ControllerMaster.getInstance().addController(this, location);
+
+        resetMotorEncoder();
     }
 
     /**

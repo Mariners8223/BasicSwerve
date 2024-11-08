@@ -2,6 +2,7 @@ package frc.robot.subsystems.DriveTrain.SwerveModules;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.CANSparkBase;
@@ -19,8 +20,7 @@ import frc.util.PIDFGains;
 public class SwerveModuleIODevBot extends SwerveModuleIO {
     private final BaseController driveMotor;
     private final BaseController steerMotor;
-    private final DutyCycleEncoder absEncoder;
-    private final int absEncoderMultiplier = constants.ABSOLUTE_ENCODER_INVERTED ? -1 : 1;
+    private final CANcoder absEncoder;
 
     private final VelocityDutyCycle driveMotorVelocityDutyCycle =
             new VelocityDutyCycle(0).withEnableFOC(false);
@@ -33,17 +33,13 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
         double zeroOffset = constants.ABSOLUTE_ZERO_OFFSETS[name.ordinal()];
 
-        absEncoder = configDutyCycleEncoder(absEncoderID, zeroOffset);
-
-//        driveMotor = configTalonFX(getTalonFXConfiguration(name), driveMotorID);
-//        steerMotor = configCanSparkMax(steerMotorID, absEncoder.get() * absEncoderMultiplier, name);
 
         driveMotor = new MarinersTalonFX(
                 name.name() + " Drive Motor",
-                BaseController.ControllerLocation.RIO,
+                BaseController.ControllerLocation.MOTOR,
                 driveMotorID,
                 constants.DRIVE_MOTOR_PID[name.ordinal()],
-                constants.DRIVE_GEAR_RATIO);
+                constants.DRIVE_GEAR_RATIO * constants.WHEEL_CIRCUMFERENCE_METERS);
 
         steerMotor = new MarinerSparkBase(
                 name.name() + " Steer Motor",
@@ -51,61 +47,38 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
                 steerMotorID,
                 true,
                 MarinerSparkBase.MotorType.SPARK_MAX,
-                constants.STEER_MOTOR_PID[name.ordinal()],
-                constants.STEER_GEAR_RATIO);
+                constants.STEER_MOTOR_PID[name.ordinal()]);
+
+        absEncoder = configCANCoder(absEncoderID, zeroOffset, (int)steerMotor.RUN_HZ);
 
         steerMotor.setMeasurements(
                 new MarinersMeasurements(
-                        absEncoder::get,
-                        constants.STEER_GEAR_RATIO
+                        absEncoder.getPosition()::getValueAsDouble,
+                        absEncoder.getVelocity()::getValueAsDouble,
+                        1
                 )
         );
     }
 
     @Override
     public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
-        inputs.currentState.angle = Rotation2d.fromRotations(absEncoder.get() * absEncoderMultiplier);
-        // inputs.currentState.angle = Rotation2d.fromRotations(steerMotor.getEncoder().getPosition() / DevBotConstants.steerGearRatio);
+        inputs.currentState.angle = Rotation2d.fromRotations(steerMotor.getMeasurements().getPosition());
+        inputs.currentState.speedMetersPerSecond = driveMotor.getMeasurements().getVelocity();
 
-//        inputs.currentState.speedMetersPerSecond =
-//                (driveMotor.getVelocity().getValueAsDouble() / constants.DRIVE_GEAR_RATIO) * constants.WHEEL_CIRCUMFERENCE_METERS;
-
-        inputs.currentState.speedMetersPerSecond = driveMotor.getMeasurements().getVelocity() * constants.WHEEL_CIRCUMFERENCE_METERS;
-
-//        inputs.driveMotorRPM = driveMotor.getVelocity().getValueAsDouble() * 60;
-//        inputs.driveMotorRPM = driveMotor.getMeasurements().getVelocity() * 60;
-
-        inputs.absEncoderPosition = (absEncoder.getAbsolutePosition() - absEncoder.getPositionOffset()) * absEncoderMultiplier;
-
-//        inputs.steerVelocityRadPerSec =
-//                Units.rotationsPerMinuteToRadiansPerSecond(steerMotor.getEncoder().getVelocity() / constants.STEER_GEAR_RATIO);
-
-//        inputs.drivePositionMeters =
-//                (driveMotor.getPosition().getValueAsDouble() / constants.DRIVE_GEAR_RATIO) * constants.WHEEL_CIRCUMFERENCE_METERS;
-//        inputs.
-
-//        inputs.driveMotorAppliedOutput = driveMotor.getDutyCycle().getValueAsDouble();
-//        inputs.steerMotorAppliedOutput = steerMotor.getAppliedOutput();
-//
-//        inputs.driveMotorAppliedVoltage = driveMotor.getMotorVoltage().getValueAsDouble();
-//        inputs.steerMotorAppliedVoltage = inputs.steerMotorAppliedOutput * steerMotor.getBusVoltage();
-//
-//        inputs.driveMotorTemperature = driveMotor.getDeviceTemp().getValueAsDouble();
+        inputs.drivePositionMeters = driveMotor.getMeasurements().getPosition();
     }
 
     @Override
     protected void sendInputsToMotors(double driveMotorReference, double steerMotorReference) {
-        double driveMotorOut = (driveMotorReference / constants.WHEEL_CIRCUMFERENCE_METERS) * constants.DRIVE_GEAR_RATIO;
-        double steerMotorOut = steerMotorReference * constants.STEER_GEAR_RATIO;
+        driveMotor.setReference(driveMotorReference, BaseController.ControlMode.ProfiledVelocity);
 
-//        driveMotor.setControl(driveMotorVelocityDutyCycle.withVelocity(driveMotorOut));
-//        steerMotor.getPIDController().setReference(steerMotorOut, CANSparkBase.ControlType.kPosition);
+        steerMotor.setReference(steerMotorReference, BaseController.ControlMode.ProfiledPosition);
     }
 
     @Override
     public void setIdleMode(boolean isBrakeMode) {
-//        driveMotor.setNeutralMode(isBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast);
-//        steerMotor.setIdleMode(isBrakeMode ? CANSparkBase.IdleMode.kBrake : CANSparkBase.IdleMode.kCoast);
+        driveMotor.setMotorIdleMode(isBrakeMode);
+        steerMotor.setMotorIdleMode(isBrakeMode);
     }
 
     @Override
@@ -115,14 +88,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
     @Override
     void setDriveMotorPID(PIDFGains pidGains) {
-        Slot0Configs config = new Slot0Configs();
-
-        config.kP = pidGains.getP();
-        config.kI = pidGains.getI();
-        config.kD = pidGains.getD();
-        config.kV = pidGains.getF();
-
-//        driveMotor.getConfigurator().apply(config);
+        driveMotor.setPIDF(pidGains);
     }
 
 }
