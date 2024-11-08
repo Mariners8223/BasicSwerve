@@ -122,7 +122,7 @@ public class DriveBase extends SubsystemBase {
                 case DEVELOPMENT -> new PigeonIO(13); //TODO change to pigeon id
                 case COMPETITION -> new NavxIO(false);
                 case REPLAY -> throw new IllegalArgumentException("Robot cannot be replay if it's real");
-            }
+            };
             gyro.reset(new Pose2d());
         } else gyro = new SimGyroIO(() -> driveTrainKinematics.toTwist2d(moduleDeltas), this::getChassisSpeeds);
 
