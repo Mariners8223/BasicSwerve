@@ -58,6 +58,7 @@ public class Robot extends LoggedRobot
         else{
             if(Constants.ROBOT_TYPE == Constants.RobotType.REPLAY){
                 String logPath = LogFileUtil.findReplayLog();
+                ControllerMaster.getInstance().stopLoop();
 
                 Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
                 Logger.setReplaySource(new WPILOGReader(logPath));
