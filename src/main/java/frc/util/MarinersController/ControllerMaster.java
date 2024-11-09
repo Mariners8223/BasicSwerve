@@ -9,7 +9,7 @@ public class ControllerMaster extends SubsystemBase {
 
     private static ControllerMaster instance;
 
-    private final ArrayList<BaseController> controllers = new ArrayList<>();
+    private final ArrayList<MarinersController> controllers = new ArrayList<>();
 
     private final ArrayList<Notifier> notifiers = new ArrayList<>();
 
@@ -28,7 +28,7 @@ public class ControllerMaster extends SubsystemBase {
 
     }
 
-    public double addController(BaseController controller, BaseController.ControllerLocation location){
+    public double addController(MarinersController controller, MarinersController.ControllerLocation location){
         controllers.add(controller);
         Notifier notifier = new Notifier(controller::runController);
         notifier.setName(controller.name + " Notifier");
@@ -51,7 +51,7 @@ public class ControllerMaster extends SubsystemBase {
 
     @Override
     public void periodic() {
-        for(BaseController controller : controllers){
+        for(MarinersController controller : controllers){
             controller.update();
         }
     }

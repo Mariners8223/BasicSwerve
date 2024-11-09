@@ -23,7 +23,6 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
-import org.littletonrobotics.urcl.URCL;
 
 public class Robot extends LoggedRobot
 {
@@ -40,7 +39,6 @@ public class Robot extends LoggedRobot
         Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
         Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
         switch (BuildConstants.DIRTY) {
-            //noinspection DataFlowIssue
             case 0:
                 Logger.recordMetadata("GitDirty", "All changes committed");
                 break;
@@ -52,16 +50,10 @@ public class Robot extends LoggedRobot
                 Logger.recordMetadata("GitDirty", "Unknown");
                 break;
         }
-        Logger.registerURCL(URCL.startExternal(Constants.SPARK_MAX_NAMES));
 
         if(isReal()){
             // Logger.addDataReceiver(new WPILOGWriter("/U/logs/AdvantageKit"));
-            // if(Constants.robotType == RobotType.DEVELOPMENT) Logger.addDataReceiver(new NT4Publisher());
             Logger.addDataReceiver(new NT4Publisher());
-
-            // DataLogManager.start("U/logs/dataLogManager");
-            // SignalLogger.setPath("U/logs/signalLogger");
-            // SignalLogger.start();
         }
         else{
             if(Constants.ROBOT_TYPE == Constants.RobotType.REPLAY){
@@ -72,6 +64,9 @@ public class Robot extends LoggedRobot
             }
             Logger.addDataReceiver(new NT4Publisher());
         }
+
+        SignalLogger.enableAutoLogging(false);
+        DataLogManager.stop();
 
         Logger.start();
 

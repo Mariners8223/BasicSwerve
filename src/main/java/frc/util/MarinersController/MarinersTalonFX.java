@@ -1,5 +1,6 @@
 package frc.util.MarinersController;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -13,10 +14,10 @@ import frc.util.PIDFGains;
 
 /**
  * A class to control a TalonFX motor controller
- * @see BaseController
+ * @see MarinersController
  * @see TalonFX
  */
-public class MarinersTalonFX extends BaseController{
+public class MarinersTalonFX extends MarinersController {
 
     /**
      * the TalonFX motor controller
@@ -32,12 +33,17 @@ public class MarinersTalonFX extends BaseController{
     /**
      * create a new measurement object for the motor
      * using the built in position, velocity, and acceleration
+     * this creates a measurement object that waits for all the signals to update before returning the value
+     * (that means that it is a blocking call)
      * @param gearRatio the gear ratio of the motor
      * @return the new measurement object
      */
     private MarinersMeasurements createMeasurement(double gearRatio){
         return new MarinersMeasurements(
-            motor.getPosition()::getValueAsDouble,
+                () -> {
+                    BaseStatusSignal.waitForAll((1 / RUN_HZ) / 2, motor.getPosition(), motor.getVelocity(), motor.getAcceleration());
+                    return motor.getPosition().getValueAsDouble();
+                },
             motor.getVelocity()::getValueAsDouble,
             motor.getAcceleration()::getValueAsDouble,
             gearRatio

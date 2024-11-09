@@ -1,25 +1,18 @@
 package frc.robot.subsystems.DriveTrain.SwerveModules;
 
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.revrobotics.CANSparkBase;
-import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.robot.MotorMap;
-import frc.util.MarinersController.BaseController;
-import frc.util.MarinersController.MarinerSparkBase;
+import frc.util.MarinersController.MarinersController;
+import frc.util.MarinersController.MarinersSparkBase;
 import frc.util.MarinersController.MarinersMeasurements;
 import frc.util.MarinersController.MarinersTalonFX;
 import frc.util.PIDFGains;
 
 public class SwerveModuleIODevBot extends SwerveModuleIO {
-    private final BaseController driveMotor;
-    private final BaseController steerMotor;
+    private final MarinersController driveMotor;
+    private final MarinersController steerMotor;
     private final CANcoder absEncoder;
 
     private final VelocityDutyCycle driveMotorVelocityDutyCycle =
@@ -36,17 +29,17 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
         driveMotor = new MarinersTalonFX(
                 name.name() + " Drive Motor",
-                BaseController.ControllerLocation.MOTOR,
+                MarinersController.ControllerLocation.MOTOR,
                 driveMotorID,
                 constants.DRIVE_MOTOR_PID[name.ordinal()],
                 constants.DRIVE_GEAR_RATIO * constants.WHEEL_CIRCUMFERENCE_METERS);
 
-        steerMotor = new MarinerSparkBase(
+        steerMotor = new MarinersSparkBase(
                 name.name() + " Steer Motor",
-                BaseController.ControllerLocation.RIO,
+                MarinersController.ControllerLocation.RIO,
                 steerMotorID,
                 true,
-                MarinerSparkBase.MotorType.SPARK_MAX,
+                MarinersSparkBase.MotorType.SPARK_MAX,
                 constants.STEER_MOTOR_PID[name.ordinal()]);
 
         absEncoder = configCANCoder(absEncoderID, zeroOffset, (int)steerMotor.RUN_HZ);
@@ -70,9 +63,9 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
     @Override
     protected void sendInputsToMotors(double driveMotorReference, double steerMotorReference) {
-        driveMotor.setReference(driveMotorReference, BaseController.ControlMode.ProfiledVelocity);
+        driveMotor.setReference(driveMotorReference, MarinersController.ControlMode.ProfiledVelocity);
 
-        steerMotor.setReference(steerMotorReference, BaseController.ControlMode.ProfiledPosition);
+        steerMotor.setReference(steerMotorReference, MarinersController.ControlMode.ProfiledPosition);
     }
 
     @Override

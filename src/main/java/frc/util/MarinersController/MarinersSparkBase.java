@@ -10,12 +10,12 @@ import java.util.function.Function;
 /**
  * a class for spark motor controllers (for both spark max and spark flex)
  * this class is used for controlling spark motor controllers
- * this class is a subclass of {@link BaseController}
+ * this class is a subclass of {@link MarinersController}
  * this does automatic error reporting to the driver station
  * and also built in logging in advantage kit
  * has support for basic output control and PIDF control and profiled control
  */
-public class MarinerSparkBase extends BaseController {
+public class MarinersSparkBase extends MarinersController {
 
     /**
      * the type of motor controller
@@ -61,7 +61,7 @@ public class MarinerSparkBase extends BaseController {
      * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by)
      * @param name the name of the motor controller
      */
-    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio) {
+    public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio) {
         super(name, location, gains);
 
         this.type = type;
@@ -78,7 +78,7 @@ public class MarinerSparkBase extends BaseController {
      * @param gains the PIDF gains for the motor controller
      * @param name the name of the motor controller
      */
-    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains) {
+    public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains) {
         this(name, location, id, isBrushless, type, gains, 1);
     }
 
@@ -92,7 +92,7 @@ public class MarinerSparkBase extends BaseController {
      * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by)
      * @param name the name of the motor controller
      */
-    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile, double gearRatio) {
+    public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile, double gearRatio) {
         super(name, location, gains, profile);
 
         this.type = type;
@@ -110,7 +110,7 @@ public class MarinerSparkBase extends BaseController {
      * @param profile the trapezoid profile for the motor controller (used for motion profiling)
      * @param name the name of the motor controller
      */
-    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile) {
+    public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile) {
         this(name, location, id, isBrushless, type, gains, profile, 1);
     }
 
@@ -123,7 +123,7 @@ public class MarinerSparkBase extends BaseController {
      * @param type the type of motor controller
      * @param name the name of the motor controller
      */
-    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type) {
+    public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type) {
         super(name, location);
 
         this.type = type;
@@ -143,7 +143,7 @@ public class MarinerSparkBase extends BaseController {
      * @param firstDerivativeLimit the first derivative limit for the motor controller (used for motion profiling)
      * @param secondDerivativeLimit the second derivative limit for the motor controller (used for motion profiling)
      */
-    public MarinerSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio, double firstDerivativeLimit, double secondDerivativeLimit) {
+    public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio, double firstDerivativeLimit, double secondDerivativeLimit) {
         super(name, location, gains);
         super.setProfile(firstDerivativeLimit, secondDerivativeLimit);
 

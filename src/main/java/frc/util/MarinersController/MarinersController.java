@@ -25,7 +25,7 @@ import java.util.function.Function;
  * @see PIDController
  * @see TrapezoidProfile
  */
-public abstract class BaseController{
+public abstract class MarinersController {
 
     public enum ControlMode {
         Stopped,
@@ -496,9 +496,13 @@ public abstract class BaseController{
      * @param name the name of the motor
      * @param location the location of the controller where it is running
      */
-    protected BaseController(String name, ControllerLocation location) {
+    protected MarinersController(String name, ControllerLocation location) {
         if(name == null){
             throw new IllegalArgumentException("Name cannot be null");
+        }
+
+        if(name.isBlank()){
+            throw new IllegalArgumentException("Name cannot be blank");
         }
 
         if(location == null){
@@ -517,7 +521,7 @@ public abstract class BaseController{
      * @param location the location of the controller where it is running
      * @param gains the pid gains of the controller
      */
-    protected BaseController(String name, ControllerLocation location, PIDFGains gains) {
+    protected MarinersController(String name, ControllerLocation location, PIDFGains gains) {
         this(name, location);
 
         setPIDF(gains);
@@ -530,7 +534,7 @@ public abstract class BaseController{
      * @param gains the pid gains of the controller
      * @param profile the profile of the controller
      */
-    protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile) {
+    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile) {
         this(name, location);
 
         setPIDF(gains);
@@ -544,7 +548,7 @@ public abstract class BaseController{
      * @param gains the pid gains of the controller
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
      */
-    protected BaseController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward) {
+    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward) {
         this(name, location);
 
         setPIDF(gains, feedForward);
@@ -558,7 +562,7 @@ public abstract class BaseController{
      * @param profile the profile of the controller
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
      */
-    protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward) {
+    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward) {
         this(name, location);
 
         setPIDF(gains, feedForward);
@@ -572,7 +576,7 @@ public abstract class BaseController{
      * @param gains the pid gains of the controller
      * @param maxMinOutput the max and min output of the controller in volts
      */
-    protected BaseController(String name, ControllerLocation location, PIDFGains gains, double[] maxMinOutput) {
+    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, double[] maxMinOutput) {
         this(name, location);
 
         setPIDF(gains);
@@ -587,7 +591,7 @@ public abstract class BaseController{
      * @param profile the profile of the controller
      * @param maxMinOutput the max and min output of the controller in volts
      */
-    protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, double[] maxMinOutput) {
+    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, double[] maxMinOutput) {
         this(name, location);
 
         setPIDF(gains);
@@ -603,7 +607,7 @@ public abstract class BaseController{
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
      * @param maxMinOutput the max and min output of the controller in volts
      */
-    protected BaseController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward, double[] maxMinOutput) {
+    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward, double[] maxMinOutput) {
         this(name, location);
 
         setPIDF(gains, feedForward);
@@ -619,7 +623,7 @@ public abstract class BaseController{
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
      * @param maxMinOutput the max and min output of the controller in volts
      */
-    protected BaseController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput) {
+    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput) {
         this(name, location);
 
         setPIDF(gains, feedForward);
