@@ -236,13 +236,13 @@ public class MarinersTalonFX extends MarinersController {
         }
         else{
             ControlRequest request = switch (controlMode){
-                case Voltage -> new VoltageOut(motorOutput);
-
                 case Position, ProfiledPosition -> new PositionVoltage(motorOutput)
                         .withFeedForward(motorOutput * feedForward.apply(measurements.getPosition()));
 
                 case Velocity, ProfiledVelocity -> new VelocityVoltage(motorOutput)
                         .withFeedForward(motorOutput * feedForward.apply(measurements.getVelocity()));
+
+                case Voltage -> new VoltageOut(motorOutput);
 
                 default -> new DutyCycleOut(motorOutput);
             };

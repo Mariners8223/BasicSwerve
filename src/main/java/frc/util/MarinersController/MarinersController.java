@@ -139,21 +139,7 @@ public abstract class MarinersController {
 
         // If the controller is in a control mode that doesn't require pid control, set the output voltage to the setpoint
         switch (controlMode) {
-            case DutyCycle -> {
-                setOutput(MathUtil.clamp(setpoint.get(), maxMinOutput[1] / 12, maxMinOutput[0] / 12),
-                        controlMode);
-                return;
-            }
-
-            case Voltage -> {
-                setOutput(MathUtil.clamp(setpoint.get(), maxMinOutput[1], maxMinOutput[0]),
-                        controlMode);
-                return;
-            }
-
-            case Stopped -> {
-                return;
-            }
+            case Stopped, DutyCycle, Voltage: return;
         }
 
         // If the controller is in a profiled control mode, check if the profile and goal are set
@@ -260,8 +246,10 @@ public abstract class MarinersController {
         }
 
         switch (controlMode) {
-            case DutyCycle, Voltage, Position, Velocity -> this.setpoint.set(setpoint);
+            case Position, Velocity -> this.setpoint.set(setpoint);
             case ProfiledPosition, ProfiledVelocity -> goal.set(new TrapezoidProfile.State(setpoint, 0));
+
+            case Voltage, DutyCycle -> setOutput(setpoint, controlMode);
         }
         this.controlMode.set(controlMode);
     }
