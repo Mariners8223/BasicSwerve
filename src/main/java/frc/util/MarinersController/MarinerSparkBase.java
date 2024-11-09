@@ -306,7 +306,7 @@ public class MarinerSparkBase extends BaseController {
     }
 
     @Override
-    protected void resetMotorEncoder() {
+    public void resetMotorEncoder() {
         motor.getEncoder().setPosition(0);
     }
 

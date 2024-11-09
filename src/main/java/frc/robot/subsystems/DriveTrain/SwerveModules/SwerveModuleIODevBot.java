@@ -83,7 +83,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
     @Override
     public void resetDriveEncoder() {
-//        driveMotor.setPosition(0);
+        driveMotor.resetMotorEncoder();
     }
 
     @Override

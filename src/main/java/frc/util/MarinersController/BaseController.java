@@ -485,7 +485,11 @@ public abstract class BaseController{
      */
     public abstract void setMotorInverted(boolean inverted);
 
-    protected abstract void resetMotorEncoder();
+    /**
+     * resets the motor encoder
+     * (only works if the measurements are based on the encoder)
+     */
+    public abstract void resetMotorEncoder();
 
     /**
      * creates the controller without any pid control or feed forward
@@ -505,8 +509,6 @@ public abstract class BaseController{
         this.location = location;
 
         this.RUN_HZ = ControllerMaster.getInstance().addController(this, location);
-
-        resetMotorEncoder();
     }
 
     /**

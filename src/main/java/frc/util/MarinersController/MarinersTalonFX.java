@@ -184,7 +184,7 @@ public class MarinersTalonFX extends BaseController{
     }
 
     @Override
-    protected void resetMotorEncoder() {
+    public void resetMotorEncoder() {
         motor.setPosition(0);
     }
 
