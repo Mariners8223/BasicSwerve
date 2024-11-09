@@ -153,6 +153,126 @@ public class MarinersSparkBase extends MarinersController {
         setMeasurements(gearRatio);
     }
 
+    /**
+     * if using a thorough bore encoder use this function instead of {@link #useExternalAbsoluteEncoder(boolean, double, double)}
+     * this will have more precise measurements and better overall
+     * use this only if you have a thorough bore encoder connected to a spark flex
+     * @param inverted if the encoder is inverted (use to set the same direction as the motor)
+     * @param zeroOffset the zero offset for the encoder (a value between 0 and 1) that will be removed from the absolute encoder's position
+     * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by) (need to add this if using a gear ratio between the encoder and the motor)
+     */
+    public void useExternalAbsoluteEncoderUsingRelative(boolean inverted, double zeroOffset, double gearRatio){
+
+        if(type != MotorType.SPARK_FLEX){
+            throw new IllegalArgumentException("This function is only for spark flex controllers");
+        }
+
+        CANSparkFlex sparkFlex = (CANSparkFlex)motor;
+
+        RelativeEncoder encoder = sparkFlex.getExternalEncoder(8192);
+
+        AbsoluteEncoder absoluteEncoder = getAbsoluteEncoder(inverted, zeroOffset, gearRatio);
+
+        REVLibError error;
+
+        error = encoder.setInverted(inverted);
+        reportError("Error setting relative encoder inverted", error);
+
+        error = encoder.setPositionConversionFactor(gearRatio);
+        reportError("Error setting relative encoder position conversion factor", error);
+
+        error = encoder.setVelocityConversionFactor(gearRatio);
+        reportError("Error setting relative encoder velocity conversion factor", error);
+
+        error = encoder.setPosition(absoluteEncoder.getPosition());
+        reportError("Error setting relative encoder position", error);
+
+        error = motor.getPIDController().setFeedbackDevice(encoder);
+        reportError("Error setting feedback device", error);
+
+        error = motor.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus4, (int) (1000 / RUN_HZ));
+        reportError("Error setting status 4 frame period", error);
+
+        super.setMeasurements(
+                new MarinersMeasurements(
+                        encoder::getPosition,
+                        () -> encoder.getVelocity() / 60,
+                        gearRatio
+                )
+        );
+    }
+
+    /**
+     * if using a thorough bore encoder use this function instead of {@link #useExternalAbsoluteEncoder(boolean, double)}
+     * this will have more precise measurements and better overall
+     * use this only if you have a thorough bore encoder connected to a spark flex
+     * @param inverted if the encoder is inverted (use to set the same direction as the motor)
+     * @param zeroOffset the zero offset for the encoder (a value between 0 and 1) that will be removed from the absolute encoder's position
+     */
+    public void useExternalAbsoluteEncoderUsingRelative(boolean inverted, double zeroOffset){
+        useExternalAbsoluteEncoderUsingRelative(inverted, zeroOffset, 1);
+    }
+
+    /**
+     * sets the measurements for the motor controller using an external encoder
+     * also works for using the motor's built-in controller
+     * if using a spark flex controller and a thorough bore encoder use {@link #useExternalAbsoluteEncoderUsingRelative(boolean, double, double)}
+     * @param inverted if the encoder is inverted (use to set the same direction as the motor)
+     * @param zeroOffset the zero offset for the encoder (a value between 0 and 1) that will be removed from the absolute encoder's position
+     * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by) (need to add this if using a gear ratio between the encoder and the motor)
+     */
+    public void useExternalAbsoluteEncoder(boolean inverted, double zeroOffset, double gearRatio){
+        AbsoluteEncoder encoder = getAbsoluteEncoder(inverted, zeroOffset, gearRatio);
+
+        super.setMeasurements(
+                new MarinersMeasurements(
+                        encoder::getPosition,
+                        gearRatio
+                )
+        );
+    }
+
+    /**
+     * sets the measurements for the motor controller using an external encoder
+     * also works for using the motor's built-in controller
+     * if using a spark flex controller and a thorough bore encoder use {@link #useExternalAbsoluteEncoderUsingRelative(boolean, double)}
+     * @param inverted if the encoder is inverted (use to set the same direction as the motor)
+     * @param zeroOffset the zero offset for the encoder (a value between 0 and 1) that will be removed from the absolute encoder's position
+     */
+    public void useExternalAbsoluteEncoder(boolean inverted, double zeroOffset){
+        useExternalAbsoluteEncoder(inverted, zeroOffset, 1);
+    }
+
+    /**
+     * gets the absolute encoder for the motor controller
+     * @param inverted if the encoder is inverted
+     * @param zeroOffset the zero offset for the encoder
+     * @param gearRatio the gear ratio of the motor controller
+     * @return the absolute encoder for the motor controller
+     */
+    private AbsoluteEncoder getAbsoluteEncoder(boolean inverted, double zeroOffset, double gearRatio){
+        AbsoluteEncoder encoder = motor.getAbsoluteEncoder();
+
+        REVLibError error;
+
+        error = encoder.setInverted(inverted);
+        reportError("Error setting absolute encoder inverted", error);
+
+        error = encoder.setZeroOffset(zeroOffset);
+        reportError("Error setting absolute encoder zero offset", error);
+
+        error = encoder.setPositionConversionFactor(gearRatio);
+        reportError("Error setting absolute encoder position conversion factor", error);
+
+        error = encoder.setVelocityConversionFactor(gearRatio);
+        reportError("Error setting absolute encoder velocity conversion factor", error);
+
+        error = motor.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus5, (int) (1000 / RUN_HZ));
+        reportError("Error setting status 5 frame period", error);
+
+        return encoder;
+    }
+
 
     /**
      * creates a new spark motor controller
@@ -249,9 +369,7 @@ public class MarinersSparkBase extends MarinersController {
         inputs.powerOutput = inputs.voltageOutput * inputs.currentOutput;
         inputs.powerDraw = inputs.voltageInput * inputs.currentDraw;
 
-        short faults = motor.getFaults();
-
-        inputs.currentFaults = REVLibError.fromInt(faults).name();
+        inputs.currentFaults = motor.getLastError().name();
     }
 
 
