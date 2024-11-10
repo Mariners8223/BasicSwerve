@@ -6,7 +6,7 @@ public enum SwerveModuleConstants {
     /**
      * usually the chassis
      */
-    DEVBOT(6.75, 12.5, 0.0508, 4.75,
+    DEVBOT(5.14, 12.8, 0.0508, 4.75,
             false, true, true,
 
             0.298, -0.41, -0.152, 0.322,
