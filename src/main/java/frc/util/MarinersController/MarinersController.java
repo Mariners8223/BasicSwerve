@@ -27,18 +27,74 @@ import java.util.function.Function;
  */
 public abstract class MarinersController {
 
+    /**
+     * available control modes for the controller
+     */
     public enum ControlMode {
+        /**
+         * the controller is stopped (that means no output is sent to the motor) (depends on the idle mode of the motor)
+         */
         Stopped,
+
+        /**
+         * the controller is running in duty cycle control mode
+         * the output is between -1 and 1 (where -1 is full reverse and 1 is full forward)
+         */
         DutyCycle,
+
+        /**
+         * the controller is running in voltage control mode
+         * the output is in volts
+         * the max and min is dependent on the battery voltage
+         */
         Voltage,
+
+        /**
+         * the controller is running in position control mode
+         * the output is in position units (default is rotation)
+         */
         Position,
+
+        /**
+         * the controller is running in velocity control mode
+         * the output is in velocity units (default is rotation per second)
+         */
         Velocity,
+
+        /**
+         * the controller is running in profiled position control mode
+         * that means there is a motion profile set for the controller
+         * the output is in position units (default is rotation)
+         */
         ProfiledPosition,
+
+        /**
+         * the controller is running in profiled velocity control mode
+         * that means there is a motion profile set for the controller
+         * the output is in velocity units (default is rotation per second)
+         */
         ProfiledVelocity,
     }
 
+    /**
+     * the location of the controller where it is running
+     * this effects the speed of the thread of the motor
+     * and also can effect the amount of can bus traffic
+     */
     public enum ControllerLocation{
+        /**
+         * the controller is running on the robo rio
+         * that means the pid is calculated on the robo rio and the output is sent to the motor controller
+         * (more can bus traffic)
+         */
         RIO,
+
+        /**
+         * the controller is running on the motor controller
+         * that means the pid is calculated on the motor controller and the output is sent to the motor
+         * but also there is a motion profile on the robo rio that can be used
+         * (less can bus traffic)
+         */
         MOTOR
     }
 

@@ -244,7 +244,12 @@ public class MarinersTalonFX extends MarinersController {
 
                 case Voltage -> new VoltageOut(motorOutput);
 
-                default -> new DutyCycleOut(motorOutput);
+                case DutyCycle -> new DutyCycleOut(motorOutput);
+
+                case Stopped -> switch (motorOutputConfig.NeutralMode) {
+                    case Brake -> new StaticBrake();
+                    case Coast -> new CoastOut();
+                };
             };
 
             StatusCode error = motor.setControl(request);
