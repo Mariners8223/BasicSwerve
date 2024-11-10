@@ -195,6 +195,11 @@ public class MarinersTalonFX extends MarinersController {
     }
 
     @Override
+    public void setMotorEncoderPosition(double position) {
+        motor.setPosition(position * measurements.getGearRatio());
+    }
+
+    @Override
     protected void setMotorDeadBandDutyCycleMotor(double deadBand) {
         motorOutputConfig.DutyCycleNeutralDeadband = Math.abs(deadBand);
 

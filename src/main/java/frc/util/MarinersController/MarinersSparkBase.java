@@ -385,6 +385,11 @@ public class MarinersSparkBase extends MarinersController {
     }
 
     @Override
+    public void setMotorEncoderPosition(double position) {
+        motor.getEncoder().setPosition(position * measurements.getGearRatio());
+    }
+
+    @Override
     protected void setPIDFMotor(PIDFGains gains) {
         SparkPIDController controller = motor.getPIDController();
 

@@ -182,7 +182,6 @@ public abstract class MarinersController {
      */
     protected final ControllerLocation location;
 
-
     /**
      * runs the controller
      */
@@ -233,7 +232,7 @@ public abstract class MarinersController {
         };
 
         if(location == ControllerLocation.MOTOR){
-            setOutput(setpoint, controlMode);
+            setOutput(setpoint * measurements.getGearRatio(), controlMode);
             return;
         }
 
@@ -534,6 +533,14 @@ public abstract class MarinersController {
      * (only works if the measurements are based on the encoder)
      */
     public abstract void resetMotorEncoder();
+
+    /**
+     * sets the motor encoder position
+     * (only works if the measurements are based on the encoder)
+     * the value is multiplied by the gear ratio
+     * @param position the position of the motor encoder (default is rotations)
+     */
+    public abstract void setMotorEncoderPosition(double position);
 
     /**
      * creates the controller without any pid control or feed forward
