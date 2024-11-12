@@ -304,9 +304,8 @@ public abstract class MarinersController {
         if(RobotState.isDisabled()){
             if(this.controlMode.get() != ControlMode.Stopped){
                 stopMotorOutput();
+                this.controlMode.set(ControlMode.Stopped);
             }
-            this.controlMode.set(ControlMode.Stopped);
-
             return;
         }
 
@@ -343,9 +342,8 @@ public abstract class MarinersController {
         if(RobotState.isDisabled()){
             if(this.controlMode.get() != ControlMode.Stopped){
                 stopMotorOutput();
+                this.controlMode.set(ControlMode.Stopped);
             }
-            this.controlMode.set(ControlMode.Stopped);
-
             return;
         }
 
