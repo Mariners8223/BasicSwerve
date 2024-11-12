@@ -313,7 +313,10 @@ public abstract class MarinersController {
             case Position, Velocity -> this.setpoint.set(setpoint);
             case ProfiledPosition, ProfiledVelocity -> goal.set(new TrapezoidProfile.State(setpoint, 0));
 
-            case Voltage, DutyCycle -> setOutput(setpoint, controlMode);
+            case Voltage, DutyCycle -> {
+                this.setpoint.set(setpoint);
+                setOutput(setpoint, controlMode);
+            }
         }
         this.controlMode.set(controlMode);
     }
