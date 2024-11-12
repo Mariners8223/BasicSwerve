@@ -415,7 +415,7 @@ public class MarinersSparkBase extends MarinersController {
 
     @Override
     protected void setMaxMinOutputMotor(double max, double min) {
-        motor.getPIDController().setOutputRange(Math.abs(min) / 12, max / 12);
+        motor.getPIDController().setOutputRange(-Math.abs(min) / 12, max / 12);
     }
 
     @Override

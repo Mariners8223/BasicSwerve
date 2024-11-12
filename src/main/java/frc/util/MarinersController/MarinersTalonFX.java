@@ -1,6 +1,5 @@
 package frc.util.MarinersController;
 
-import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -40,12 +39,9 @@ public class MarinersTalonFX extends MarinersController {
      */
     private MarinersMeasurements createMeasurement(double gearRatio){
         return new MarinersMeasurements(
-                () -> {
-                    BaseStatusSignal.waitForAll((1 / RUN_HZ) / 2, motor.getPosition(), motor.getVelocity(), motor.getAcceleration());
-                    return motor.getPosition().getValueAsDouble();
-                },
-            motor.getVelocity()::getValueAsDouble,
-            motor.getAcceleration()::getValueAsDouble,
+            () -> motor.getPosition().getValueAsDouble(),
+            () -> motor.getVelocity().getValueAsDouble(),
+            () -> motor.getAcceleration().getValueAsDouble(),
             gearRatio
         );
     }
@@ -173,9 +169,9 @@ public class MarinersTalonFX extends MarinersController {
 
     @Override
     protected void setMaxMinOutputMotor(double max, double min) {
-        motorOutputConfig.PeakForwardDutyCycle = max;
+        motorOutputConfig.PeakForwardDutyCycle = max / 12;
 
-        motorOutputConfig.PeakReverseDutyCycle = Math.abs(min);
+        motorOutputConfig.PeakReverseDutyCycle = -Math.abs(min / 12);
 
         StatusCode error = motor.getConfigurator().apply(motorOutputConfig);
         reportError("Error setting max and min output", error);

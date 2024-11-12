@@ -119,7 +119,7 @@ public abstract class MarinersController {
     /**
      * The measurements of the system (position, velocity, acceleration)
      */
-    protected MarinersMeasurements measurements;
+    protected MarinersMeasurements measurements = new MarinersMeasurements(() -> 0.0, 1);
 
     /**
      * The frequency that the controller runs at

@@ -25,19 +25,24 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.DriveTrain.DriveBase;
+import frc.util.MarinersController.MarinersController;
+import frc.util.MarinersController.MarinersTalonFX;
+import frc.util.MarinersController.MarinersController.ControllerLocation;
 
 public class RobotContainer{
-    public static DriveBase driveBase;
+    // public static DriveBase driveBase;
     public static CommandPS5Controller driveController;
 
     public static Field2d field;
     public static LoggedDashboardChooser<Command> autoChooser;
 
+    public static MarinersController motor;
+
 
     public RobotContainer()
     {
         driveController = new CommandPS5Controller(0);
-        driveBase = new DriveBase();
+        // driveBase = new DriveBase();
 
         configureBindings();
 
@@ -45,7 +50,17 @@ public class RobotContainer{
 
         SmartDashboard.putData(field);
 
-        configChooser();
+        // configChooser();
+
+
+        motor = new MarinersTalonFX("steer", ControllerLocation.MOTOR, 2);
+
+        motor.setMotorIdleMode(false);
+
+        motor.setMaxMinOutput(6, -6);
+
+        SmartDashboard.putNumber("value", 0);
+
     }
 
     private static final BooleanSupplier checkForPathChoiceUpdate = new BooleanSupplier() {
@@ -106,7 +121,7 @@ public class RobotContainer{
     
     
     private void configureBindings() {
-        driveController.options().onTrue(driveBase.resetOnlyDirection());
+        // driveController.options().onTrue(driveBase.resetOnlyDirection());
     }
     
     
