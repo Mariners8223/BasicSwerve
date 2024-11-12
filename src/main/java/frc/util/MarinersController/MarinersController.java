@@ -5,6 +5,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
+import edu.wpi.first.wpilibj.RobotState;
 import frc.util.PIDFGains;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -102,7 +103,7 @@ public abstract class MarinersController {
     public static class BaseControllerInputs{
         public double position = 0;
         public double velocity = 0;
-        public String controlMode = "DutyCycle";
+        public String controlMode = "Stopped";
         public double setpoint = 0;
         public double goal = 0;
         public double temperature = 0;
@@ -300,6 +301,15 @@ public abstract class MarinersController {
             throw new IllegalArgumentException("Control mode cannot be null");
         }
 
+        if(RobotState.isDisabled()){
+            if(this.controlMode.get() != ControlMode.Stopped){
+                stopMotorOutput();
+            }
+            this.controlMode.set(ControlMode.Stopped);
+
+            return;
+        }
+
         switch (controlMode) {
             case Position, Velocity -> this.setpoint.set(setpoint);
             case ProfiledPosition, ProfiledVelocity -> goal.set(new TrapezoidProfile.State(setpoint, 0));
@@ -329,6 +339,16 @@ public abstract class MarinersController {
         if(controlMode != ControlMode.ProfiledPosition && controlMode != ControlMode.ProfiledVelocity){
             throw new IllegalArgumentException("Goal is only valid for Profiled control modes");
         }
+
+        if(RobotState.isDisabled()){
+            if(this.controlMode.get() != ControlMode.Stopped){
+                stopMotorOutput();
+            }
+            this.controlMode.set(ControlMode.Stopped);
+
+            return;
+        }
+
         this.controlMode.set(controlMode);
         this.goal.set(goal);
     }
