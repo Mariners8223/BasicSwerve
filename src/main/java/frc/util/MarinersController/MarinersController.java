@@ -292,6 +292,58 @@ public abstract class MarinersController {
     }
 
     /**
+     * gets the current position of the motor after gear ratio (default is rotations)
+     * @return the current position of the motor after gear ratio
+     */
+    public double getPosition(){
+        return measurements.getPosition();
+    }
+
+    /**
+     * gets the current velocity of the motor after gear ratio (default is rotations per second)
+     * @return the current velocity of the motor after gear ratio
+     */
+    public double getVelocity(){
+        return measurements.getVelocity();
+    }
+
+    /**
+     * gets the current acceleration of the motor after gear ratio (default is rotations per second squared)
+     * @return the current acceleration of the motor after gear ratio
+     */
+    public double getAcceleration(){
+        return measurements.getAcceleration();
+    }
+
+    /**
+     * gets the current setpoint of the controller (if using profiled control mode, this will be the goal)
+     * @return the current setpoint of the controller
+     */
+    public double getSetpoint(){
+        return switch (controlMode.get()) {
+            case Position, ProfiledPosition -> setpoint.get();
+            case Velocity, ProfiledVelocity -> goal.get().position;
+            default -> 0;
+        };
+    }
+
+    /**
+     * if using profiled control mode, with an end state first derivative different from 0 use this function,
+     * otherwise use {@link #getSetpoint()}
+     * @return the current goal of the controller
+     */
+    public TrapezoidProfile.State getGoal(){
+        return goal.get();
+    }
+
+    /**
+     * @return true if the pid controller is at the setpoint (within the tolerance)
+     */
+    public boolean atSetpoint(){
+        return pidController.atSetpoint();
+    }
+
+    /**
      * sets the reference of the controller
      * @param setpoint the setpoint of the controller (needs to be appropriately set for the control mode)
      * @param controlMode the control mode of the controller
@@ -562,6 +614,7 @@ public abstract class MarinersController {
      * @param position the position of the motor encoder (default is rotations)
      */
     public abstract void setMotorEncoderPosition(double position);
+
 
     /**
      * creates the controller without any pid control or feed forward

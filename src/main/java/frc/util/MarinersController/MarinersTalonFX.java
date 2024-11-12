@@ -108,16 +108,16 @@ public class MarinersTalonFX extends MarinersController {
         error = talonFX.getAcceleration().setUpdateFrequency(RUN_HZ);
         reportError("Error setting acceleration update frequency", error);
 
-        error = talonFX.getDeviceTemp().setUpdateFrequency(50);
+        error = talonFX.getDeviceTemp().setUpdateFrequency(10);
         reportError("Error setting temperature update frequency", error);
 
-        error = talonFX.getSupplyCurrent().setUpdateFrequency(50);
+        error = talonFX.getSupplyCurrent().setUpdateFrequency(10);
         reportError("Error setting supply current update frequency", error);
 
-        error = talonFX.getStatorCurrent().setUpdateFrequency(50);
+        error = talonFX.getStatorCurrent().setUpdateFrequency(10);
         reportError("Error setting stator current update frequency", error);
 
-        error = talonFX.getSupplyVoltage().setUpdateFrequency(50);
+        error = talonFX.getSupplyVoltage().setUpdateFrequency(10);
         reportError("Error setting supply voltage update frequency", error);
 
         error = talonFX.getMotorVoltage().setUpdateFrequency(50);
