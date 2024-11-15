@@ -204,29 +204,32 @@ public abstract class MarinersController {
         // If the controller is in a control mode that doesn't require pid control, set the output voltage to the setpoint
         if(!controlMode.needPID()) return;
 
-        // get the measurement and measurement change based on the control mode
-        double measurement = switch (controlMode) {
-            case Position, ProfiledPosition -> measurements.getPosition();
-            case Velocity, ProfiledVelocity -> measurements.getVelocity();
-            default -> 0;
-        };
+        double measurement, measurementChange, setpoint;
 
-        // get the measurement change based on the control mode
-        // if the controller is in a profiled position control mode, the measurement change is the velocity
-        // if the controller is in a profiled velocity control mode, the measurement change is the acceleration
-        double measurementChange = switch (controlMode) {
-            case Position, ProfiledPosition -> measurements.getVelocity();
-            case Velocity, ProfiledVelocity -> measurements.getAcceleration();
-            default -> 0;
-        };
+        switch (controlMode){
+            case Position, ProfiledPosition -> {
+                measurement = measurements.getPosition();
+                measurementChange = measurements.getVelocity();
+            }
+            case Velocity, ProfiledVelocity -> {
+                measurement = measurements.getVelocity();
+                measurementChange = measurements.getAcceleration();
+            }
+            default -> {
+                measurement = 0;
+                measurementChange = 0;
+            }
+        }
 
-        // if the controller is in a profiled control mode, calculate the setpoint based on the profile
-        // else set the setpoint to the setpoint
-        double setpoint = switch (controlMode) {
-            case ProfiledPosition, ProfiledVelocity ->
-                    profile.calculate(dt, new TrapezoidProfile.State(measurement, measurementChange), goal.get()).position;
-            default -> this.setpoint.get();
-        };
+        switch (controlMode){
+            case ProfiledPosition, ProfiledVelocity -> {
+                setpoint = profile.calculate(dt, new TrapezoidProfile.State(measurement, measurementChange), goal.get()).position;
+
+                this.setpoint.set(setpoint);
+            }
+
+            default -> setpoint = this.setpoint.get();
+        }
 
         if (location == ControllerLocation.MOTOR) {
             setOutput(setpoint * measurements.getGearRatio(), controlMode);
