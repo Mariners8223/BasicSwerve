@@ -77,9 +77,12 @@ public class MarinersTalonFX extends MarinersController {
      * @param gearRatio the gear ratio of the motor
      */
     public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains, double gearRatio){
-        super(name, location, gains);
+        super(name, location);
 
         this.motor = createMotor(id);
+
+        super.setPIDF(gains);
+
         super.setMeasurements(createMeasurement(gearRatio));
     }
 

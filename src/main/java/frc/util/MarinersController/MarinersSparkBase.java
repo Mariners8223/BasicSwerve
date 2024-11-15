@@ -62,10 +62,12 @@ public class MarinersSparkBase extends MarinersController {
      * @param name the name of the motor controller
      */
     public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio) {
-        super(name, location, gains);
+        super(name, location);
 
         this.type = type;
         motor = createSparkBase(id, isBrushless, type);
+
+        super.setPIDF(gains);
 
         setMeasurements(gearRatio);
     }
@@ -93,10 +95,14 @@ public class MarinersSparkBase extends MarinersController {
      * @param name the name of the motor controller
      */
     public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile, double gearRatio) {
-        super(name, location, gains, profile);
+        super(name, location);
 
         this.type = type;
         motor = createSparkBase(id, isBrushless, type);
+
+        super.setPIDF(gains);
+
+        super.setProfile(profile);
 
         setMeasurements(gearRatio);
     }
