@@ -74,7 +74,15 @@ public abstract class MarinersController {
          * that means there is a motion profile set for the controller
          * the output is in velocity units (default is rotation per second)
          */
-        ProfiledVelocity,
+        ProfiledVelocity;
+
+        public boolean needPID(){
+            return this != DutyCycle && this != Voltage && this != Stopped;
+        }
+
+        public boolean needMotionProfile(){
+            return this == ProfiledPosition || this == ProfiledVelocity;
+        }
     }
 
     /**
@@ -194,23 +202,8 @@ public abstract class MarinersController {
         ControlMode controlMode = this.controlMode.get();
 
         // If the controller is in a control mode that doesn't require pid control, set the output voltage to the setpoint
-        switch (controlMode) {
-            case Stopped, DutyCycle, Voltage:
-                return;
-        }
+        if(!controlMode.needPID()) return;
 
-        // If the controller is in a profiled control mode, check if the profile and goal are set
-        if ((controlMode == ControlMode.ProfiledPosition || controlMode == ControlMode.ProfiledVelocity)
-                && (profile == null || goal.get() == null)) {
-            throw new IllegalStateException("Profiled control mode requires a profile");
-        }
-
-        // If the controller is in a pid control mode, check if the pid gains are set
-        if (pidController == null) {
-            throw new IllegalStateException("PID control on mode requires pid gains");
-        }
-
-        // TODO: Unite switch cases
         // get the measurement and measurement change based on the control mode
         double measurement = switch (controlMode) {
             case Position, ProfiledPosition -> measurements.getPosition();
@@ -364,8 +357,14 @@ public abstract class MarinersController {
             throw new IllegalArgumentException("Control mode cannot be null");
         }
 
-        if (RobotState.isDisabled()) {
-            if (this.controlMode.get() != ControlMode.Stopped) {
+        if(controlMode.needPID() && pidController == null)
+            throw new IllegalStateException("PID control on mode requires pid gains");
+
+        if(controlMode.needMotionProfile() && profile == null)
+            throw new IllegalStateException("Profiled control mode requires a profile");
+
+        if(RobotState.isDisabled()){
+            if(this.controlMode.get() != ControlMode.Stopped){
                 stopMotorOutput();
                 this.controlMode.set(ControlMode.Stopped);
             }
@@ -406,8 +405,14 @@ public abstract class MarinersController {
             throw new IllegalArgumentException("Goal is only valid for Profiled control modes");
         }
 
-        if (RobotState.isDisabled()) {
-            if (this.controlMode.get() != ControlMode.Stopped) {
+        if(pidController == null)
+            throw new IllegalStateException("PID control on mode requires pid gains");
+
+        if(profile == null)
+            throw new IllegalStateException("Profiled control mode requires a profile");
+
+        if(RobotState.isDisabled()){
+            if(this.controlMode.get() != ControlMode.Stopped){
                 stopMotorOutput();
                 this.controlMode.set(ControlMode.Stopped);
             }

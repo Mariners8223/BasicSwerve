@@ -11,12 +11,18 @@ import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.math.geometry.Pose2d;
 import frc.util.LocalADStarAK;
-
+import frc.util.PIDFGains;
 import frc.util.MarinersController.ControllerMaster;
+import frc.util.MarinersController.MarinersController;
+import frc.util.MarinersController.MarinersTalonFX;
+import frc.util.MarinersController.MarinersController.ControlMode;
+import frc.util.MarinersController.MarinersController.ControllerLocation;
+
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.littletonrobotics.junction.Logger;
@@ -27,6 +33,8 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot
 {
     private Command autonomousCommand;    
+
+    private MarinersController motor;
     
     @Override
     public void robotInit() {
@@ -82,6 +90,12 @@ public class Robot extends LoggedRobot
 
 
         ControllerMaster.getInstance();
+
+        PIDFGains gains = new PIDFGains(0.1, 0, 0);
+
+        motor = new MarinersTalonFX("steer", ControllerLocation.RIO, 1, gains);
+
+        motor.setMaxMinOutput(3, -3);
     }
     
     
@@ -89,6 +103,10 @@ public class Robot extends LoggedRobot
     public void robotPeriodic()
     {
         CommandScheduler.getInstance().run();
+
+        double value = SmartDashboard.getNumber("value", 0);
+
+        motor.setReference(value, ControlMode.Position);
     }
     
     
