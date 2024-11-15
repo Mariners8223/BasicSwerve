@@ -82,7 +82,7 @@ public abstract class MarinersController {
      * this effects the speed of the thread of the motor
      * and also can effect the amount of can bus traffic
      */
-    public enum ControllerLocation{
+    public enum ControllerLocation {
         /**
          * the controller is running on the robo rio
          * that means the pid is calculated on the robo rio and the output is sent to the motor controller
@@ -100,7 +100,7 @@ public abstract class MarinersController {
     }
 
     @AutoLog
-    public static class BaseControllerInputs{
+    public static class BaseControllerInputs {
         public double position = 0;
         public double velocity = 0;
         public String controlMode = "Stopped";
@@ -190,12 +190,13 @@ public abstract class MarinersController {
         double dt = 1 / RUN_HZ;
 
         measurements.update(dt);
-
+        // TODO: Research on Mutex and the difference between this and atomic and what is better for this case. BONUS: Semaphores
         ControlMode controlMode = this.controlMode.get();
 
         // If the controller is in a control mode that doesn't require pid control, set the output voltage to the setpoint
         switch (controlMode) {
-            case Stopped, DutyCycle, Voltage: return;
+            case Stopped, DutyCycle, Voltage:
+                return;
         }
 
         // If the controller is in a profiled control mode, check if the profile and goal are set
@@ -205,10 +206,11 @@ public abstract class MarinersController {
         }
 
         // If the controller is in a pid control mode, check if the pid gains are set
-        if(pidController == null){
+        if (pidController == null) {
             throw new IllegalStateException("PID control on mode requires pid gains");
         }
 
+        // TODO: Unite switch cases
         // get the measurement and measurement change based on the control mode
         double measurement = switch (controlMode) {
             case Position, ProfiledPosition -> measurements.getPosition();
@@ -228,11 +230,12 @@ public abstract class MarinersController {
         // if the controller is in a profiled control mode, calculate the setpoint based on the profile
         // else set the setpoint to the setpoint
         double setpoint = switch (controlMode) {
-            case ProfiledPosition, ProfiledVelocity -> profile.calculate(dt, new TrapezoidProfile.State(measurement, measurementChange), goal.get()).position;
+            case ProfiledPosition, ProfiledVelocity ->
+                    profile.calculate(dt, new TrapezoidProfile.State(measurement, measurementChange), goal.get()).position;
             default -> this.setpoint.get();
         };
 
-        if(location == ControllerLocation.MOTOR){
+        if (location == ControllerLocation.MOTOR) {
             setOutput(setpoint * measurements.getGearRatio(), controlMode);
             return;
         }
@@ -242,13 +245,13 @@ public abstract class MarinersController {
         double output = pidController.calculate(measurement, setpoint);
 
         // if the pid controller is at the setpoint, set the output to the feed forward
-        if(pidController.atSetpoint()){
+        if (pidController.atSetpoint()) {
             output = feedForward.apply(measurement) * setpoint;
-        }else{
+        } else {
             output += feedForward.apply(measurement) * setpoint;
         }
 
-        if(Math.abs(output) <= motorVoltageDeadBand){
+        if (Math.abs(output) <= motorVoltageDeadBand) {
             output = 0;
         }
 
@@ -263,7 +266,7 @@ public abstract class MarinersController {
      * updates the inputs of the controller
      * this will be used for logging
      */
-    public void update(){
+    public void update() {
         inputs.controlMode = controlMode.get().name();
         inputs.setpoint = setpoint.get();
         TrapezoidProfile.State goal = this.goal.get();
@@ -279,12 +282,14 @@ public abstract class MarinersController {
 
     /**
      * updates the inputs of the controller (only for motor specif logging)
+     *
      * @param inputs the inputs of the controller
      */
     protected abstract void updateInputs(BaseControllerInputsAutoLogged inputs);
 
     /**
      * gets the current control mode of the controller
+     *
      * @return the current control mode of the controller
      */
     public ControlMode getControlMode() {
@@ -293,33 +298,37 @@ public abstract class MarinersController {
 
     /**
      * gets the current position of the motor after gear ratio (default is rotations)
+     *
      * @return the current position of the motor after gear ratio
      */
-    public double getPosition(){
+    public double getPosition() {
         return measurements.getPosition();
     }
 
     /**
      * gets the current velocity of the motor after gear ratio (default is rotations per second)
+     *
      * @return the current velocity of the motor after gear ratio
      */
-    public double getVelocity(){
+    public double getVelocity() {
         return measurements.getVelocity();
     }
 
     /**
      * gets the current acceleration of the motor after gear ratio (default is rotations per second squared)
+     *
      * @return the current acceleration of the motor after gear ratio
      */
-    public double getAcceleration(){
+    public double getAcceleration() {
         return measurements.getAcceleration();
     }
 
     /**
      * gets the current setpoint of the controller (if using profiled control mode, this will be the goal)
+     *
      * @return the current setpoint of the controller
      */
-    public double getSetpoint(){
+    public double getSetpoint() {
         return switch (controlMode.get()) {
             case Position, ProfiledPosition -> setpoint.get();
             case Velocity, ProfiledVelocity -> goal.get().position;
@@ -330,31 +339,33 @@ public abstract class MarinersController {
     /**
      * if using profiled control mode, with an end state first derivative different from 0 use this function,
      * otherwise use {@link #getSetpoint()}
+     *
      * @return the current goal of the controller
      */
-    public TrapezoidProfile.State getGoal(){
+    public TrapezoidProfile.State getGoal() {
         return goal.get();
     }
 
     /**
      * @return true if the pid controller is at the setpoint (within the tolerance)
      */
-    public boolean atSetpoint(){
+    public boolean atSetpoint() {
         return pidController.atSetpoint();
     }
 
     /**
      * sets the reference of the controller
-     * @param setpoint the setpoint of the controller (needs to be appropriately set for the control mode)
+     *
+     * @param setpoint    the setpoint of the controller (needs to be appropriately set for the control mode)
      * @param controlMode the control mode of the controller
      */
     public void setReference(double setpoint, ControlMode controlMode) {
-        if(controlMode == null){
+        if (controlMode == null) {
             throw new IllegalArgumentException("Control mode cannot be null");
         }
 
-        if(RobotState.isDisabled()){
-            if(this.controlMode.get() != ControlMode.Stopped){
+        if (RobotState.isDisabled()) {
+            if (this.controlMode.get() != ControlMode.Stopped) {
                 stopMotorOutput();
                 this.controlMode.set(ControlMode.Stopped);
             }
@@ -375,27 +386,28 @@ public abstract class MarinersController {
 
     /**
      * sets the reference of the controller
-     * @param goal the goal of the controller (needs to be appropriately set for the control mode)
-     *             when using profiled position control mode, this would be the position and velocity of the controlled value
-     *             when using profiled velocity control mode, this would be the velocity and acceleration of the controlled value
-     * this will be used when the end state first derivative is not zero
+     *
+     * @param goal        the goal of the controller (needs to be appropriately set for the control mode)
+     *                    when using profiled position control mode, this would be the position and velocity of the controlled value
+     *                    when using profiled velocity control mode, this would be the velocity and acceleration of the controlled value
+     *                    this will be used when the end state first derivative is not zero
      * @param controlMode the control mode of the controller (needs to be ProfiledPosition or ProfiledVelocity)
      */
     public void setReference(TrapezoidProfile.State goal, ControlMode controlMode) {
-        if(goal == null){
+        if (goal == null) {
             throw new IllegalArgumentException("Goal cannot be null");
         }
 
-        if(controlMode == null){
+        if (controlMode == null) {
             throw new IllegalArgumentException("Control mode cannot be null");
         }
 
-        if(controlMode != ControlMode.ProfiledPosition && controlMode != ControlMode.ProfiledVelocity){
+        if (controlMode != ControlMode.ProfiledPosition && controlMode != ControlMode.ProfiledVelocity) {
             throw new IllegalArgumentException("Goal is only valid for Profiled control modes");
         }
 
-        if(RobotState.isDisabled()){
-            if(this.controlMode.get() != ControlMode.Stopped){
+        if (RobotState.isDisabled()) {
+            if (this.controlMode.get() != ControlMode.Stopped) {
                 stopMotorOutput();
                 this.controlMode.set(ControlMode.Stopped);
             }
@@ -409,13 +421,14 @@ public abstract class MarinersController {
     /**
      * stops the motor (stops the pid controller and motor output) until a new reference is set
      */
-    public void stopMotor(){
+    public void stopMotor() {
         controlMode.set(ControlMode.Stopped);
         stopMotorOutput();
     }
 
     /**
      * sets the motor idle mode
+     *
      * @param brake true if the motor should brake when idle, false if the motor should coast when idle
      */
     public abstract void setMotorIdleMode(boolean brake);
@@ -428,36 +441,40 @@ public abstract class MarinersController {
     /**
      * sets the voltage output of the controller
      * equivalent to {@link #setReference(double, ControlMode)} with ControlMode.Voltage
+     *
      * @param voltage the voltage output of the controller
      */
-    public void setVoltage(double voltage){
+    public void setVoltage(double voltage) {
         setReference(voltage, ControlMode.Voltage);
     }
 
     /**
      * sets the voltage output of the controller
      * equivalent to {@link #setReference(double, ControlMode)} with ControlMode.Voltage
+     *
      * @param voltage the voltage output of the controller
      */
-    public void setVoltage(Measure<Voltage> voltage){
+    public void setVoltage(Measure<Voltage> voltage) {
         setVoltage(voltage.baseUnitMagnitude());
     }
 
     /**
      * sets the duty cycle output of the controller
      * equivalent to {@link #setReference(double, ControlMode)} with ControlMode.DutyCycle
+     *
      * @param dutyCycle the duty cycle output of the controller (from -1 to 1)
      */
-    public void setDutyCycle(double dutyCycle){
+    public void setDutyCycle(double dutyCycle) {
         setReference(dutyCycle, ControlMode.DutyCycle);
     }
 
     /**
      * sets the pid gains of the controller
+     *
      * @param gains the pid gains of the controller
      */
     public void setPIDF(PIDFGains gains) {
-        if(gains == null){
+        if (gains == null) {
             throw new IllegalArgumentException("Gains cannot be null");
         }
 
@@ -473,16 +490,17 @@ public abstract class MarinersController {
 
     /**
      * sets the pid gains and feed forward of the controller
-     * @param gains the pid gains of the controller (F is ignored)
+     *
+     * @param gains       the pid gains of the controller (F is ignored)
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
      */
     public void setPIDF(PIDFGains gains, Function<Double, Double> feedForward) {
 
-        if(gains == null){
+        if (gains == null) {
             throw new IllegalArgumentException("Gains cannot be null");
         }
 
-        if(feedForward == null){
+        if (feedForward == null) {
             throw new IllegalArgumentException("Feed forward cannot be null");
         }
 
@@ -495,11 +513,12 @@ public abstract class MarinersController {
 
     /**
      * sets the measurements of the controller
+     *
      * @param measurements the measurements of the controller
      *                     these are the position, velocity, and acceleration of the controlled value
      */
     public void setMeasurements(MarinersMeasurements measurements) {
-        if(measurements == null){
+        if (measurements == null) {
             throw new IllegalArgumentException("Measurements cannot be null");
         }
 
@@ -512,6 +531,7 @@ public abstract class MarinersController {
 
     /**
      * sets the max and min output of the controller in volts
+     *
      * @param maxMinOutput the max and min output of the controller in volts
      */
     public void setMaxMinOutput(double[] maxMinOutput) {
@@ -524,6 +544,7 @@ public abstract class MarinersController {
 
     /**
      * sets the max and min output of the controller in volts
+     *
      * @param max the max output of the controller in volts
      * @param min the min output of the controller in volts
      */
@@ -536,6 +557,7 @@ public abstract class MarinersController {
 
     /**
      * sets the profile of the controller
+     *
      * @param profile the profile of the controller
      *                (needs to be appropriately set for the control mode)
      *                normally, this would be the max velocity and acceleration of the controlled value
@@ -547,12 +569,13 @@ public abstract class MarinersController {
 
     /**
      * sets the profile of the controller
+     *
      * @param constraints the constraints of the profile (needs to be appropriately set for the control mode)
      *                    normally, this would be the max velocity and acceleration of the controlled value
      *                    but if used profiled velocity control, this would be the max acceleration and jerk
      */
     public void setProfile(TrapezoidProfile.Constraints constraints) {
-        if(constraints == null){
+        if (constraints == null) {
             throw new IllegalArgumentException("Constraints cannot be null");
         }
 
@@ -561,7 +584,8 @@ public abstract class MarinersController {
 
     /**
      * sets the profile of the controller
-     * @param first_derivative the max value of the first derivative of the controlled value (for example, if using position control, this would be velocity)
+     *
+     * @param first_derivative  the max value of the first derivative of the controlled value (for example, if using position control, this would be velocity)
      * @param second_derivative the max value of the second derivative of the controlled value (for example, if using position control, this would be acceleration)
      */
     public void setProfile(double first_derivative, double second_derivative) {
@@ -571,15 +595,17 @@ public abstract class MarinersController {
     /**
      * sets the deadband of the motor in duty cycle
      * if the motor output is less than this value, the motor will not put out any power
+     *
      * @param deadBand the deadband of the motor in duty cycle
      */
-    public void setMotorDeadBandDutyCycle(double deadBand){
+    public void setMotorDeadBandDutyCycle(double deadBand) {
         motorVoltageDeadBand = deadBand;
         setMotorDeadBandDutyCycleMotor(deadBand);
     }
 
     /**
      * sends the deadband to the motor
+     *
      * @param deadBand the deadband of the motor in duty cycle
      */
     protected abstract void setMotorDeadBandDutyCycleMotor(double deadBand);
@@ -588,15 +614,17 @@ public abstract class MarinersController {
      * sets the deadband of the motor in voltage
      * if the motor output is less than this value, the motor will not put out any power
      * motors work in duty cycle, so this will convert the voltage to duty cycle (12 volts is 1)
+     *
      * @param deadBand the deadband of the motor in voltage
      */
-    public void setMotorDeadBandVoltage(double deadBand){
+    public void setMotorDeadBandVoltage(double deadBand) {
         setMotorDeadBandDutyCycle(deadBand / 12);
     }
 
     /**
      * is the motor inverted
      * true if counterclockwise is positive, false if clockwise is positive
+     *
      * @param inverted true if the motor is inverted, false if the motor is not inverted
      */
     public abstract void setMotorInverted(boolean inverted);
@@ -611,6 +639,7 @@ public abstract class MarinersController {
      * sets the motor encoder position
      * (only works if the measurements are based on the encoder)
      * the value is multiplied by the gear ratio
+     *
      * @param position the position of the motor encoder (default is rotations)
      */
     public abstract void setMotorEncoderPosition(double position);
@@ -618,19 +647,20 @@ public abstract class MarinersController {
 
     /**
      * creates the controller without any pid control or feed forward
-     * @param name the name of the motor
+     *
+     * @param name     the name of the motor
      * @param location the location of the controller where it is running
      */
     protected MarinersController(String name, ControllerLocation location) {
-        if(name == null){
+        if (name == null) {
             throw new IllegalArgumentException("Name cannot be null");
         }
 
-        if(name.isBlank()){
+        if (name.isBlank()) {
             throw new IllegalArgumentException("Name cannot be blank");
         }
 
-        if(location == null){
+        if (location == null) {
             throw new IllegalArgumentException("Location cannot be null");
         }
 
@@ -642,9 +672,10 @@ public abstract class MarinersController {
 
     /**
      * creates the controller with pid control and static feed forward
-     * @param name the name of the motor
+     *
+     * @param name     the name of the motor
      * @param location the location of the controller where it is running
-     * @param gains the pid gains of the controller
+     * @param gains    the pid gains of the controller
      */
     protected MarinersController(String name, ControllerLocation location, PIDFGains gains) {
         this(name, location);
@@ -654,10 +685,11 @@ public abstract class MarinersController {
 
     /**
      * creates the controller with pid control and static feed forward
-     * @param name the name of the motor
+     *
+     * @param name     the name of the motor
      * @param location the location of the controller where it is running
-     * @param gains the pid gains of the controller
-     * @param profile the profile of the controller
+     * @param gains    the pid gains of the controller
+     * @param profile  the profile of the controller
      */
     protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile) {
         this(name, location);
@@ -668,9 +700,10 @@ public abstract class MarinersController {
 
     /**
      * creates the controller with pid control and feed forward
-     * @param name the name of the motor
-     * @param location the location of the controller where it is running
-     * @param gains the pid gains of the controller
+     *
+     * @param name        the name of the motor
+     * @param location    the location of the controller where it is running
+     * @param gains       the pid gains of the controller
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
      */
     protected MarinersController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward) {
@@ -681,10 +714,11 @@ public abstract class MarinersController {
 
     /**
      * creates the controller with pid control and feed forward
-     * @param name the name of the motor
-     * @param location the location of the controller where it is running
-     * @param gains the pid gains of the controller
-     * @param profile the profile of the controller
+     *
+     * @param name        the name of the motor
+     * @param location    the location of the controller where it is running
+     * @param gains       the pid gains of the controller
+     * @param profile     the profile of the controller
      * @param feedForward the function that calculates the feed forward of the controller based on the measurement
      */
     protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward) {
@@ -696,9 +730,10 @@ public abstract class MarinersController {
 
     /**
      * creates the controller with pid control and static feed forward
-     * @param name the name of the motor
-     * @param location the location of the controller where it is running
-     * @param gains the pid gains of the controller
+     *
+     * @param name         the name of the motor
+     * @param location     the location of the controller where it is running
+     * @param gains        the pid gains of the controller
      * @param maxMinOutput the max and min output of the controller in volts
      */
     protected MarinersController(String name, ControllerLocation location, PIDFGains gains, double[] maxMinOutput) {
@@ -710,10 +745,11 @@ public abstract class MarinersController {
 
     /**
      * creates the controller with pid control and static feed forward
-     * @param name the name of the motor
-     * @param location the location of the controller where it is running
-     * @param gains the pid gains of the controller
-     * @param profile the profile of the controller
+     *
+     * @param name         the name of the motor
+     * @param location     the location of the controller where it is running
+     * @param gains        the pid gains of the controller
+     * @param profile      the profile of the controller
      * @param maxMinOutput the max and min output of the controller in volts
      */
     protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, double[] maxMinOutput) {
@@ -726,10 +762,11 @@ public abstract class MarinersController {
 
     /**
      * creates the controller with pid control and feed forward
-     * @param name the name of the motor
-     * @param location the location of the controller where it is running
-     * @param gains the pid gains of the controller
-     * @param feedForward the function that calculates the feed forward of the controller based on the measurement
+     *
+     * @param name         the name of the motor
+     * @param location     the location of the controller where it is running
+     * @param gains        the pid gains of the controller
+     * @param feedForward  the function that calculates the feed forward of the controller based on the measurement
      * @param maxMinOutput the max and min output of the controller in volts
      */
     protected MarinersController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward, double[] maxMinOutput) {
@@ -741,11 +778,12 @@ public abstract class MarinersController {
 
     /**
      * creates the controller with pid control and feed forward
-     * @param name the name of the motor
-     * @param location the location of the controller where it is running
-     * @param gains the pid gains of the controller
-     * @param profile the profile of the controller
-     * @param feedForward the function that calculates the feed forward of the controller based on the measurement
+     *
+     * @param name         the name of the motor
+     * @param location     the location of the controller where it is running
+     * @param gains        the pid gains of the controller
+     * @param profile      the profile of the controller
+     * @param feedForward  the function that calculates the feed forward of the controller based on the measurement
      * @param maxMinOutput the max and min output of the controller in volts
      */
     protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput) {
