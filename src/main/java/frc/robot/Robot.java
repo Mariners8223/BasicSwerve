@@ -10,6 +10,8 @@ import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import frc.util.LocalADStarAK;
 import frc.util.PIDFGains;
 import frc.util.MarinersController.ControllerMaster;
@@ -91,11 +93,17 @@ public class Robot extends LoggedRobot
 
         ControllerMaster.getInstance();
 
-        PIDFGains gains = new PIDFGains(0.1, 0, 0);
+        PIDFGains gains = new PIDFGains(3, 0, 0);
 
-        motor = new MarinersTalonFX("steer", ControllerLocation.RIO, 1, gains);
+        TrapezoidProfile.Constraints constraints = new Constraints(3, 3);
+
+        motor = new MarinersTalonFX("steer", ControllerLocation.RIO, 1, gains, 12.8);
 
         motor.setMaxMinOutput(3, -3);
+
+        motor.setProfile(constraints);
+
+        motor.resetMotorEncoder();
     }
     
     
@@ -106,7 +114,7 @@ public class Robot extends LoggedRobot
 
         double value = SmartDashboard.getNumber("value", 0);
 
-        motor.setReference(value, ControlMode.Position);
+        motor.setReference(value, ControlMode.ProfiledPosition);
     }
     
     
