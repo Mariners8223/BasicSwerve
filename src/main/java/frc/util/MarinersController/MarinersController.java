@@ -190,6 +190,8 @@ public abstract class MarinersController {
      */
     private final BaseControllerInputsAutoLogged inputs = new BaseControllerInputsAutoLogged();
 
+    private Double[] wrappingMinMax;
+
     /**
      * The deadband of the motor in voltage
      * if the motor output is less than this value, the motor will not put out any power
@@ -235,6 +237,23 @@ public abstract class MarinersController {
                 case Velocity, ProfiledVelocity -> measurements.getVelocity();
                 default -> 0;
             };
+
+            if (wrappingMinMax != null && controlMode != ControlMode.Position && controlMode != ControlMode.ProfiledPosition) {
+                // Get error which is the smallest distance between goal and measurement
+                double errorBound = (wrappingMinMax[1] - wrappingMinMax[0]) / 2.0;
+                
+                double setpointMinDistance =
+                    MathUtil.inputModulus(setpoint.position - measurement, -errorBound, errorBound);
+                
+                setpoint.position = setpointMinDistance + measurement;
+
+                if(controlMode == ControlMode.ProfiledPosition){
+                    double goalMinDistance =
+                        MathUtil.inputModulus(goal.position - measurement, -errorBound, errorBound);
+                        
+                    goal.position = goalMinDistance + measurement;
+                }
+            }
 
             if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
 
@@ -569,6 +588,49 @@ public abstract class MarinersController {
 
     public abstract void setCurrentLimits(double currentLimit, double currentThreshold);
 
+    /**
+     * enable position wrapping
+     * use this only when using position or profiled position
+     * the array should be the minimum value first then the maximum
+     * units are the units of the mesasrments
+     * @param minMax the array
+     */
+    public void enablePositionWrapping(Double[] minMax){
+        if(minMax == null){
+            wrappingMinMax = null;
+            return;
+        }
+        else if(minMax.length == 2){
+            wrappingMinMax = minMax.clone();
+            return;
+        }
+        else throw new IllegalArgumentException("minmax must be null or length of 2");        
+    }
+
+    /**
+     * enable position wrapping
+     * use this only when using position or profile position
+     * units are the units of the messurements
+     * @param minimum the minimum value
+     * @param maximum the maximum value
+     */
+    public void enablePositionWrapping(double minimum, double maximum){
+        enablePositionWrapping(new Double[]{minimum, maximum});
+    }
+
+    /**
+     * disables the position wrapping
+     */
+    public void disablePositionWrapping(){
+        enablePositionWrapping(null);
+    }
+
+    /**
+     * @return if position wrapping is enabled
+     */
+    public boolean isPositionWrappingEnabled(){
+        return wrappingMinMax != null;
+    }
     /**
      * sets the pid gains and feed forward of the controller
      *
