@@ -10,7 +10,7 @@ import frc.util.PIDFGains;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 /**
@@ -76,11 +76,11 @@ public abstract class MarinersController {
          */
         ProfiledVelocity;
 
-        public boolean needPID(){
+        public boolean needPID() {
             return this != DutyCycle && this != Voltage && this != Stopped;
         }
 
-        public boolean needMotionProfile(){
+        public boolean needMotionProfile() {
             return this == ProfiledPosition || this == ProfiledVelocity;
         }
     }
@@ -111,6 +111,7 @@ public abstract class MarinersController {
     public static class BaseControllerInputs {
         public double position = 0;
         public double velocity = 0;
+        public double acceleration = 0;
         public String controlMode = "Stopped";
         public double setpoint = 0;
         public double goal = 0;
@@ -156,19 +157,33 @@ public abstract class MarinersController {
     private double[] maxMinOutput = {12, -12};
 
     /**
+     * The lock for the setpoint of the controller
+     * this is used to prevent the setpoint from being changed while the controller is running
+     * (locks when setpoint, goal, or control mode is being changed or used)
+     */
+    private final ReentrantLock setpointLock = new ReentrantLock();
+
+    /**
+     * The lock for the measurements of the controller
+     * this is used to prevent the measurements from being changed while the controller is running
+     * (locks when measurements are being updated or being used)
+     */
+    private final ReentrantLock measurementLock = new ReentrantLock();
+
+    /**
      * The control mode of the controller
      */
-    protected final AtomicReference<ControlMode> controlMode = new AtomicReference<>(ControlMode.Stopped);
+    protected ControlMode controlMode = ControlMode.Stopped;
 
     /**
      * The setpoint of the controller
      */
-    private final AtomicReference<Double> setpoint = new AtomicReference<>(0.0);
+    private TrapezoidProfile.State setpoint = new TrapezoidProfile.State();
 
     /**
      * The goal of the controller
      */
-    private final AtomicReference<TrapezoidProfile.State> goal = new AtomicReference<>(new TrapezoidProfile.State());
+    private TrapezoidProfile.State goal = new TrapezoidProfile.State();
 
     /**
      * The inputs of the controller
@@ -197,58 +212,54 @@ public abstract class MarinersController {
     public void runController() {
         double dt = 1 / RUN_HZ;
 
-        measurements.update(dt);
-        // TODO: Research on Mutex and the difference between this and atomic and what is better for this case. BONUS: Semaphores
-        ControlMode controlMode = this.controlMode.get();
+        try {
+            measurementLock.lock();
+            measurements.update(dt);
+        } finally {
+            measurementLock.unlock();
+        }
 
         // If the controller is in a control mode that doesn't require pid control, set the output voltage to the setpoint
-        if(!controlMode.needPID()) return;
+        if (!controlMode.needPID()) return;
 
-        double measurement, measurementChange, setpoint;
+        double output;
+        ControlMode controlMode;
 
-        switch (controlMode){
-            case Position, ProfiledPosition -> {
-                measurement = measurements.getPosition();
-                measurementChange = measurements.getVelocity();
-            }
-            case Velocity, ProfiledVelocity -> {
-                measurement = measurements.getVelocity();
-                measurementChange = measurements.getAcceleration();
-            }
-            default -> {
-                measurement = 0;
-                measurementChange = 0;
-            }
-        }
+        try {
+            setpointLock.lock();
 
-        switch (controlMode){
-            case ProfiledPosition, ProfiledVelocity -> {
-                setpoint = profile.calculate(dt, new TrapezoidProfile.State(measurement, measurementChange), goal.get()).position;
+            controlMode = this.controlMode;
 
-                this.setpoint.set(setpoint);
+            double measurement = switch (controlMode) {
+                case Position, ProfiledPosition -> measurements.getPosition();
+                case Velocity, ProfiledVelocity -> measurements.getVelocity();
+                default -> 0;
+            };
+
+            if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
+
+            if (location == ControllerLocation.MOTOR) {
+                setOutput(setpoint.position * measurements.getGearRatio(), controlMode);
+                return;
             }
 
-            default -> setpoint = this.setpoint.get();
+
+            // calculate the output of the pid controller
+            output = pidController.calculate(measurement, setpoint.position);
+
+            // if the pid controller is at the setpoint, set the output to the feed forward
+            if (pidController.atSetpoint()) {
+                output = feedForward.apply(measurement) * setpoint.position;
+            } else {
+                output += feedForward.apply(measurement) * setpoint.position;
+            }
+
+            if (Math.abs(output) <= motorVoltageDeadBand) {
+                output = 0;
+            }
         }
-
-        if (location == ControllerLocation.MOTOR) {
-            setOutput(setpoint * measurements.getGearRatio(), controlMode);
-            return;
-        }
-
-
-        // calculate the output of the pid controller
-        double output = pidController.calculate(measurement, setpoint);
-
-        // if the pid controller is at the setpoint, set the output to the feed forward
-        if (pidController.atSetpoint()) {
-            output = feedForward.apply(measurement) * setpoint;
-        } else {
-            output += feedForward.apply(measurement) * setpoint;
-        }
-
-        if (Math.abs(output) <= motorVoltageDeadBand) {
-            output = 0;
+        finally {
+            setpointLock.unlock();
         }
 
         //sends the motor output to the motor
@@ -263,13 +274,29 @@ public abstract class MarinersController {
      * this will be used for logging
      */
     public void update() {
-        inputs.controlMode = controlMode.get().name();
-        inputs.setpoint = setpoint.get();
-        TrapezoidProfile.State goal = this.goal.get();
+        //locks and updates the setPoints of the controller (setPoint, goal and controlMode)
+        try {
+            setpointLock.lock();
 
-        inputs.goal = goal == null ? 0 : goal.position;
-        inputs.position = measurements.getPosition();
-        inputs.velocity = measurements.getVelocity();
+            inputs.controlMode = controlMode.name();
+            inputs.setpoint = setpoint.position;
+            TrapezoidProfile.State goal = this.goal;
+
+            inputs.goal = goal == null ? 0 : goal.position;
+        } finally {
+            setpointLock.unlock();
+        }
+
+        //locks and updates the measurements of the controller (position, velocity, acceleration)
+        try {
+            measurementLock.lock();
+
+            inputs.position = measurements.getPosition();
+            inputs.velocity = measurements.getVelocity();
+            inputs.acceleration = measurements.getAcceleration();
+        } finally {
+            measurementLock.unlock();
+        }
 
         updateInputs(inputs);
 
@@ -289,7 +316,12 @@ public abstract class MarinersController {
      * @return the current control mode of the controller
      */
     public ControlMode getControlMode() {
-        return controlMode.get();
+        try {
+            setpointLock.lock();
+            return controlMode;
+        } finally {
+            setpointLock.unlock();
+        }
     }
 
     /**
@@ -298,7 +330,12 @@ public abstract class MarinersController {
      * @return the current position of the motor after gear ratio
      */
     public double getPosition() {
-        return measurements.getPosition();
+        try {
+            measurementLock.lock();
+            return measurements.getPosition();
+        } finally {
+            measurementLock.unlock();
+        }
     }
 
     /**
@@ -307,7 +344,12 @@ public abstract class MarinersController {
      * @return the current velocity of the motor after gear ratio
      */
     public double getVelocity() {
-        return measurements.getVelocity();
+        try {
+            measurementLock.lock();
+            return measurements.getVelocity();
+        } finally {
+            measurementLock.unlock();
+        }
     }
 
     /**
@@ -316,30 +358,42 @@ public abstract class MarinersController {
      * @return the current acceleration of the motor after gear ratio
      */
     public double getAcceleration() {
-        return measurements.getAcceleration();
+        try {
+            measurementLock.lock();
+            return measurements.getAcceleration();
+        } finally {
+            measurementLock.unlock();
+        }
     }
 
     /**
-     * gets the current setpoint of the controller (if using profiled control mode, this will be the goal)
+     * gets the current setpoint of the controller (if using profiled control mode, this will be the next setoint (not the goal always)
      *
      * @return the current setpoint of the controller
      */
     public double getSetpoint() {
-        return switch (controlMode.get()) {
-            case Position, ProfiledPosition -> setpoint.get();
-            case Velocity, ProfiledVelocity -> goal.get().position;
-            default -> 0;
-        };
+        try {
+            setpointLock.lock();
+            return setpoint.position;
+        } finally {
+            setpointLock.unlock();
+        }
     }
 
     /**
-     * if using profiled control mode, with an end state first derivative different from 0 use this function,
-     * otherwise use {@link #getSetpoint()}
+     * if using profiled control mode this will return the goal of the controller (the end state)
+     * if not using profiled control mode, this will return the setpoint of the controller
      *
      * @return the current goal of the controller
      */
     public TrapezoidProfile.State getGoal() {
-        return goal.get();
+
+        try {
+            setpointLock.lock();
+            return controlMode.needMotionProfile() ? goal : setpoint;
+        } finally {
+            setpointLock.unlock();
+        }
     }
 
     /**
@@ -360,30 +414,37 @@ public abstract class MarinersController {
             throw new IllegalArgumentException("Control mode cannot be null");
         }
 
-        if(controlMode.needPID() && pidController == null)
+        if (controlMode.needPID() && pidController == null)
             throw new IllegalStateException("PID control on mode requires pid gains");
 
-        if(controlMode.needMotionProfile() && profile == null)
+        if (controlMode.needMotionProfile() && profile == null)
             throw new IllegalStateException("Profiled control mode requires a profile");
 
-        if(RobotState.isDisabled()){
-            if(this.controlMode.get() != ControlMode.Stopped){
-                stopMotorOutput();
-                this.controlMode.set(ControlMode.Stopped);
+        try {
+            setpointLock.lock();
+
+            if (RobotState.isDisabled()) {
+                if (this.controlMode != ControlMode.Stopped) {
+                    stopMotorOutput();
+                    this.controlMode = ControlMode.Stopped;
+
+                }
+                return;
             }
-            return;
+
+            this.controlMode = controlMode;
+
+            switch (controlMode) {
+                case Stopped -> stopMotorOutput();
+                case Voltage, DutyCycle -> setOutput(setpoint, controlMode);
+                case Position, Velocity -> this.setpoint.position = setpoint;
+                case ProfiledPosition, ProfiledVelocity -> this.goal.position = setpoint;
+            }
+
+        } finally {
+            setpointLock.unlock();
         }
 
-        switch (controlMode) {
-            case Position, Velocity -> this.setpoint.set(setpoint);
-            case ProfiledPosition, ProfiledVelocity -> goal.set(new TrapezoidProfile.State(setpoint, 0));
-
-            case Voltage, DutyCycle -> {
-                this.setpoint.set(setpoint);
-                setOutput(setpoint, controlMode);
-            }
-        }
-        this.controlMode.set(controlMode);
     }
 
     /**
@@ -404,33 +465,45 @@ public abstract class MarinersController {
             throw new IllegalArgumentException("Control mode cannot be null");
         }
 
-        if (controlMode != ControlMode.ProfiledPosition && controlMode != ControlMode.ProfiledVelocity) {
+        if (!controlMode.needMotionProfile()) {
             throw new IllegalArgumentException("Goal is only valid for Profiled control modes");
         }
 
-        if(pidController == null)
+        if (pidController == null)
             throw new IllegalStateException("PID control on mode requires pid gains");
 
-        if(profile == null)
+        if (profile == null)
             throw new IllegalStateException("Profiled control mode requires a profile");
 
-        if(RobotState.isDisabled()){
-            if(this.controlMode.get() != ControlMode.Stopped){
-                stopMotorOutput();
-                this.controlMode.set(ControlMode.Stopped);
-            }
-            return;
-        }
+        try {
+            setpointLock.lock();
 
-        this.controlMode.set(controlMode);
-        this.goal.set(goal);
+            if (RobotState.isDisabled()) {
+                if (this.controlMode != ControlMode.Stopped) {
+                    stopMotorOutput();
+                    this.controlMode = ControlMode.Stopped;
+
+                }
+                return;
+            }
+
+            this.controlMode = controlMode;
+            this.goal = goal;
+        } finally {
+            setpointLock.unlock();
+        }
     }
 
     /**
      * stops the motor (stops the pid controller and motor output) until a new reference is set
      */
     public void stopMotor() {
-        controlMode.set(ControlMode.Stopped);
+        try {
+            setpointLock.lock();
+            controlMode = ControlMode.Stopped;
+        } finally {
+            setpointLock.unlock();
+        }
         stopMotorOutput();
     }
 
