@@ -150,11 +150,13 @@ public class MarinersSparkBase extends MarinersController {
      * @param secondDerivativeLimit the second derivative limit for the motor controller (used for motion profiling)
      */
     public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio, double firstDerivativeLimit, double secondDerivativeLimit) {
-        super(name, location, gains);
+        super(name, location);
         super.setProfile(firstDerivativeLimit, secondDerivativeLimit);
 
         this.type = type;
         motor = createSparkBase(id, isBrushless, type);
+
+        super.setPIDF(gains);
 
         setMeasurements(gearRatio);
     }

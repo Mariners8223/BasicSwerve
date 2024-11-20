@@ -10,6 +10,7 @@ import frc.util.PIDFGains;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
@@ -190,6 +191,12 @@ public abstract class MarinersController {
      */
     private final BaseControllerInputsAutoLogged inputs = new BaseControllerInputsAutoLogged();
 
+    /**
+     * the position wrapping min max
+     * if the controller is in position control mode and the position is outside of this range, the controller will wrap the position to be within this range
+     * the array should be the minimum value first then the maximum
+     * units are the units of the measurements
+     */
     private Double[] wrappingMinMax;
 
     /**
@@ -238,7 +245,7 @@ public abstract class MarinersController {
                 default -> 0;
             };
 
-            if (wrappingMinMax != null && controlMode != ControlMode.Position && controlMode != ControlMode.ProfiledPosition) {
+            if (wrappingMinMax != null && (controlMode == ControlMode.Position || controlMode == ControlMode.ProfiledPosition)) {
                 // Get error which is the smallest distance between goal and measurement
                 double errorBound = (wrappingMinMax[1] - wrappingMinMax[0]) / 2.0;
                 
@@ -429,15 +436,12 @@ public abstract class MarinersController {
      * @param controlMode the control mode of the controller
      */
     public void setReference(double setpoint, ControlMode controlMode) {
-        if (controlMode == null) {
-            throw new IllegalArgumentException("Control mode cannot be null");
-        }
 
-        if (controlMode.needPID() && pidController == null)
-            throw new IllegalStateException("PID control on mode requires pid gains");
+        Objects.requireNonNull(controlMode, "Control mode cannot be null");
 
-        if (controlMode.needMotionProfile() && profile == null)
-            throw new IllegalStateException("Profiled control mode requires a profile");
+        if (controlMode.needPID()) Objects.requireNonNull(pidController, "PID control on mode requires pid gains");
+
+        if (controlMode.needMotionProfile()) Objects.requireNonNull(profile, "Profiled control mode requires a profile");
 
         try {
             setpointLock.lock();
@@ -476,23 +480,18 @@ public abstract class MarinersController {
      * @param controlMode the control mode of the controller (needs to be ProfiledPosition or ProfiledVelocity)
      */
     public void setReference(TrapezoidProfile.State goal, ControlMode controlMode) {
-        if (goal == null) {
-            throw new IllegalArgumentException("Goal cannot be null");
-        }
 
-        if (controlMode == null) {
-            throw new IllegalArgumentException("Control mode cannot be null");
-        }
+        Objects.requireNonNull(goal, "Goal cannot be null");
+
+        Objects.requireNonNull(controlMode, "Control mode cannot be null");
 
         if (!controlMode.needMotionProfile()) {
             throw new IllegalArgumentException("Goal is only valid for Profiled control modes");
         }
 
-        if (pidController == null)
-            throw new IllegalStateException("PID control on mode requires pid gains");
+        Objects.requireNonNull(pidController, "PID control on mode requires pid gains");
 
-        if (profile == null)
-            throw new IllegalStateException("Profiled control mode requires a profile");
+        Objects.requireNonNull(profile, "Profiled control mode requires a profile");
 
         try {
             setpointLock.lock();
@@ -572,11 +571,10 @@ public abstract class MarinersController {
      * sets the pid gains of the controller
      *
      * @param gains the pid gains of the controller
+     * @throws IllegalArgumentException if the gains are null
      */
     public void setPIDF(PIDFGains gains) {
-        if (gains == null) {
-            throw new IllegalArgumentException("Gains cannot be null");
-        }
+        Objects.requireNonNull(gains, "Gains cannot be null");
 
         pidController = gains.createPIDController();
         setPIDFMotor(gains);
@@ -589,28 +587,32 @@ public abstract class MarinersController {
     public abstract void setCurrentLimits(double currentLimit, double currentThreshold);
 
     /**
-     * enable position wrapping
-     * use this only when using position or profiled position
-     * the array should be the minimum value first then the maximum
-     * units are the units of the mesasrments
-     * @param minMax the array
+     * Enables position wrapping for the controller.
+     * This method is used to wrap the position to be within a specified range.
+     * for example, if the minimum is 0 and the maximum is 1, and the position is 1.5, the position will be wrapped to 0.5.
+     * This is useful for systems that have a continuous range of motion. (like a swerve steer)
+     * DO NOT USE THIS FOR SYSTEMS THAT HAVE A LIMITED RANGE OF MOTION (like an elevator) OR CAN BE DAMAGED BY WRAPPING (like a turret)
+     *
+     * @param minMax An array containing the minimum and maximum values for position wrapping.
+     *               The array should have exactly two elements: the minimum value first, then the maximum value.
+     *               If null, position wrapping will be disabled.
+     * @throws IllegalArgumentException if the array length is not 2 or null.
      */
-    public void enablePositionWrapping(Double[] minMax){
-        if(minMax == null){
-            wrappingMinMax = null;
-            return;
+    public void enablePositionWrapping(Double[] minMax) {
+        if (minMax != null && minMax.length != 2) {
+            throw new IllegalArgumentException("minMax must have exactly 2 elements");
         }
-        else if(minMax.length == 2){
-            wrappingMinMax = minMax.clone();
-            return;
-        }
-        else throw new IllegalArgumentException("minmax must be null or length of 2");        
+
+        wrappingMinMax = minMax;
     }
 
     /**
-     * enable position wrapping
-     * use this only when using position or profile position
-     * units are the units of the messurements
+     * Enables position wrapping for the controller.
+     * This method is used to wrap the position to be within a specified range.
+     * for example, if the minimum is 0 and the maximum is 1, and the position is 1.5, the position will be wrapped to 0.5.
+     * This is useful for systems that have a continuous range of motion. (like a swerve steer)
+     * DO NOT USE THIS FOR SYSTEMS THAT HAVE A LIMITED RANGE OF MOTION (like an elevator) OR CAN BE DAMAGED BY WRAPPING (like a turret)
+     *
      * @param minimum the minimum value
      * @param maximum the maximum value
      */
@@ -619,18 +621,21 @@ public abstract class MarinersController {
     }
 
     /**
-     * disables the position wrapping
+     * Disables position wrapping for the controller.
      */
     public void disablePositionWrapping(){
         enablePositionWrapping(null);
     }
 
     /**
-     * @return if position wrapping is enabled
+     * Checks if position wrapping is enabled for the controller.
+     *
+     * @return true if position wrapping is enabled, false otherwise.
      */
     public boolean isPositionWrappingEnabled(){
         return wrappingMinMax != null;
     }
+
     /**
      * sets the pid gains and feed forward of the controller
      *
@@ -639,13 +644,9 @@ public abstract class MarinersController {
      */
     public void setPIDF(PIDFGains gains, Function<Double, Double> feedForward) {
 
-        if (gains == null) {
-            throw new IllegalArgumentException("Gains cannot be null");
-        }
+        Objects.requireNonNull(gains, "Gains cannot be null");
 
-        if (feedForward == null) {
-            throw new IllegalArgumentException("Feed forward cannot be null");
-        }
+        Objects.requireNonNull(feedForward, "Feed forward cannot be null");
 
         pidController = gains.createPIDController();
 
@@ -661,9 +662,8 @@ public abstract class MarinersController {
      *                     these are the position, velocity, and acceleration of the controlled value
      */
     public void setMeasurements(MarinersMeasurements measurements) {
-        if (measurements == null) {
-            throw new IllegalArgumentException("Measurements cannot be null");
-        }
+
+        Objects.requireNonNull(measurements, "Measurements cannot be null");
 
         this.measurements = measurements;
     }
@@ -678,9 +678,8 @@ public abstract class MarinersController {
      * @param maxMinOutput the max and min output of the controller in volts
      */
     public void setMaxMinOutput(double[] maxMinOutput) {
-        if (maxMinOutput == null) {
-            throw new IllegalArgumentException("Max min output cannot be null");
-        }
+
+        Objects.requireNonNull(maxMinOutput, "Max min output cannot be null");
 
         setMaxMinOutput(maxMinOutput[0], maxMinOutput[1]);
     }
@@ -718,9 +717,8 @@ public abstract class MarinersController {
      *                    but if used profiled velocity control, this would be the max acceleration and jerk
      */
     public void setProfile(TrapezoidProfile.Constraints constraints) {
-        if (constraints == null) {
-            throw new IllegalArgumentException("Constraints cannot be null");
-        }
+
+        Objects.requireNonNull(constraints, "Constraints cannot be null");
 
         profile = new TrapezoidProfile(constraints);
     }
@@ -795,146 +793,18 @@ public abstract class MarinersController {
      * @param location the location of the controller where it is running
      */
     protected MarinersController(String name, ControllerLocation location) {
-        if (name == null) {
-            throw new IllegalArgumentException("Name cannot be null");
-        }
+
+        Objects.requireNonNull(name, "Name cannot be null");
 
         if (name.isBlank()) {
             throw new IllegalArgumentException("Name cannot be blank");
         }
 
-        if (location == null) {
-            throw new IllegalArgumentException("Location cannot be null");
-        }
+        Objects.requireNonNull(location, "Location cannot be null");
 
         this.name = name;
         this.location = location;
 
         this.RUN_HZ = ControllerMaster.getInstance().addController(this, location);
     }
-
-    /**
-     * creates the controller with pid control and static feed forward
-     *
-     * @param name     the name of the motor
-     * @param location the location of the controller where it is running
-     * @param gains    the pid gains of the controller
-     */
-    protected MarinersController(String name, ControllerLocation location, PIDFGains gains) {
-        this(name, location);
-
-        setPIDF(gains);
-    }
-
-    /**
-     * creates the controller with pid control and static feed forward
-     *
-     * @param name     the name of the motor
-     * @param location the location of the controller where it is running
-     * @param gains    the pid gains of the controller
-     * @param profile  the profile of the controller
-     */
-    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile) {
-        this(name, location);
-
-        setPIDF(gains);
-        setProfile(profile);
-    }
-
-    /**
-     * creates the controller with pid control and feed forward
-     *
-     * @param name        the name of the motor
-     * @param location    the location of the controller where it is running
-     * @param gains       the pid gains of the controller
-     * @param feedForward the function that calculates the feed forward of the controller based on the measurement
-     */
-    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward) {
-        this(name, location);
-
-        setPIDF(gains, feedForward);
-    }
-
-    /**
-     * creates the controller with pid control and feed forward
-     *
-     * @param name        the name of the motor
-     * @param location    the location of the controller where it is running
-     * @param gains       the pid gains of the controller
-     * @param profile     the profile of the controller
-     * @param feedForward the function that calculates the feed forward of the controller based on the measurement
-     */
-    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward) {
-        this(name, location);
-
-        setPIDF(gains, feedForward);
-        setProfile(profile);
-    }
-
-    /**
-     * creates the controller with pid control and static feed forward
-     *
-     * @param name         the name of the motor
-     * @param location     the location of the controller where it is running
-     * @param gains        the pid gains of the controller
-     * @param maxMinOutput the max and min output of the controller in volts
-     */
-    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, double[] maxMinOutput) {
-        this(name, location);
-
-        setPIDF(gains);
-        setMaxMinOutput(maxMinOutput);
-    }
-
-    /**
-     * creates the controller with pid control and static feed forward
-     *
-     * @param name         the name of the motor
-     * @param location     the location of the controller where it is running
-     * @param gains        the pid gains of the controller
-     * @param profile      the profile of the controller
-     * @param maxMinOutput the max and min output of the controller in volts
-     */
-    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, double[] maxMinOutput) {
-        this(name, location);
-
-        setPIDF(gains);
-        setProfile(profile);
-        setMaxMinOutput(maxMinOutput);
-    }
-
-    /**
-     * creates the controller with pid control and feed forward
-     *
-     * @param name         the name of the motor
-     * @param location     the location of the controller where it is running
-     * @param gains        the pid gains of the controller
-     * @param feedForward  the function that calculates the feed forward of the controller based on the measurement
-     * @param maxMinOutput the max and min output of the controller in volts
-     */
-    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, Function<Double, Double> feedForward, double[] maxMinOutput) {
-        this(name, location);
-
-        setPIDF(gains, feedForward);
-        setMaxMinOutput(maxMinOutput);
-    }
-
-    /**
-     * creates the controller with pid control and feed forward
-     *
-     * @param name         the name of the motor
-     * @param location     the location of the controller where it is running
-     * @param gains        the pid gains of the controller
-     * @param profile      the profile of the controller
-     * @param feedForward  the function that calculates the feed forward of the controller based on the measurement
-     * @param maxMinOutput the max and min output of the controller in volts
-     */
-    protected MarinersController(String name, ControllerLocation location, PIDFGains gains, TrapezoidProfile profile, Function<Double, Double> feedForward, double[] maxMinOutput) {
-        this(name, location);
-
-        setPIDF(gains, feedForward);
-        setProfile(profile);
-        setMaxMinOutput(maxMinOutput);
-    }
-
 }
