@@ -312,6 +312,9 @@ public class MarinersSparkBase extends MarinersController {
         error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, period);
         reportError("Error setting status 2 frame period", error);
 
+        error = sparkBase.enableVoltageCompensation(12);
+        reportError("Error enabling voltage compensation", error);
+
         return sparkBase;
     }
 
@@ -401,16 +404,16 @@ public class MarinersSparkBase extends MarinersController {
 
         REVLibError error;
 
-        error = controller.setP(gains.getP() / measurements.getGearRatio());
+        error = controller.setP(gains.getP() / measurements.getGearRatio() / 12);
         reportError("Error setting P gain", error);
 
-        error = controller.setI(gains.getI() / measurements.getGearRatio());
+        error = controller.setI(gains.getI() / measurements.getGearRatio() / 12);
         reportError("Error setting I gain", error);
 
-        error = controller.setD(gains.getD() / measurements.getGearRatio());
+        error = controller.setD(gains.getD() / measurements.getGearRatio() / 12);
         reportError("Error setting D gain", error);
 
-        error = controller.setIZone(gains.getIZone() / measurements.getGearRatio());
+        error = controller.setIZone(gains.getIZone() / measurements.getGearRatio() / 12);
         reportError("Error setting I zone", error);
     }
 
