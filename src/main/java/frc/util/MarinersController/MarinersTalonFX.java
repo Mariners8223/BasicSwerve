@@ -143,11 +143,11 @@ public class MarinersTalonFX extends MarinersController {
     protected void setPIDFMotor(PIDFGains gains) {
         Slot0Configs slot0 = new Slot0Configs();
 
-        slot0.kP = gains.getP() / measurements.getGearRatio();
+        slot0.kP = gains.getP() / measurements.getGearRatio() / 12;
 
-        slot0.kI = gains.getI() / measurements.getGearRatio();
+        slot0.kI = gains.getI() / measurements.getGearRatio() / 12;
 
-        slot0.kD = gains.getD() / measurements.getGearRatio();
+        slot0.kD = gains.getD() / measurements.getGearRatio() / 12;
 
         StatusCode error = motor.getConfigurator().apply(slot0);
         reportError("Error setting PIDF gains", error);
@@ -244,10 +244,10 @@ public class MarinersTalonFX extends MarinersController {
         else{
             ControlRequest request = switch (controlMode){
                 case Position, ProfiledPosition -> new PositionVoltage(motorOutput)
-                        .withFeedForward(motorOutput * feedForward.apply(measurements.getPosition()));
+                        .withFeedForward((motorOutput * feedForward.apply(measurements.getPosition())) / 12);
 
                 case Velocity, ProfiledVelocity -> new VelocityVoltage(motorOutput)
-                        .withFeedForward(motorOutput * feedForward.apply(measurements.getVelocity()));
+                        .withFeedForward((motorOutput * feedForward.apply(measurements.getVelocity())) / 12);
 
                 case Voltage -> new VoltageOut(motorOutput);
 

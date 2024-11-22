@@ -6,7 +6,9 @@
 package frc.robot;
 
 import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -92,26 +94,33 @@ public class Robot extends LoggedRobot
 
         ControllerMaster.getInstance();
 
-        PIDFGains gains = new PIDFGains(6, 0, 0);
+        PIDFGains gains = new PIDFGains(0.7, 0, 0, 0.7, 0, 0);
 
         TrapezoidProfile.Constraints constraints = new Constraints(3, 3);
 
-//        motor = new MarinersTalonFX("steer", ControllerLocation.RIO, 4, gains, 12.8);
-        motor = new MarinersSparkBase("steer", ControllerLocation.RIO, 4, true,
-                MarinersSparkBase.MotorType.SPARK_MAX, gains, 12.8);
+        motor = new MarinersTalonFX("steer", ControllerLocation.MOTOR, 2, gains, 5.14);
+//        motor = new MarinersSparkBase("steer", ControllerLocation.RIO, 4, true,
+//                MarinersSparkBase.MotorType.SPARK_MAX, gains, 12.8);
 
-        motor.setMaxMinOutput(6, -6);
+        motor.setMaxMinOutput(3, -3);
 
-        CANcoder canCoder =  new CANcoder(3);
-
-        canCoder.getPosition().setUpdateFrequency(100);
-        canCoder.getVelocity().setUpdateFrequency(100);
-
-        motor.setMeasurements(new MarinersMeasurements(
-                () -> canCoder.getPosition().getValueAsDouble(),
-                () -> canCoder.getPosition().getValueAsDouble(),
-                1
-        ));
+//        CANcoder canCoder =  new CANcoder(3);
+//
+//        canCoder.getConfigurator().apply(new MagnetSensorConfigs().withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf));
+//
+//
+//        canCoder.setPosition(canCoder.getAbsolutePosition().getValueAsDouble());
+//
+//        canCoder.getPosition().setUpdateFrequency(100);
+//        canCoder.getVelocity().setUpdateFrequency(100);
+//
+//        motor.setMeasurements(new MarinersMeasurements(
+//                () -> canCoder.getPosition().getValueAsDouble(),
+//                () -> canCoder.getVelocity().getValueAsDouble(),
+//                1
+//        ));
+//
+//        motor.enablePositionWrapping(-0.5, 0.5);
 
         motor.setProfile(constraints);
 
@@ -126,7 +135,7 @@ public class Robot extends LoggedRobot
 
         double value = SmartDashboard.getNumber("value", 0);
 
-        motor.setReference(value, ControlMode.ProfiledPosition);
+        motor.setReference(value, ControlMode.ProfiledVelocity);
     }
     
     
