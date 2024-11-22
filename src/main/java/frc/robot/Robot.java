@@ -6,6 +6,7 @@
 package frc.robot;
 
 import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -13,10 +14,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import frc.util.LocalADStarAK;
+import frc.util.MarinersController.*;
 import frc.util.PIDFGains;
-import frc.util.MarinersController.ControllerMaster;
-import frc.util.MarinersController.MarinersController;
-import frc.util.MarinersController.MarinersTalonFX;
 import frc.util.MarinersController.MarinersController.ControlMode;
 import frc.util.MarinersController.MarinersController.ControllerLocation;
 
@@ -93,13 +92,26 @@ public class Robot extends LoggedRobot
 
         ControllerMaster.getInstance();
 
-        PIDFGains gains = new PIDFGains(3, 0, 0);
+        PIDFGains gains = new PIDFGains(6, 0, 0);
 
         TrapezoidProfile.Constraints constraints = new Constraints(3, 3);
 
-        motor = new MarinersTalonFX("steer", ControllerLocation.RIO, 1, gains, 12.8);
+//        motor = new MarinersTalonFX("steer", ControllerLocation.RIO, 4, gains, 12.8);
+        motor = new MarinersSparkBase("steer", ControllerLocation.RIO, 4, true,
+                MarinersSparkBase.MotorType.SPARK_MAX, gains, 12.8);
 
-        motor.setMaxMinOutput(3, -3);
+        motor.setMaxMinOutput(6, -6);
+
+        CANcoder canCoder =  new CANcoder(3);
+
+        canCoder.getPosition().setUpdateFrequency(100);
+        canCoder.getVelocity().setUpdateFrequency(100);
+
+        motor.setMeasurements(new MarinersMeasurements(
+                () -> canCoder.getPosition().getValueAsDouble(),
+                () -> canCoder.getPosition().getValueAsDouble(),
+                1
+        ));
 
         motor.setProfile(constraints);
 

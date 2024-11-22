@@ -13,9 +13,9 @@ public class ControllerMaster extends SubsystemBase {
 
     private final ArrayList<Notifier> notifiers = new ArrayList<>();
 
-    public static final double ON_RIO_CONTROLLER_HZ = 50;
+    public static final double ON_RIO_CONTROLLER_HZ = 100;
 
-    public static final double MOTOR_CONTROLLER_HZ = 1000;
+    public static final double MOTOR_CONTROLLER_HZ = 50;
 
     public static ControllerMaster getInstance(){
         if(instance == null){
