@@ -26,4 +26,6 @@ public class DriveBaseConstants {
             public static final PIDFGains THETA_PID = new PIDFGains(1.4574, 0, 0); //the pid gains for the PID Controller of the robot angle, units are radians per second
             public static final PIDFGains XY_PID = new PIDFGains(5.5, 0.055, 0.05); //the pid gains for the pid controller of the robot's velocity, units are meters per second
         }
+
+        public static final int PIGEON_ID = 0; //the id of the pigeon IMU //TODO change this to the correct ID
 }

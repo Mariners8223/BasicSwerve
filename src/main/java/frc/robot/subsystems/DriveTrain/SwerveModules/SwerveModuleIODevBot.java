@@ -2,7 +2,6 @@ package frc.robot.subsystems.DriveTrain.SwerveModules;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.MotorMap;
 import frc.util.MarinersController.MarinersController;
 import frc.util.MarinersController.MarinersSparkBase;
 import frc.util.MarinersController.MarinersMeasurements;

@@ -6,12 +6,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import frc.robot.MotorMap;
 import frc.util.MarinersController.MarinersController;
 import frc.util.MarinersController.MarinersMeasurements;
 import frc.util.MarinersController.MarinersSparkBase;
 import frc.util.MarinersController.MarinersTalonFX;
-import frc.util.PIDFGains;
 
 public class SwerveModuleIOCompBot extends SwerveModuleIO {
     private final MarinersController driveMotor;
