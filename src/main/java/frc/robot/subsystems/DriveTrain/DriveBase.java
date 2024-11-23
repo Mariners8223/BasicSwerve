@@ -34,7 +34,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.Constants.RobotType;
 
 /**
  * The DriveBase class represents the drivetrain of the robot.
@@ -351,19 +350,12 @@ public class DriveBase extends SubsystemBase {
         Logger.processInputs(getName(), inputs);
     }
 
-    public Command runModuleDriveCalibration() {
+    public Command startModuleDriveCalibration() {
         return new InstantCommand(() -> {
             for (int i = 0; i < 4; i++) {
                 modules[i].runDriveCalibration();
             }
-
-            SmartDashboard.putNumber("drive P", 0);
-            SmartDashboard.putNumber("drive I", 0);
-            SmartDashboard.putNumber("drive D", 0);
-            SmartDashboard.putNumber("drive setPoint", 0);
-
-            SmartDashboard.putNumber("drive kS", 0);
-        }).withName("Run Module Drive Calibration").ignoringDisable(true);
+        }).withName("start module drive calibration").ignoringDisable(true);
     }
 
     public Command stopModuleDriveCalibration() {
@@ -372,6 +364,22 @@ public class DriveBase extends SubsystemBase {
                 modules[i].stopDriveCalibration();
             }
         }).withName("Stop Module Drive Calibration").ignoringDisable(true);
+    }
+
+    public Command startModuleSteerCalibration() {
+        return new InstantCommand(() -> {
+            for (int i = 0; i < 4; i++) {
+                modules[i].runSteerCalibration();
+            }
+        }).withName("start module steer calibration").ignoringDisable(true);
+    }
+
+    public Command stopModuleSteerCalibration() {
+        return new InstantCommand(() -> {
+            for (int i = 0; i < 4; i++) {
+                modules[i].stopSteerCalibration();
+            }
+        }).withName("Stop Module Steer Calibration").ignoringDisable(true);
     }
 
     /**

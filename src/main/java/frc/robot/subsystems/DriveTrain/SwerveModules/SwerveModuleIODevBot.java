@@ -7,7 +7,6 @@ import frc.util.MarinersController.MarinersController;
 import frc.util.MarinersController.MarinersSparkBase;
 import frc.util.MarinersController.MarinersMeasurements;
 import frc.util.MarinersController.MarinersTalonFX;
-import frc.util.PIDFGains;
 
 public class SwerveModuleIODevBot extends SwerveModuleIO {
     private final MarinersController driveMotor;
@@ -78,8 +77,24 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
     }
 
     @Override
-    void setDriveMotorPID(PIDFGains pidGains) {
-        driveMotor.setPIDF(pidGains);
+    void startDriveCalibration() {
+        driveMotor.startPIDTuning();
     }
+
+    @Override
+    void endDriveCalibration() {
+        driveMotor.startPIDTuning();
+    }
+
+    @Override
+    void startSteerCalibration() {
+        steerMotor.startPIDTuning();
+    }
+
+    @Override
+    void endSteerCalibration() {
+        steerMotor.startPIDTuning();
+    }
+
 
 }

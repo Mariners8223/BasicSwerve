@@ -6,22 +6,27 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.util.PIDFGains;
 
 public class SwerveModuleIOSIM extends SwerveModuleIO {
     private final DCMotorSim driveMotor;
     private final DCMotorSim steerMotor;
 
-    private PIDController driveMotorPIDController;
+    private final PIDController driveMotorPIDController;
     private final PIDController steerMotorPIDController;
 
-    public SwerveModuleIOSIM() {
+    private final String name;
+
+    public SwerveModuleIOSIM(String name) {
         driveMotor = new DCMotorSim(DCMotor.getFalcon500(1), 1, 0.025 / constants.DRIVE_GEAR_RATIO);
 
         steerMotor = new DCMotorSim(DCMotor.getNEO(1), 1, 0.004 / constants.STEER_GEAR_RATIO);
 
         driveMotorPIDController = constants.DRIVE_MOTOR_PID[0].createPIDController();
         steerMotorPIDController = constants.STEER_MOTOR_PID[0].createPIDController();
+
+        this.name = name;
     }
 
     @Override
@@ -72,10 +77,24 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
     }
 
     @Override
-    void setDriveMotorPID(PIDFGains pidGains) {
-        driveMotorPIDController = pidGains.createPIDController();
+    void startDriveCalibration() {
+        SmartDashboard.putData(name + " Drive Motor PID", driveMotorPIDController);
     }
 
+    @Override
+    void endDriveCalibration() {
+
+    }
+
+    @Override
+    void startSteerCalibration() {
+        SmartDashboard.putData(name + " Steer Motor PID", steerMotorPIDController);
+    }
+
+    @Override
+    void endSteerCalibration() {
+
+    }
 
 
     /**
@@ -105,7 +124,22 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         }
 
         @Override
-        void setDriveMotorPID(PIDFGains pidGains) {
+        void startDriveCalibration() {
+
+        }
+
+        @Override
+        void endDriveCalibration() {
+
+        }
+
+        @Override
+        void startSteerCalibration() {
+
+        }
+
+        @Override
+        void endSteerCalibration() {
 
         }
     }

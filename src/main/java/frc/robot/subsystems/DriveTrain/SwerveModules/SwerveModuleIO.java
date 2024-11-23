@@ -61,7 +61,11 @@ public abstract class SwerveModuleIO{
      */
     abstract void resetDriveEncoder();
 
-    abstract void setDriveMotorPID(PIDFGains pidGains);
+    abstract void startDriveCalibration();
+    abstract void endDriveCalibration();
+
+    abstract void startSteerCalibration();
+    abstract void endSteerCalibration();
 
     /**
      * configures the absolute encoder (duty cycle encoder)

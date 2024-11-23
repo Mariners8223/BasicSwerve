@@ -5,10 +5,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 
-import frc.util.PIDFGains;
 import org.littletonrobotics.junction.Logger;
 
 import static frc.robot.Constants.ROBOT_TYPE;
@@ -37,8 +35,6 @@ public class SwerveModule {
     private final SwerveModuleIO io;
     private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
 
-    private boolean runningDriveCalibration = false;
-
     private SwerveModuleState targetState = new SwerveModuleState();
 
     public SwerveModule(ModuleName name) {
@@ -51,7 +47,7 @@ public class SwerveModule {
                 case REPLAY -> throw new IllegalArgumentException("Robot cannot be replay if it's real");
             };
         } else {
-            io = ROBOT_TYPE == Constants.RobotType.REPLAY ? new SwerveModuleIOSIM.SwerveModuleIOReplay() : new SwerveModuleIOSIM();
+            io = ROBOT_TYPE == Constants.RobotType.REPLAY ? new SwerveModuleIOSIM.SwerveModuleIOReplay() : new SwerveModuleIOSIM(moduleName);
 
         }
 
@@ -60,27 +56,10 @@ public class SwerveModule {
     public SwerveModulePosition modulePeriodic() {
         io.updateInputs(inputs);
 
-        if (!runningDriveCalibration) {
-//            targetState = SwerveModuleState.optimize(targetState, inputs.currentState.angle);
-            targetState.speedMetersPerSecond *= Math.cos(targetState.angle.getRadians() - inputs.currentState.angle.getRadians());
+        targetState.speedMetersPerSecond *= Math.cos(targetState.angle.getRadians() - inputs.currentState.angle.getRadians());
 
-            io.setDriveMotorReference(targetState.speedMetersPerSecond);
-            io.setSteerMotorReference(targetState.angle.getRotations());
-        } else {
-
-            double driveKp = SmartDashboard.getNumber("drive kP", 0);
-            double driveKi = SmartDashboard.getNumber("drive kI", 0);
-            double driveKd = SmartDashboard.getNumber("drive kD", 0);
-            double driveKf = SmartDashboard.getNumber("drive kF", 0);
-
-            io.setDriveMotorPID(new PIDFGains(driveKp, driveKi, driveKd, driveKf, 0, 0));
-
-            double driveReference = SmartDashboard.getNumber("drive setPoint", 0);
-
-            io.setDriveMotorReference(driveReference);
-
-            io.setSteerMotorReference(targetState.angle.getRotations());
-        }
+        io.setDriveMotorReference(targetState.speedMetersPerSecond);
+        io.setSteerMotorReference(targetState.angle.getRotations());
 
         Logger.processInputs("SwerveModule/" + moduleName, inputs);
 
@@ -95,17 +74,25 @@ public class SwerveModule {
 
         return targetState;
     }
-    
+
     public SwerveModuleState getCurrentState() {
         return inputs.currentState;
     }
 
     public void runDriveCalibration() {
-        runningDriveCalibration = true;
+        io.startDriveCalibration();
     }
 
     public void stopDriveCalibration() {
-        runningDriveCalibration = false;
+        io.endSteerCalibration();
+    }
+
+    public void runSteerCalibration() {
+        io.startSteerCalibration();
+    }
+
+    public void stopSteerCalibration() {
+        io.endSteerCalibration();
     }
 
     public void setIdleMode(boolean isBrakeMode) {

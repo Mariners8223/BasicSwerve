@@ -83,8 +83,22 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
     }
 
     @Override
-    void setDriveMotorPID(PIDFGains pidGains) {
-        driveMotor.setPIDF(pidGains);
+    void startDriveCalibration() {
+        driveMotor.startPIDTuning();
     }
 
+    @Override
+    void endDriveCalibration() {
+        driveMotor.stopPIDTuning();
+    }
+
+    @Override
+    void startSteerCalibration() {
+        steerMotor.startPIDTuning();
+    }
+
+    @Override
+    void endSteerCalibration() {
+        steerMotor.stopPIDTuning();
+    }
 }
