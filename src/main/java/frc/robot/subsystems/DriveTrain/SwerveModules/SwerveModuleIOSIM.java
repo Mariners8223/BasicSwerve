@@ -12,9 +12,6 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
     private final DCMotorSim driveMotor;
     private final DCMotorSim steerMotor;
 
-    private double driveMotorVoltage = 0;
-    private double steerMotorVoltage = 0;
-
     private PIDController driveMotorPIDController;
     private final PIDController steerMotorPIDController;
 
@@ -48,7 +45,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         double driveMotorReferenceNativeUnits =
                 (reference / constants.WHEEL_CIRCUMFERENCE_METERS) * constants.DRIVE_GEAR_RATIO;
 
-        driveMotorVoltage = driveMotorPIDController.calculate(driveMotorVelocity, driveMotorReferenceNativeUnits);
+        double driveMotorVoltage = driveMotorPIDController.calculate(driveMotorVelocity, driveMotorReferenceNativeUnits);
 
         driveMotor.setInputVoltage(driveMotorVoltage * RobotController.getBatteryVoltage());
     }
@@ -59,7 +56,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
         double steerMotorReferenceNativeUnits = reference * constants.STEER_GEAR_RATIO;
 
-        steerMotorVoltage = steerMotorPIDController.calculate(steerMotorPosition, steerMotorReferenceNativeUnits);
+        double steerMotorVoltage = steerMotorPIDController.calculate(steerMotorPosition, steerMotorReferenceNativeUnits);
 
         steerMotor.setInputVoltage(steerMotorVoltage * RobotController.getBatteryVoltage());
     }

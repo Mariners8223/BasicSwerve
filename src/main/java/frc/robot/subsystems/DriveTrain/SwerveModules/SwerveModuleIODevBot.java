@@ -1,6 +1,5 @@
 package frc.robot.subsystems.DriveTrain.SwerveModules;
 
-import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.MotorMap;
@@ -13,9 +12,6 @@ import frc.util.PIDFGains;
 public class SwerveModuleIODevBot extends SwerveModuleIO {
     private final MarinersController driveMotor;
     private final MarinersController steerMotor;
-
-    private final VelocityDutyCycle driveMotorVelocityDutyCycle =
-            new VelocityDutyCycle(0).withEnableFOC(false);
 
 
     public SwerveModuleIODevBot(SwerveModule.ModuleName name) {

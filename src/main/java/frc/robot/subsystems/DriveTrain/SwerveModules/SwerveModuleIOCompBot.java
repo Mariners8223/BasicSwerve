@@ -1,15 +1,10 @@
 package frc.robot.subsystems.DriveTrain.SwerveModules;
 
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.controls.VelocityDutyCycle;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.*;
-import com.revrobotics.CANSparkBase;
-import com.revrobotics.CANSparkMax;
+
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
+
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
+
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.robot.MotorMap;
 import frc.util.MarinersController.MarinersController;
@@ -17,17 +12,10 @@ import frc.util.MarinersController.MarinersMeasurements;
 import frc.util.MarinersController.MarinersSparkBase;
 import frc.util.MarinersController.MarinersTalonFX;
 import frc.util.PIDFGains;
-import org.littletonrobotics.junction.Logger;
 
 public class SwerveModuleIOCompBot extends SwerveModuleIO {
     private final MarinersController driveMotor;
     private final MarinersController steerMotor;
-
-    private final int absEncoderMultiplier = constants.ABSOLUTE_ENCODER_INVERTED ? -1 : 1;
-
-    private final VelocityDutyCycle driveMotorVelocityDutyCycle =
-            new VelocityDutyCycle(0).withEnableFOC(false);
-
 
     public SwerveModuleIOCompBot(SwerveModule.ModuleName name) {
         int driveMotorID = MotorMap.DriveBase.MODULES[name.ordinal()][0];
@@ -54,9 +42,11 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
                 MarinersSparkBase.MotorType.SPARK_MAX,
                 constants.STEER_MOTOR_PID[name.ordinal()]);
 
+        double absEncoderMultiplier = constants.ABSOLUTE_ENCODER_INVERTED ? -1 : 1;
+
         steerMotor.setMeasurements(
                 new MarinersMeasurements(
-                        absEncoder::get,
+                        () -> absEncoder.get() * absEncoderMultiplier,
                         1
                 )
         );

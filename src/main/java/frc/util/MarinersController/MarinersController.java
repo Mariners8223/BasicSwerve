@@ -18,7 +18,7 @@ import java.util.function.Function;
  * A class to control a motor controller
  * this holds the pid controller, feed forward, and profile of the controller
  * this class is used to interface with the motor controller
- * you can run a pid controller on the robo rio or the motor controller
+ * you can run a pid controller on the roborio or the motor controller
  * you can also add a motion profile to the controller
  * also you can add a feed forward to the controller that is based on the measurement (or static)
  * this class is abstract and is meant to be extended for specific motor controllers
@@ -93,8 +93,8 @@ public abstract class MarinersController {
      */
     public enum ControllerLocation {
         /**
-         * the controller is running on the robo rio
-         * that means the pid is calculated on the robo rio and the output is sent to the motor controller
+         * the controller is running on the roborio
+         * that means the pid is calculated on the roborio and the output is sent to the motor controller
          * (more can bus traffic)
          */
         RIO,
@@ -102,7 +102,7 @@ public abstract class MarinersController {
         /**
          * the controller is running on the motor controller
          * that means the pid is calculated on the motor controller and the output is sent to the motor
-         * but also there is a motion profile on the robo rio that can be used
+         * but also there is a motion profile on the roborio that can be used
          * (less can bus traffic)
          */
         MOTOR
@@ -393,7 +393,7 @@ public abstract class MarinersController {
     }
 
     /**
-     * gets the current setpoint of the controller (if using profiled control mode, this will be the next setoint (not the goal always)
+     * gets the current setpoint of the controller (if using profiled control mode, this will be the next setpoint (not the goal always)
      *
      * @return the current setpoint of the controller
      */

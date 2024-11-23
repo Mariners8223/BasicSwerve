@@ -32,7 +32,7 @@ public class MarinersTalonFX extends MarinersController {
 
     /**
      * create a new measurement object for the motor
-     * using the built in position, velocity, and acceleration
+     * using the built-in position, velocity, and acceleration
      * this creates a measurement object that waits for all the signals to update before returning the value
      * (that means that it is a blocking call)
      * @param gearRatio the gear ratio of the motor
@@ -244,10 +244,10 @@ public class MarinersTalonFX extends MarinersController {
         else{
             ControlRequest request = switch (controlMode){
                 case Position, ProfiledPosition -> new PositionVoltage(motorOutput)
-                        .withFeedForward((motorOutput * feedForward.apply(measurements.getPosition())) / 12);
+                        .withFeedForward(motorOutput * feedForward.apply(measurements.getPosition()));
 
                 case Velocity, ProfiledVelocity -> new VelocityVoltage(motorOutput)
-                        .withFeedForward((motorOutput * feedForward.apply(measurements.getVelocity())) / 12);
+                        .withFeedForward(motorOutput * feedForward.apply(measurements.getVelocity()));
 
                 case Voltage -> new VoltageOut(motorOutput);
 
