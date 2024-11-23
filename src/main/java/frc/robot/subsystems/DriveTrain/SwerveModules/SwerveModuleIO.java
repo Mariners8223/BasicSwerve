@@ -1,20 +1,11 @@
 package frc.robot.subsystems.DriveTrain.SwerveModules;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.*;
-import com.revrobotics.CANSparkBase;
-import com.revrobotics.CANSparkLowLevel;
-import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import frc.robot.Constants;
-import frc.util.PIDFGains;
 import org.littletonrobotics.junction.AutoLog;
-
-import static frc.robot.Constants.ROBOT_TYPE;
 
 public abstract class SwerveModuleIO{
     @AutoLog

@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
-import frc.util.PIDFGains;
 
 public class SwerveModuleIOSIM extends SwerveModuleIO {
     private final DCMotorSim driveMotor;

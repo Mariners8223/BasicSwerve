@@ -119,7 +119,7 @@ public class DriveBase extends SubsystemBase {
 
         if (RobotBase.isReal()) {
             gyro = switch (Constants.ROBOT_TYPE){
-                case DEVELOPMENT -> new PigeonIO(13); //TODO change to pigeon id
+                case DEVELOPMENT -> new PigeonIO(DriveBaseConstants.PIGEON_ID);
                 case COMPETITION -> new NavxIO(false);
                 case REPLAY -> throw new IllegalArgumentException("Robot cannot be replay if it's real");
             };
