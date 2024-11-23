@@ -84,6 +84,10 @@ public abstract class MarinersController {
         public boolean needMotionProfile() {
             return this == ProfiledPosition || this == ProfiledVelocity;
         }
+
+        public boolean isPositionControl(){
+            return this == Position || this == ProfiledPosition;
+        }
     }
 
     /**
@@ -245,21 +249,10 @@ public abstract class MarinersController {
                 default -> 0;
             };
 
-            if (wrappingMinMax != null && (controlMode == ControlMode.Position || controlMode == ControlMode.ProfiledPosition)) {
-                // Get error which is the smallest distance between goal and measurement
-                double errorBound = (wrappingMinMax[1] - wrappingMinMax[0]) / 2.0;
-                
-                double setpointMinDistance =
-                    MathUtil.inputModulus(setpoint.position - measurement, -errorBound, errorBound);
-                
-                setpoint.position = setpointMinDistance + measurement;
+            if (wrappingMinMax != null && controlMode.isPositionControl()) {
+                setpoint.position = calculatePositionWrapping(measurement, setpoint.position);
 
-                if(controlMode == ControlMode.ProfiledPosition){
-                    double goalMinDistance =
-                        MathUtil.inputModulus(goal.position - measurement, -errorBound, errorBound);
-                        
-                    goal.position = goalMinDistance + measurement;
-                }
+                if(controlMode == ControlMode.ProfiledPosition) goal.position = calculatePositionWrapping(measurement, goal.position);
             }
 
             if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
@@ -290,6 +283,12 @@ public abstract class MarinersController {
 
         //sends the motor output to the motor
         setOutput(MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]), controlMode);
+    }
+
+    private double calculatePositionWrapping(double measurement, double setpoint){
+        double errorBound = (wrappingMinMax[1] - wrappingMinMax[0]) / 2.0;
+
+        return MathUtil.inputModulus(setpoint - measurement, -errorBound, errorBound) + measurement;
     }
 
 
