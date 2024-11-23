@@ -18,35 +18,30 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
     private final MarinersController steerMotor;
 
     public SwerveModuleIOCompBot(SwerveModule.ModuleName name) {
-        int driveMotorID = MotorMap.DriveBase.MODULES[name.ordinal()][0];
-        int steerMotorID = MotorMap.DriveBase.MODULES[name.ordinal()][1];
-        int absEncoderID = MotorMap.DriveBase.MODULES[name.ordinal()][2];
 
-        double zeroOffset = constants.ABSOLUTE_ZERO_OFFSETS[name.ordinal()];
+        CompBotConstants constants = CompBotConstants.valueOf(name.name());
 
-        DutyCycleEncoder absEncoder = configDutyCycleEncoder(absEncoderID, zeroOffset);
+        DutyCycleEncoder absEncoder = configDutyCycleEncoder(constants.ABSOLUTE_ENCODER_ID, constants.ABSOLUTE_ZERO_OFFSET);
 
 
         driveMotor = new MarinersTalonFX(
                 name.name() + " Drive Motor",
                 MarinersController.ControllerLocation.MOTOR,
-                driveMotorID,
-                constants.DRIVE_MOTOR_PID[name.ordinal()],
-                constants.DRIVE_GEAR_RATIO / constants.WHEEL_CIRCUMFERENCE_METERS);
+                constants.DRIVE_MOTOR_ID,
+                constants.DRIVE_MOTOR_PID,
+                CompBotConstants.DRIVE_GEAR_RATIO / CompBotConstants.WHEEL_CIRCUMFERENCE_METERS);
 
         steerMotor = new MarinersSparkBase(
                 name.name() + " Steer Motor",
                 MarinersController.ControllerLocation.RIO,
-                steerMotorID,
+                constants.STEER_MOTOR_ID,
                 true,
                 MarinersSparkBase.MotorType.SPARK_MAX,
-                constants.STEER_MOTOR_PID[name.ordinal()]);
-
-        double absEncoderMultiplier = constants.ABSOLUTE_ENCODER_INVERTED ? -1 : 1;
+                constants.STEER_MOTOR_PID);
 
         steerMotor.setMeasurements(
                 new MarinersMeasurements(
-                        () -> absEncoder.get() * absEncoderMultiplier,
+                        absEncoder::get,
                         1
                 )
         );

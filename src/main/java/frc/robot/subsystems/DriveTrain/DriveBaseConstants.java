@@ -4,7 +4,8 @@ import com.pathplanner.lib.path.PathConstraints;
 
 import frc.robot.Constants;
 import frc.robot.Constants.RobotType;
-import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleConstants;
+import frc.robot.subsystems.DriveTrain.SwerveModules.CompBotConstants;
+import frc.robot.subsystems.DriveTrain.SwerveModules.DevBotConstants;
 import frc.util.PIDFGains;
 
 public class DriveBaseConstants {
@@ -16,8 +17,8 @@ public class DriveBaseConstants {
 
             public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
                     Constants.ROBOT_TYPE == RobotType.DEVELOPMENT ?
-                            SwerveModuleConstants.DEVBOT.MAX_WHEEL_LINEAR_VELOCITY :
-                            SwerveModuleConstants.COMPBOT.MAX_WHEEL_LINEAR_VELOCITY,
+                            DevBotConstants.MAX_WHEEL_LINEAR_VELOCITY :
+                            CompBotConstants.MAX_WHEEL_LINEAR_VELOCITY,
                     10,
                     10,
                     20); //the constraints for pathPlanner

@@ -14,29 +14,27 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
 
     public SwerveModuleIODevBot(SwerveModule.ModuleName name) {
-        int driveMotorID = MotorMap.DriveBase.MODULES[name.ordinal()][0];
-        int steerMotorID = MotorMap.DriveBase.MODULES[name.ordinal()][1];
-        int absEncoderID = MotorMap.DriveBase.MODULES[name.ordinal()][2];
 
-        double zeroOffset = constants.ABSOLUTE_ZERO_OFFSETS[name.ordinal()];
-
+        DevBotConstants constants = DevBotConstants.valueOf(name.name());
 
         driveMotor = new MarinersTalonFX(
                 name.name() + " Drive Motor",
                 MarinersController.ControllerLocation.MOTOR,
-                driveMotorID,
-                constants.DRIVE_MOTOR_PID[name.ordinal()],
-                constants.DRIVE_GEAR_RATIO * constants.WHEEL_CIRCUMFERENCE_METERS);
+                constants.DRIVE_MOTOR_ID,
+                constants.DRIVE_MOTOR_PID,
+                DevBotConstants.DRIVE_GEAR_RATIO * DevBotConstants.WHEEL_CIRCUMFERENCE_METERS);
+
+        driveMotor.setMotorInverted(constants.DRIVE_INVERTED);
 
         steerMotor = new MarinersSparkBase(
                 name.name() + " Steer Motor",
                 MarinersController.ControllerLocation.RIO,
-                steerMotorID,
+                constants.STEER_MOTOR_ID,
                 true,
                 MarinersSparkBase.MotorType.SPARK_MAX,
-                constants.STEER_MOTOR_PID[name.ordinal()]);
+                constants.STEER_MOTOR_PID);
 
-        CANcoder absEncoder = configCANCoder(absEncoderID, zeroOffset, (int) steerMotor.RUN_HZ);
+        CANcoder absEncoder = configCANCoder(constants.ABSOLUTE_ENCODER_ID, constants.ABSOLUTE_ZERO_OFFSET, (int) steerMotor.RUN_HZ);
 
         steerMotor.setMeasurements(
                 new MarinersMeasurements(
