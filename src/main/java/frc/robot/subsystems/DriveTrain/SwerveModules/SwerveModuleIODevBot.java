@@ -13,7 +13,6 @@ import frc.util.PIDFGains;
 public class SwerveModuleIODevBot extends SwerveModuleIO {
     private final MarinersController driveMotor;
     private final MarinersController steerMotor;
-    private final CANcoder absEncoder;
 
     private final VelocityDutyCycle driveMotorVelocityDutyCycle =
             new VelocityDutyCycle(0).withEnableFOC(false);
@@ -42,7 +41,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
                 MarinersSparkBase.MotorType.SPARK_MAX,
                 constants.STEER_MOTOR_PID[name.ordinal()]);
 
-        absEncoder = configCANCoder(absEncoderID, zeroOffset, (int)steerMotor.RUN_HZ);
+        CANcoder absEncoder = configCANCoder(absEncoderID, zeroOffset, (int) steerMotor.RUN_HZ);
 
         steerMotor.setMeasurements(
                 new MarinersMeasurements(
@@ -62,10 +61,13 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
     }
 
     @Override
-    protected void sendInputsToMotors(double driveMotorReference, double steerMotorReference) {
-        driveMotor.setReference(driveMotorReference, MarinersController.ControlMode.ProfiledVelocity);
+    public void setDriveMotorReference(double reference) {
+        driveMotor.setReference(reference, MarinersController.ControlMode.Velocity);
+    }
 
-        steerMotor.setReference(steerMotorReference, MarinersController.ControlMode.ProfiledPosition);
+    @Override
+    public void setSteerMotorReference(double reference) {
+        steerMotor.setReference(reference, MarinersController.ControlMode.Position);
     }
 
     @Override

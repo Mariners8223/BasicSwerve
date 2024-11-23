@@ -82,8 +82,6 @@ public class SwerveModule {
             io.setSteerMotorReference(targetState.angle.getRotations());
         }
 
-        io.run();
-
         Logger.processInputs("SwerveModule/" + moduleName, inputs);
 
         return new SwerveModulePosition(inputs.drivePositionMeters, inputs.currentState.angle);

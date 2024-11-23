@@ -16,24 +16,12 @@ import org.littletonrobotics.junction.AutoLog;
 
 import static frc.robot.Constants.ROBOT_TYPE;
 
-public abstract class SwerveModuleIO implements Runnable {
+public abstract class SwerveModuleIO{
     @AutoLog
     static class SwerveModuleIOInputs {
         public SwerveModuleState currentState = new SwerveModuleState();
 
-        public double steerVelocityRadPerSec = 0.0;
         public double drivePositionMeters = 0.0;
-
-        public double driveMotorRPM = 0.0;
-
-        public double steerMotorAppliedVoltage = 0.0;
-        public double driveMotorAppliedVoltage = 0.0;
-        public double steerMotorAppliedOutput = 0.0;
-        public double driveMotorAppliedOutput = 0.0;
-
-        public double absEncoderPosition = 0.0;
-
-        public double driveMotorTemperature = 0.0;
     }
 
     /**
@@ -41,9 +29,6 @@ public abstract class SwerveModuleIO implements Runnable {
      */
     protected final SwerveModuleConstants constants =
             ROBOT_TYPE == Constants.RobotType.DEVELOPMENT ? SwerveModuleConstants.DEVBOT : SwerveModuleConstants.COMPBOT;
-
-    private double driveMotorReference = 0;
-    private double steerMotorReference = 0;
 
     /**
      * Updates the inputs of the module
@@ -55,28 +40,14 @@ public abstract class SwerveModuleIO implements Runnable {
      *
      * @param reference the target for the built-in PID controller
      */
-    public void setDriveMotorReference(double reference){
-        this.driveMotorReference = reference;
-    }
+    public abstract void setDriveMotorReference(double reference);
 
     /**
      * sets the reference for the steer motor
      *
      * @param reference the target for the built-in PID controller
      */
-    public void setSteerMotorReference(double reference){
-        this.steerMotorReference = reference;
-    }
-
-    /**
-     * sends the inputs set by {@link #setDriveMotorReference driveMotor} and {@link #setSteerMotorReference steerMotor} to the motors
-     */
-    @Override
-    public void run() {
-        sendInputsToMotors(driveMotorReference, steerMotorReference);
-    }
-
-    abstract protected void sendInputsToMotors(double driveMotorReference, double steerMotorReference);
+    public abstract void setSteerMotorReference(double reference);
 
     /**
      * sets the idle mode of the module

@@ -37,34 +37,30 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
         inputs.currentState.angle = Rotation2d.fromRadians(steerMotor.getAngularPositionRad() / constants.STEER_GEAR_RATIO);
 
-        inputs.steerVelocityRadPerSec = steerMotor.getAngularVelocityRadPerSec() / constants.STEER_GEAR_RATIO;
-
         inputs.drivePositionMeters =
                 (driveMotor.getAngularPositionRad() / constants.DRIVE_GEAR_RATIO) * constants.WHEEL_RADIUS_METERS;
-
-        inputs.driveMotorAppliedVoltage = driveMotorVoltage;
-        inputs.steerMotorAppliedVoltage = steerMotorVoltage;
-
-        inputs.driveMotorAppliedOutput = driveMotorVoltage / RobotController.getBatteryVoltage();
-        inputs.steerMotorAppliedOutput = steerMotorVoltage / RobotController.getBatteryVoltage();
-
-        inputs.driveMotorRPM = driveMotor.getAngularVelocityRPM();
     }
 
     @Override
-    protected void sendInputsToMotors(double driveMotorReference, double steerMotorReference) {
+    public void setDriveMotorReference(double reference) {
         double driveMotorVelocity = driveMotor.getAngularVelocityRPM() / 60; //turn to rotations per second
-        double steerMotorPosition = steerMotor.getAngularPositionRotations();
 
         double driveMotorReferenceNativeUnits =
-                (driveMotorReference / constants.WHEEL_CIRCUMFERENCE_METERS) * constants.DRIVE_GEAR_RATIO;
-
-        double steerMotorReferenceNativeUnits = steerMotorReference * constants.STEER_GEAR_RATIO;
+                (reference / constants.WHEEL_CIRCUMFERENCE_METERS) * constants.DRIVE_GEAR_RATIO;
 
         driveMotorVoltage = driveMotorPIDController.calculate(driveMotorVelocity, driveMotorReferenceNativeUnits);
-        steerMotorVoltage = steerMotorPIDController.calculate(steerMotorPosition, steerMotorReferenceNativeUnits);
 
         driveMotor.setInputVoltage(driveMotorVoltage * RobotController.getBatteryVoltage());
+    }
+
+    @Override
+    public void setSteerMotorReference(double reference) {
+        double steerMotorPosition = steerMotor.getAngularPositionRotations();
+
+        double steerMotorReferenceNativeUnits = reference * constants.STEER_GEAR_RATIO;
+
+        steerMotorVoltage = steerMotorPIDController.calculate(steerMotorPosition, steerMotorReferenceNativeUnits);
+
         steerMotor.setInputVoltage(steerMotorVoltage * RobotController.getBatteryVoltage());
     }
 
@@ -94,11 +90,17 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         }
 
         @Override
-        public void setIdleMode(boolean isBrakeMode) {
+        public void setDriveMotorReference(double reference) {
+
         }
 
         @Override
-        protected void sendInputsToMotors(double driveMotorVoltage, double steerMotorVoltage) {
+        public void setSteerMotorReference(double reference) {
+
+        }
+
+        @Override
+        public void setIdleMode(boolean isBrakeMode) {
         }
 
         @Override
