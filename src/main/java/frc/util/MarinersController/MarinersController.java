@@ -6,6 +6,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.util.PIDFGains;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -85,7 +86,7 @@ public abstract class MarinersController {
             return this == ProfiledPosition || this == ProfiledVelocity;
         }
 
-        public boolean isPositionControl(){
+        public boolean isPositionControl() {
             return this == Position || this == ProfiledPosition;
         }
     }
@@ -220,10 +221,28 @@ public abstract class MarinersController {
     protected final ControllerLocation location;
 
     /**
+     * if the pid tuning is running
+     */
+    private boolean isRunningPIDTuning = false;
+
+    /**
+     * the current pid gains (used for pid tuning)
+     */
+    private PIDFGains currentGains;
+
+    /**
      * runs the controller
      */
     public void runController() {
         double dt = 1 / RUN_HZ;
+
+        if(isRunningPIDTuning){
+            PIDFGains newGains = PIDFGains.fromController(pidController);
+            if(!newGains.equals(currentGains)){
+                setPIDFMotor(newGains);
+                currentGains = newGains;
+            }
+        }
 
         try {
             measurementLock.lock();
@@ -252,7 +271,8 @@ public abstract class MarinersController {
             if (wrappingMinMax != null && controlMode.isPositionControl()) {
                 setpoint.position = calculatePositionWrapping(measurement, setpoint.position);
 
-                if(controlMode == ControlMode.ProfiledPosition) goal.position = calculatePositionWrapping(measurement, goal.position);
+                if (controlMode == ControlMode.ProfiledPosition)
+                    goal.position = calculatePositionWrapping(measurement, goal.position);
             }
 
             if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
@@ -276,8 +296,7 @@ public abstract class MarinersController {
             if (Math.abs(output) <= motorVoltageDeadBand) {
                 output = 0;
             }
-        }
-        finally {
+        } finally {
             setpointLock.unlock();
         }
 
@@ -285,7 +304,7 @@ public abstract class MarinersController {
         setOutput(MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]), controlMode);
     }
 
-    private double calculatePositionWrapping(double measurement, double setpoint){
+    private double calculatePositionWrapping(double measurement, double setpoint) {
         double errorBound = (wrappingMinMax[1] - wrappingMinMax[0]) / 2.0;
 
         return MathUtil.inputModulus(setpoint - measurement, -errorBound, errorBound) + measurement;
@@ -422,6 +441,14 @@ public abstract class MarinersController {
     }
 
     /**
+     * gets the current PID gains of the controller (will only include P, I, D, maybe F)
+     * @return the current PID gains of the controller
+     */
+    public PIDFGains getPIDF(){
+        return currentGains;
+    }
+
+    /**
      * @return true if the pid controller is at the setpoint (within the tolerance)
      */
     public boolean atSetpoint() {
@@ -440,7 +467,8 @@ public abstract class MarinersController {
 
         if (controlMode.needPID()) Objects.requireNonNull(pidController, "PID control on mode requires pid gains");
 
-        if (controlMode.needMotionProfile()) Objects.requireNonNull(profile, "Profiled control mode requires a profile");
+        if (controlMode.needMotionProfile())
+            Objects.requireNonNull(profile, "Profiled control mode requires a profile");
 
         try {
             setpointLock.lock();
@@ -575,6 +603,8 @@ public abstract class MarinersController {
     public void setPIDF(PIDFGains gains) {
         Objects.requireNonNull(gains, "Gains cannot be null");
 
+        this.currentGains = gains;
+
         pidController = gains.createPIDController();
         setPIDFMotor(gains);
 
@@ -615,14 +645,14 @@ public abstract class MarinersController {
      * @param minimum the minimum value
      * @param maximum the maximum value
      */
-    public void enablePositionWrapping(double minimum, double maximum){
+    public void enablePositionWrapping(double minimum, double maximum) {
         enablePositionWrapping(new Double[]{minimum, maximum});
     }
 
     /**
      * Disables position wrapping for the controller.
      */
-    public void disablePositionWrapping(){
+    public void disablePositionWrapping() {
         enablePositionWrapping(null);
     }
 
@@ -631,7 +661,7 @@ public abstract class MarinersController {
      *
      * @return true if position wrapping is enabled, false otherwise.
      */
-    public boolean isPositionWrappingEnabled(){
+    public boolean isPositionWrappingEnabled() {
         return wrappingMinMax != null;
     }
 
@@ -647,12 +677,49 @@ public abstract class MarinersController {
 
         Objects.requireNonNull(feedForward, "Feed forward cannot be null");
 
+        this.currentGains = gains;
+
         pidController = gains.createPIDController();
 
         setPIDFMotor(gains);
 
         this.feedForward = feedForward;
     }
+
+    /**
+     * sends the pid to the smart dashboard
+     * that way you can change the pid values on the fly
+     * WARNING this will break the feed forward if it is not static (base on the measurement)
+     * if using a controller that is on the rio, you can't stop the values from being updated on the board
+     * and also feedforward will be updated
+     * (both of them until you restart the code)
+     */
+    public void startPIDTuning() {
+        SmartDashboard.putData(name + "FeedForward", builder ->
+                builder.addDoubleProperty("feedForward", () -> feedForward.apply(0.0),
+                        (value) -> feedForward = (measurement) -> value));
+
+        isRunningPIDTuning = true;
+
+        SmartDashboard.putData(name + "PID", pidController);
+    }
+
+    /**
+     * stops the pid tuning
+     * only does something if started the tuning and using the motor controller on the motor
+     */
+    public void stopPIDTuning(){
+        isRunningPIDTuning = false;
+    }
+
+    /**
+     * checks if the pid tuning is running
+     * @return true if the pid tuning is running
+     */
+    public boolean isRunningPIDTuning(){
+        return isRunningPIDTuning;
+    }
+
 
     /**
      * sets the measurements of the controller

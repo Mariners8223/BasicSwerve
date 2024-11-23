@@ -125,6 +125,14 @@ public class PIDFGains {
       return this._tolerance;
     }
 
+    public boolean isEqual(PIDFGains gains) {
+      return this._kP == gains.getP() && this._kI == gains.getI() && this._kD == gains.getD();
+    }
+
+    public static PIDFGains fromController(PIDController controller) {
+      return new PIDFGains(controller.getP(), controller.getI(), controller.getD());
+    }
+
     public PIDConstants createPIDConstants(){
       return new PIDConstants(_kP, _kI, _kD, _iZone);
     }
