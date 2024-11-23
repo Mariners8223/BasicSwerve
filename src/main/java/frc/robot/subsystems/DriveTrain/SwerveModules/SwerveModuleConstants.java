@@ -12,10 +12,10 @@ public enum SwerveModuleConstants {
             0.298, -0.41, -0.152, 0.322,
 
             new PIDFGains[]{
-                    new PIDFGains(0.3, 0, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //FL
-                    new PIDFGains(0.3, 0, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //FR
-                    new PIDFGains(0.3, 0, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //BL
-                    new PIDFGains(0.3, 0, 0, 1 / SwerveModule.MODULE_THREAD_HZ) //BR
+                    new PIDFGains(0.3, 0, 0), //FL
+                    new PIDFGains(0.3, 0, 0), //FR
+                    new PIDFGains(0.3, 0, 0), //BL
+                    new PIDFGains(0.3, 0, 0) //BR
             },
             new PIDFGains[]{
                     new PIDFGains(0.01, 0, 0),
@@ -33,10 +33,10 @@ public enum SwerveModuleConstants {
             0.59625, 0.9368, 0.226, 0.750,
 
             new PIDFGains[]{
-                new PIDFGains(0.525, 0, 0.0025, 0, 0.2, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //FL
-                new PIDFGains(0.666, 0, 0.0058, 0, 0.2, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //FR
-                new PIDFGains(0.625, 0, 0.0083, 0, 0.2, 0, 1 / SwerveModule.MODULE_THREAD_HZ), //BL
-                new PIDFGains(0.541, 0, 0.0025, 0, 0.2, 0, 1 / SwerveModule.MODULE_THREAD_HZ)  //BR
+                new PIDFGains(0.525, 0, 0.0025, 0, 0.2, 0), //FL
+                new PIDFGains(0.666, 0, 0.0058, 0, 0.2, 0), //FR
+                new PIDFGains(0.625, 0, 0.0083, 0, 0.2, 0), //BL
+                new PIDFGains(0.541, 0, 0.0025, 0, 0.2, 0)  //BR
             },
             new PIDFGains[]{
                     new PIDFGains(1, 0, 0, 0.07,0.15,0),
