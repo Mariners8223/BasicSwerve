@@ -305,7 +305,7 @@ public class MarinersSparkBase extends MarinersController {
 
         sparkBase.setControlFramePeriodMs(period);
 
-        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus0, period);
+        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus0, 1000 / 100);
         reportError("Error setting status 0 frame period", error);
 
         error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, period);
@@ -381,6 +381,19 @@ public class MarinersSparkBase extends MarinersController {
         inputs.powerDraw = inputs.voltageInput * inputs.currentDraw;
 
         inputs.currentFaults = motor.getLastError().name();
+    }
+
+    @Override
+    protected void setMotorFollower(MarinersController master, boolean invert) {
+        if(master.getClass() != MarinersSparkBase.class){
+            throw new IllegalArgumentException("cannot set a motor as follower to a different kind of motor");
+        }
+
+        MarinersSparkBase base = (MarinersSparkBase)master;
+
+        motor.follow(base.getMotor());
+
+        motor.setInverted(invert != base.getMotor().getInverted());
     }
 
 

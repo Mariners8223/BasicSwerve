@@ -5,6 +5,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.util.PIDFGains;
@@ -38,6 +39,11 @@ public abstract class MarinersController {
          * the controller is stopped (that means no output is sent to the motor) (depends on the idle mode of the motor)
          */
         Stopped,
+
+        /**
+         * the motor will follow every output another motor does
+         */
+        Follower,
 
         /**
          * the controller is running in duty cycle control mode
@@ -79,7 +85,7 @@ public abstract class MarinersController {
         ProfiledVelocity;
 
         public boolean needPID() {
-            return this != DutyCycle && this != Voltage && this != Stopped;
+            return this != DutyCycle && this != Voltage && this != Stopped && this != Follower;
         }
 
         public boolean needMotionProfile() {
@@ -236,14 +242,6 @@ public abstract class MarinersController {
     public void runController() {
         double dt = 1 / RUN_HZ;
 
-        if(isRunningPIDTuning){
-            PIDFGains newGains = PIDFGains.fromController(pidController);
-            if(!newGains.equals(currentGains)){
-                setPIDFMotor(newGains);
-                currentGains = newGains;
-            }
-        }
-
         try {
             measurementLock.lock();
             measurements.update(dt);
@@ -253,6 +251,14 @@ public abstract class MarinersController {
 
         // If the controller is in a control mode that doesn't require pid control, set the output voltage to the setpoint
         if (!controlMode.needPID()) return;
+
+        if(isRunningPIDTuning){
+            PIDFGains newGains = PIDFGains.fromController(pidController);
+            if(!newGains.equals(currentGains)){
+                setPIDFMotor(newGains);
+                currentGains = newGains;
+            }
+        }
 
         double output;
         ControlMode controlMode;
@@ -455,6 +461,22 @@ public abstract class MarinersController {
         return pidController.atSetpoint();
     }
 
+    public void setMotorAsFollower(MarinersController master, boolean invert){
+        if(master.getClass() != this.getClass())
+            throw new IllegalArgumentException("cannot set a motor as follower to a different kind of motor");
+
+        try{
+            setpointLock.lock();
+            controlMode = ControlMode.Follower;
+        }finally {
+            setpointLock.unlock();
+        }
+
+        setMotorFollower(master, invert);
+    }
+
+    protected abstract void setMotorFollower(MarinersController master, boolean invert);
+
     /**
      * sets the reference of the controller
      *
@@ -479,6 +501,11 @@ public abstract class MarinersController {
                     this.controlMode = ControlMode.Stopped;
 
                 }
+                return;
+            }
+
+            if(controlMode == ControlMode.Follower){
+                DriverStation.reportError("cannot set reference to a follower motor", true);
                 return;
             }
 
@@ -529,6 +556,11 @@ public abstract class MarinersController {
                     this.controlMode = ControlMode.Stopped;
 
                 }
+                return;
+            }
+
+            if(controlMode == ControlMode.Follower){
+                DriverStation.reportError("cannot set reference to a follower motor", true);
                 return;
             }
 

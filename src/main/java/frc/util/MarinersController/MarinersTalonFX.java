@@ -129,7 +129,7 @@ public class MarinersTalonFX extends MarinersController {
         error = talonFX.getMotorVoltage().setUpdateFrequency(50);
         reportError("Error setting motor voltage update frequency", error);
 
-        error = talonFX.getDutyCycle().setUpdateFrequency(50);
+        error = talonFX.getDutyCycle().setUpdateFrequency(100);
         reportError("Error setting duty cycle update frequency", error);
 
         error = talonFX.optimizeBusUtilization();
@@ -231,6 +231,13 @@ public class MarinersTalonFX extends MarinersController {
     }
 
     @Override
+    protected void setMotorFollower(MarinersController master, boolean invert) {
+        MarinersTalonFX base = (MarinersTalonFX)master;
+
+        Follower follower = new Follower(base.getMotor().getDeviceID(), invert);
+    }
+
+    @Override
     protected void stopMotorOutput() {
         motor.stopMotor();
     }
@@ -257,6 +264,8 @@ public class MarinersTalonFX extends MarinersController {
                     case Brake -> new StaticBrake();
                     case Coast -> new CoastOut();
                 };
+
+                default -> new CoastOut();
             };
 
             StatusCode error = motor.setControl(request);
