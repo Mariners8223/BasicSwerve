@@ -3,22 +3,22 @@ package frc.robot.subsystems.DriveTrain.SwerveModules;
 import frc.util.PIDFGains;
 
 public enum CompBotConstants {
-    FRONT_LEFT(2, 3, 4,
+    FRONT_LEFT(3, 4, 5,
             true, true, 0,
             new PIDFGains(0.1, 0, 0), //Drive motor PID
             new PIDFGains(0.1, 0, 0)), //Steer motor PID
 
-    FRONT_RIGHT(5, 6, 7,
+    FRONT_RIGHT(6, 7, 8,
             true, true, 0,
             new PIDFGains(0.1, 0, 0), //Drive motor PID
             new PIDFGains(0.1, 0, 0)), //Steer motor PID
 
-    BACK_LEFT(8, 9, 10,
+    BACK_LEFT(9, 10, 11,
             true, true, 0,
             new PIDFGains(0.1, 0, 0), //Drive motor PID
             new PIDFGains(0.1, 0, 0)), //Steer motor PID
 
-    BACK_RIGHT(11, 12, 13,
+    BACK_RIGHT(12, 13, 14,
             true, true, 0,
             new PIDFGains(0.1, 0, 0), //Drive motor PID
             new PIDFGains(0.1, 0, 0)); //Steer motor PID

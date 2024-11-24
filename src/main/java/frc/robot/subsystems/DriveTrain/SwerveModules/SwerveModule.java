@@ -84,7 +84,7 @@ public class SwerveModule {
     }
 
     public void stopDriveCalibration() {
-        io.endSteerCalibration();
+        io.endDriveCalibration();
     }
 
     public void runSteerCalibration() {
