@@ -461,6 +461,14 @@ public abstract class MarinersController {
         return pidController.atSetpoint();
     }
 
+    /**
+     * sets the motor as a follower to another motor
+     * this will make the motor follow the output of the master motor
+     * (this will make the motor ignore any reference set to it)
+     * can only be undone by restarting the code
+     * @param master the master motor controller (the one that this motor will follow)
+     * @param invert true if the motor should follow the master in reverse (if the master spins clockwise, this motor will spin counter-clockwise)
+     */
     public void setMotorAsFollower(MarinersController master, boolean invert){
         if(master.getClass() != this.getClass())
             throw new IllegalArgumentException("cannot set a motor as follower to a different kind of motor");
