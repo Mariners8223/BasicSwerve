@@ -249,10 +249,7 @@ public abstract class MarinersController {
             measurementLock.unlock();
         }
 
-        // If the controller is in a control mode that doesn't require pid control, set the output voltage to the setpoint
-        if (!controlMode.needPID()) return;
-
-        if(isRunningPIDTuning){
+        if(isRunningPIDTuning && location == ControllerLocation.MOTOR){
             PIDFGains newGains = PIDFGains.fromController(pidController);
             if(!newGains.equals(currentGains)){
                 setPIDFMotor(newGains);
@@ -267,6 +264,15 @@ public abstract class MarinersController {
             setpointLock.lock();
 
             controlMode = this.controlMode;
+
+            if(controlMode == ControlMode.Follower || controlMode == ControlMode.Stopped){
+                return;
+            }
+
+            if(!controlMode.needPID()){
+                setOutput(setpoint.position, controlMode);
+                return;
+            }
 
             double measurement = switch (controlMode) {
                 case Position, ProfiledPosition -> measurements.getPosition();
@@ -521,7 +527,8 @@ public abstract class MarinersController {
 
             switch (controlMode) {
                 case Stopped -> stopMotorOutput();
-                case Voltage, DutyCycle -> setOutput(setpoint, controlMode);
+                case Voltage -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1], maxMinOutput[0]);
+                case DutyCycle -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
                 case Position, Velocity -> this.setpoint.position = setpoint;
                 case ProfiledPosition, ProfiledVelocity -> this.goal.position = setpoint;
             }
