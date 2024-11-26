@@ -270,7 +270,7 @@ public abstract class MarinersController {
             }
 
             if(!controlMode.needPID()){
-                setOutput(setpoint.position, controlMode);
+                setOutput(setpoint.position, controlMode, 0);
                 return;
             }
 
@@ -289,8 +289,10 @@ public abstract class MarinersController {
 
             if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
 
+            double feedForward = this.feedForward.apply(measurement) * setpoint.position;
+
             if (location == ControllerLocation.MOTOR) {
-                setOutput(setpoint.position * measurements.getGearRatio(), controlMode);
+                setOutput(setpoint.position * measurements.getGearRatio(), controlMode, feedForward);
                 return;
             }
 
@@ -300,9 +302,9 @@ public abstract class MarinersController {
 
             // if the pid controller is at the setpoint, set the output to the feed forward
             if (pidController.atSetpoint()) {
-                output = feedForward.apply(measurement) * setpoint.position;
+                output = feedForward;
             } else {
-                output += feedForward.apply(measurement) * setpoint.position;
+                output += feedForward;
             }
 
             if (Math.abs(output) <= motorVoltageDeadBand) {
@@ -313,7 +315,7 @@ public abstract class MarinersController {
         }
 
         //sends the motor output to the motor
-        setOutput(MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]), controlMode);
+        setOutput(MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]), ControlMode.Voltage, 0);
     }
 
     private double calculatePositionWrapping(double measurement, double setpoint) {
@@ -323,7 +325,7 @@ public abstract class MarinersController {
     }
 
 
-    protected abstract void setOutput(double output, ControlMode controlMode);
+    protected abstract void setOutput(double output, ControlMode controlMode, double feedForward);
 
     /**
      * updates the inputs of the controller
