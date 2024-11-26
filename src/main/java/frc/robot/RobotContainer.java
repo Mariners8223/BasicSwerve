@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -107,11 +109,19 @@ public class RobotContainer{
     
     private void configureBindings() {
         driveController.options().onTrue(driveBase.resetOnlyDirection());
-        driveController.cross().onTrue(driveBase.startModuleDriveCalibration());
-        driveController.square().onTrue(driveBase.stopModuleDriveCalibration());
 
-        driveController.circle().onTrue(driveBase.startModuleSteerCalibration());
-        driveController.triangle().onTrue(driveBase.stopModuleSteerCalibration());
+        Supplier<Rotation2d> controllerAngle = () -> Rotation2d.fromRadians(Math.atan(driveController.getLeftY() / driveController.getLeftX()));
+
+        driveController.cross().onTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));
+        driveController.square().onTrue(driveBase.runSysIDQuasistatic(true, controllerAngle));
+
+        driveController.circle().onTrue(driveBase.runSysIDDynamic(false, controllerAngle));
+        driveController.triangle().onTrue(driveBase.runSysIDDynamic(true, controllerAngle));
+//        driveController.cross().onTrue(driveBase.startModuleDriveCalibration());
+//        driveController.square().onTrue(driveBase.stopModuleDriveCalibration());
+//
+//        driveController.circle().onTrue(driveBase.startModuleSteerCalibration());
+//        driveController.triangle().onTrue(driveBase.stopModuleSteerCalibration());
     }
     
     
