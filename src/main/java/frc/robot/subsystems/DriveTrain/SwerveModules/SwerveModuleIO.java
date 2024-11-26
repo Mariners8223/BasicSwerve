@@ -13,6 +13,7 @@ public abstract class SwerveModuleIO{
         public SwerveModuleState currentState = new SwerveModuleState();
 
         public double drivePositionMeters = 0.0;
+        public double absPosition = 0.0;
     }
 
     /**

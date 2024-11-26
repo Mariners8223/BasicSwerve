@@ -10,11 +10,12 @@ import frc.util.MarinersController.MarinersTalonFX;
 public class SwerveModuleIODevBot extends SwerveModuleIO {
     private final MarinersController driveMotor;
     private final MarinersController steerMotor;
+    private final CANcoder absEncoder;
 
 
     public SwerveModuleIODevBot(SwerveModule.ModuleName name) {
 
-        DevBotConstants constants = DevBotConstants.valueOf(name.name());
+        DevBotConstants constants = DevBotConstants.values()[name.ordinal()];
 
         driveMotor = new MarinersTalonFX(
                 name.name() + " Drive Motor",
@@ -33,23 +34,27 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
                 MarinersSparkBase.MotorType.SPARK_MAX,
                 constants.STEER_MOTOR_PID);
 
-        CANcoder absEncoder = configCANCoder(constants.ABSOLUTE_ENCODER_ID, constants.ABSOLUTE_ZERO_OFFSET, (int) steerMotor.RUN_HZ);
+        absEncoder = configCANCoder(constants.ABSOLUTE_ENCODER_ID, constants.ABSOLUTE_ZERO_OFFSET, (int) steerMotor.RUN_HZ);
 
         steerMotor.setMeasurements(
                 new MarinersMeasurements(
-                        absEncoder.getPosition()::getValueAsDouble,
-                        absEncoder.getVelocity()::getValueAsDouble,
+                        () -> absEncoder.getPosition().getValueAsDouble(),
+                        () -> absEncoder.getVelocity().getValueAsDouble(),
                         1
                 )
         );
+
+        steerMotor.enablePositionWrapping(-0.5, 0.5);
     }
 
     @Override
     public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
-        inputs.currentState.angle = Rotation2d.fromRotations(steerMotor.getMeasurements().getPosition());
-        inputs.currentState.speedMetersPerSecond = driveMotor.getMeasurements().getVelocity();
+        inputs.currentState.angle = Rotation2d.fromRotations(steerMotor.getPosition());
+        inputs.currentState.speedMetersPerSecond = driveMotor.getVelocity();
 
-        inputs.drivePositionMeters = driveMotor.getMeasurements().getPosition();
+        inputs.drivePositionMeters = driveMotor.getPosition();
+
+        inputs.absPosition = absEncoder.getAbsolutePosition().getValueAsDouble();
     }
 
     @Override

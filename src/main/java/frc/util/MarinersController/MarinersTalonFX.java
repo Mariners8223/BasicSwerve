@@ -14,6 +14,7 @@ import frc.util.PIDFGains;
 
 /**
  * A class to control a TalonFX motor controller
+ *
  * @see MarinersController
  * @see TalonFX
  */
@@ -35,24 +36,26 @@ public class MarinersTalonFX extends MarinersController {
      * using the built-in position, velocity, and acceleration
      * this creates a measurement object that waits for all the signals to update before returning the value
      * (that means that it is a blocking call)
+     *
      * @param gearRatio the gear ratio of the motor
      * @return the new measurement object
      */
-    private MarinersMeasurements createMeasurement(double gearRatio){
+    private MarinersMeasurements createMeasurement(double gearRatio) {
         return new MarinersMeasurements(
-            () -> motor.getPosition().getValueAsDouble(),
-            () -> motor.getVelocity().getValueAsDouble(),
-            () -> motor.getAcceleration().getValueAsDouble(),
-            gearRatio
+                () -> motor.getPosition().getValueAsDouble(),
+                () -> motor.getVelocity().getValueAsDouble(),
+                () -> motor.getAcceleration().getValueAsDouble(),
+                gearRatio
         );
     }
 
     /**
      * creates the controller
-     * @param name the name of the controller (for logging)
+     *
+     * @param name     the name of the controller (for logging)
      * @param location the location of the controller (RIO or MOTOR)
      */
-    public MarinersTalonFX(String name, ControllerLocation location, int id){
+    public MarinersTalonFX(String name, ControllerLocation location, int id) {
         super(name, location);
 
         this.motor = createMotor(id);
@@ -61,22 +64,24 @@ public class MarinersTalonFX extends MarinersController {
 
     /**
      * creates the controller
-     * @param name the name of the controller (for logging)
+     *
+     * @param name     the name of the controller (for logging)
      * @param location the location of the controller (RIO or MOTOR)
-     * @param gains the PIDF gains for the controller (the units are voltage to measurements units)
+     * @param gains    the PIDF gains for the controller (the units are voltage to measurements units)
      */
-    public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains){
+    public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains) {
         this(name, location, id, gains, 1);
     }
 
     /**
      * creates the controller
-     * @param name the name of the controller (for logging)
-     * @param location the location of the controller (RIO or MOTOR)
-     * @param gains the PIDF gains for the controller
+     *
+     * @param name      the name of the controller (for logging)
+     * @param location  the location of the controller (RIO or MOTOR)
+     * @param gains     the PIDF gains for the controller
      * @param gearRatio the gear ratio of the motor
      */
-    public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains, double gearRatio){
+    public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains, double gearRatio) {
         super(name, location);
 
         this.motor = createMotor(id);
@@ -89,16 +94,17 @@ public class MarinersTalonFX extends MarinersController {
     /**
      * @return the TalonFX motor controller
      */
-    public TalonFX getMotor(){
+    public TalonFX getMotor() {
         return motor;
     }
 
     /**
      * creates a new TalonFX motor controller
+     *
      * @param id the id of the motor controller
      * @return the new motor controller
      */
-    private TalonFX createMotor(int id){
+    private TalonFX createMotor(int id) {
         TalonFX talonFX = new TalonFX(id);
 
         talonFX.getConfigurator().apply(new TalonFXConfiguration());
@@ -156,7 +162,7 @@ public class MarinersTalonFX extends MarinersController {
     @Override
     public void setCurrentLimits(double currentLimit, double currentThreshold) {
 
-        if(currentLimit <= 0 || currentThreshold <= 0){
+        if (currentLimit <= 0 || currentThreshold <= 0) {
             DriverStation.reportError("Current limit and threshold must be greater than 0 for motor" + name, false);
             return;
         }
@@ -211,7 +217,7 @@ public class MarinersTalonFX extends MarinersController {
 
 
     @Override
-    public void setMotorIdleMode(boolean brake){
+    public void setMotorIdleMode(boolean brake) {
         NeutralModeValue mode = brake ? NeutralModeValue.Brake : NeutralModeValue.Coast;
 
         motorOutputConfig.NeutralMode = mode;
@@ -232,7 +238,7 @@ public class MarinersTalonFX extends MarinersController {
 
     @Override
     protected void setMotorFollower(MarinersController master, boolean invert) {
-        MarinersTalonFX base = (MarinersTalonFX)master;
+        MarinersTalonFX base = (MarinersTalonFX) master;
 
         Follower follower = new Follower(base.getMotor().getDeviceID(), invert);
     }
@@ -243,35 +249,27 @@ public class MarinersTalonFX extends MarinersController {
     }
 
     @Override
-    protected void setOutput(double motorOutput, ControlMode controlMode) {
-        if(location == ControllerLocation.RIO){
-            if(controlMode == ControlMode.DutyCycle) motor.set(motorOutput);
-            else motor.setVoltage(motorOutput);
-        }
-        else{
-            ControlRequest request = switch (controlMode){
-                case Position, ProfiledPosition -> new PositionVoltage(motorOutput)
-                        .withFeedForward((motorOutput / measurements.getGearRatio()) * feedForward.apply(measurements.getPosition()));
+    protected void setOutput(double motorOutput, ControlMode controlMode, double feedForward) {
+        ControlRequest request = switch (controlMode) {
+            case Position, ProfiledPosition -> new PositionVoltage(motorOutput)
+                    .withFeedForward(feedForward);
 
-                case Velocity, ProfiledVelocity -> new VelocityVoltage(motorOutput)
-                        .withFeedForward((motorOutput / measurements.getGearRatio()) * feedForward.apply(measurements.getVelocity()));
+            case Velocity, ProfiledVelocity -> new VelocityVoltage(motorOutput)
+                    .withFeedForward(feedForward);
 
-                case Voltage -> new VoltageOut(motorOutput);
+            case Voltage -> new VoltageOut(motorOutput);
 
-                case DutyCycle -> new DutyCycleOut(motorOutput);
+            case DutyCycle -> new DutyCycleOut(motorOutput);
 
-                case Stopped -> switch (motorOutputConfig.NeutralMode) {
-                    case Brake -> new StaticBrake();
-                    case Coast -> new CoastOut();
-                };
-
-                default -> new CoastOut();
+            default -> switch (motorOutputConfig.NeutralMode) {
+                case Brake -> new StaticBrake();
+                case Coast -> new CoastOut();
             };
+        };
 
-            StatusCode error = motor.setControl(request);
-            reportError("Error setting motor output", error);
-        }
-    }
+        StatusCode error = motor.setControl(request);
+        reportError("Error setting motor output", error);
+}
 
     /**
      * reports an error to the driver station
@@ -280,7 +278,7 @@ public class MarinersTalonFX extends MarinersController {
      */
     private void reportError(String message, StatusCode statusCode){
         if(!statusCode.isOK()){
-            DriverStation.reportError(message + " for motor" + name + "with ID" + motor.getDeviceID() + ": " + statusCode, false);
+            DriverStation.reportError(message + " for motor" + name + ": " + statusCode, false);
         }
     }
 }
