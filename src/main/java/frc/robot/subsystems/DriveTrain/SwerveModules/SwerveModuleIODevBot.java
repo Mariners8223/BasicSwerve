@@ -22,9 +22,16 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
                 MarinersController.ControllerLocation.MOTOR,
                 constants.DRIVE_MOTOR_ID,
                 constants.DRIVE_MOTOR_PID,
-                DevBotConstants.DRIVE_GEAR_RATIO * DevBotConstants.WHEEL_CIRCUMFERENCE_METERS);
+                DevBotConstants.DRIVE_GEAR_RATIO / DevBotConstants.WHEEL_CIRCUMFERENCE_METERS);
 
         driveMotor.setMotorInverted(constants.DRIVE_INVERTED);
+
+
+        driveMotor.setCurrentLimits(50, 70);
+
+        // driveMotor.setProfile(40,40);
+
+        driveMotor.setMotorDeadBandDutyCycle(0.05);
 
         steerMotor = new MarinersSparkBase(
                 name.name() + " Steer Motor",
@@ -33,6 +40,13 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
                 true,
                 MarinersSparkBase.MotorType.SPARK_MAX,
                 constants.STEER_MOTOR_PID);
+
+
+        steerMotor.setCurrentLimits(30, 50);
+
+        steerMotor.setProfile(40, 80);
+
+        steerMotor.setMotorDeadBandVoltage(0.3);
 
         absEncoder = configCANCoder(constants.ABSOLUTE_ENCODER_ID, constants.ABSOLUTE_ZERO_OFFSET, (int) steerMotor.RUN_HZ);
 
@@ -64,7 +78,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
     @Override
     public void setSteerMotorReference(double reference) {
-        steerMotor.setReference(reference, MarinersController.ControlMode.Position);
+        steerMotor.setReference(reference, MarinersController.ControlMode.ProfiledPosition);
     }
 
     @Override
