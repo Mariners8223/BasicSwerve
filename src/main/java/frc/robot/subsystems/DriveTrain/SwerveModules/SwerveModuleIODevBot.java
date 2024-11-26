@@ -77,6 +77,11 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
     }
 
     @Override
+    public void setDriveMotorVoltage(double voltage) {
+        driveMotor.setVoltage(voltage);
+    }
+
+    @Override
     public void setSteerMotorReference(double reference) {
         steerMotor.setReference(reference, MarinersController.ControlMode.ProfiledPosition);
     }

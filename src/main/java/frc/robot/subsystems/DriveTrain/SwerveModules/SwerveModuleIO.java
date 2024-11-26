@@ -29,6 +29,13 @@ public abstract class SwerveModuleIO{
     public abstract void setDriveMotorReference(double reference);
 
     /**
+     * sets the voltage for the drive motor
+     *
+     * @param voltage the voltage to set the motor to
+     */
+    public abstract void setDriveMotorVoltage(double voltage);
+
+    /**
      * sets the reference for the steer motor
      *
      * @param reference the target for the built-in PID controller

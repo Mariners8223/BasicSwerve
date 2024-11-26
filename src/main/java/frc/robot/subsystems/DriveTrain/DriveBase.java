@@ -6,8 +6,12 @@ package frc.robot.subsystems.DriveTrain;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.Drive.DriveCommand;
 import frc.robot.subsystems.DriveTrain.SwerveModules.CompBotConstants;
 import frc.robot.subsystems.DriveTrain.SwerveModules.DevBotConstants;
@@ -35,6 +39,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+
+import java.util.function.Supplier;
 
 /**
  * The DriveBase class represents the drivetrain of the robot.
@@ -94,6 +100,8 @@ public class DriveBase extends SubsystemBase {
      */
     private Pose2d currentPose = new Pose2d();
 
+    private final SysIdRoutine sysIdRoutine;
+
 
     @AutoLog
     public static class DriveBaseInputs {
@@ -106,6 +114,8 @@ public class DriveBase extends SubsystemBase {
                 new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()}; //the current states of the modules
 
         protected String activeCommand; //the active command of the robot
+
+        protected String sysIDState = "None";
     }
 
     /**
@@ -118,7 +128,7 @@ public class DriveBase extends SubsystemBase {
         modules[3] = new SwerveModule(SwerveModule.ModuleName.Back_Right);
 
         if (RobotBase.isReal()) {
-            gyro = switch (Constants.ROBOT_TYPE){
+            gyro = switch (Constants.ROBOT_TYPE) {
                 case DEVELOPMENT -> new PigeonIO(DriveBaseConstants.PIGEON_ID);
                 case COMPETITION -> new NavxIO(false);
                 case REPLAY -> throw new IllegalArgumentException("Robot cannot be replay if it's real");
@@ -165,6 +175,17 @@ public class DriveBase extends SubsystemBase {
             if (!DriverStation.isFMSAttached()) setModulesBrakeMode(false);
         }
         ).ignoringDisable(true));
+
+        sysIdRoutine = new SysIdRoutine(new SysIdRoutine.Config(
+                null,
+                null,
+                null,
+                (state) -> inputs.sysIDState = state.toString()
+        ), new SysIdRoutine.Mechanism(
+                this::driveSysID,
+                null,
+                this
+        ));
 
         new Trigger(RobotState::isTeleop).and(RobotState::isEnabled).whileTrue(new StartEndCommand(() ->
                 this.setDefaultCommand(new DriveCommand(this, RobotContainer.driveController)),
@@ -349,6 +370,24 @@ public class DriveBase extends SubsystemBase {
         inputs.YspeedInput = chassisSpeeds.vyMetersPerSecond;
         inputs.rotationSpeedInput = chassisSpeeds.omegaRadiansPerSecond;
         Logger.processInputs(getName(), inputs);
+    }
+
+    private Supplier<Rotation2d> sysIDAngle;
+
+    private void driveSysID(Measure<Voltage> voltage) {
+        for (int i = 0; i < 4; i++) {
+            modules[i].runSysID(voltage, sysIDAngle.get().minus(getRotation2d()));
+        }
+    }
+
+    public Command runSysIDQuasistatic(boolean isReverse, Supplier<Rotation2d> angle) {
+        sysIDAngle = angle;
+        return sysIdRoutine.quasistatic(isReverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward);
+    }
+
+    public Command runSysIDDynamic(boolean isReverse, Supplier<Rotation2d> angle) {
+        sysIDAngle = angle;
+        return sysIdRoutine.dynamic(isReverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward);
     }
 
     public Command startModuleDriveCalibration() {

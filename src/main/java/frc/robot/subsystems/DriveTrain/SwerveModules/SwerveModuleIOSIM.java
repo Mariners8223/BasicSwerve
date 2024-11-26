@@ -23,14 +23,14 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
     private final double WHEEL_RADIUS_METERS;
 
 
-    public SwerveModuleIOSIM(String name) {
+    public SwerveModuleIOSIM(SwerveModule.ModuleName name) {
 
         if (Constants.ROBOT_TYPE == Constants.RobotType.DEVELOPMENT) {
             DRIVE_GEAR_RATIO = DevBotConstants.DRIVE_GEAR_RATIO;
             STEER_GEAR_RATIO = DevBotConstants.STEER_GEAR_RATIO;
             WHEEL_RADIUS_METERS = DevBotConstants.WHEEL_RADIUS_METERS;
 
-            DevBotConstants constants = DevBotConstants.valueOf(name);
+            DevBotConstants constants = DevBotConstants.values()[name.ordinal()];
 
             driveMotorPIDController = constants.DRIVE_MOTOR_PID.createPIDController();
             steerMotorPIDController = constants.STEER_MOTOR_PID.createPIDController();
@@ -40,7 +40,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
             STEER_GEAR_RATIO = CompBotConstants.STEER_GEAR_RATIO;
             WHEEL_RADIUS_METERS = CompBotConstants.WHEEL_RADIUS_METERS;
 
-            CompBotConstants constants = CompBotConstants.valueOf(name);
+                                CompBotConstants constants = CompBotConstants.values()[name.ordinal()];
 
             driveMotorPIDController = constants.DRIVE_MOTOR_PID.createPIDController();
             steerMotorPIDController = constants.STEER_MOTOR_PID.createPIDController();
@@ -52,7 +52,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
 
 
-        this.name = name;
+        this.name = name.name();
     }
 
     @Override
@@ -79,6 +79,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         double driveMotorVoltage = driveMotorPIDController.calculate(driveMotorVelocity, driveMotorReferenceNativeUnits);
 
         driveMotor.setInputVoltage(driveMotorVoltage * RobotController.getBatteryVoltage());
+    }
+
+    @Override
+    public void setDriveMotorVoltage(double voltage) {
+        driveMotor.setInputVoltage(voltage);
     }
 
     @Override
@@ -133,6 +138,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
         @Override
         public void setDriveMotorReference(double reference) {
+
+        }
+
+        @Override
+        public void setDriveMotorVoltage(double voltage) {
 
         }
 
