@@ -56,7 +56,7 @@ task(checkAkitInstall, dependsOn: "classes", type: JavaExec) {
     mainClass = "org.littletonrobotics.junction.CheckInstall"
     classpath = sourceSets.main.runtimeClasspath
 }
-compileJava.finalizedBy checkAkitInstall
+// compileJava.finalizedBy checkAkitInstall
 
 configurations.all {
     exclude group: "edu.wpi.first.wpilibj"

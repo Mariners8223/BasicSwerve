@@ -33,7 +33,7 @@ import frc.util.MarinersController.MarinersTalonFX;
 import frc.util.MarinersController.MarinersController.ControllerLocation;
 
 public class RobotContainer{
-    // public static DriveBase driveBase;
+    public static DriveBase driveBase;
     public static CommandPS5Controller driveController;
 
     public static Field2d field;
@@ -45,7 +45,7 @@ public class RobotContainer{
     public RobotContainer()
     {
         driveController = new CommandPS5Controller(0);
-        // driveBase = new DriveBase();
+        driveBase = new DriveBase();
 
         configureBindings();
 
@@ -53,7 +53,7 @@ public class RobotContainer{
 
         SmartDashboard.putData(field);
 
-        // configChooser();
+        configChooser();
 
 
         motor = new MarinersTalonFX("steer", ControllerLocation.MOTOR, 2);

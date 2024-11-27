@@ -1,6 +1,5 @@
 package frc.robot.subsystems.DriveTrain.SwerveModules;
 
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 

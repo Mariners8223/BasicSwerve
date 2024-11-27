@@ -37,7 +37,7 @@ public class PigeonIO implements GyroIO{
 
     @Override
     public void update() {
-        inputs.yaw = pigeon.getAngle();
+        inputs.yaw = pigeon.getYaw().getValueAsDouble();
         inputs.pitch = pigeon.getPitch().getValueAsDouble();
         inputs.roll = pigeon.getRoll().getValueAsDouble();
 

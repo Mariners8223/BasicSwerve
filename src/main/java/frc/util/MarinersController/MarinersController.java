@@ -14,7 +14,6 @@ import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
@@ -547,7 +546,7 @@ public abstract class MarinersController {
             this.controlMode = controlMode;
 
             switch (controlMode) {
-                case Stopped -> stopMotorOutput();
+                case Stopped, Follower -> stopMotorOutput();
                 case Voltage -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1], maxMinOutput[0]);
                 case DutyCycle -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
                 case Position, Velocity -> this.setpoint.position = setpoint;

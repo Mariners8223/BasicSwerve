@@ -113,7 +113,7 @@ public class DriveBase extends SubsystemBase {
     /**
      * Creates a new DriveBase.
      */
-    public DriveBase() throws IOException, ParseException {
+    public DriveBase(){
         modules[0] = new SwerveModule(SwerveModule.ModuleName.Front_Left);
         modules[1] = new SwerveModule(SwerveModule.ModuleName.Front_Right);
         modules[2] = new SwerveModule(SwerveModule.ModuleName.Back_Left);
@@ -132,20 +132,6 @@ public class DriveBase extends SubsystemBase {
 
         SmartDashboard.putData("Gyro", gyro);
 
-//        ReplanningConfig replanConfig =
-//                new ReplanningConfig(DriveBaseConstants.PathPlanner.PLAN_PATH_TO_STARTING_POINT,
-//                        DriveBaseConstants.PathPlanner.DYNAMIC_RE_PLANNING,
-//                        DriveBaseConstants.PathPlanner.PATH_ERROR_TOLERANCE,
-//                        DriveBaseConstants.PathPlanner.PATH_ERROR_SPIKE_TOLERANCE);
-//        // ^how pathplanner reacts to position error
-//        HolonomicPathFollowerConfig pathFollowerConfig = new HolonomicPathFollowerConfig(
-//                DriveBaseConstants.PathPlanner.XY_PID.createPIDConstants(),
-//                DriveBaseConstants.PathPlanner.THETA_PID.createPIDConstants(),
-//                MAX_FREE_WHEEL_SPEED,
-//                Math.sqrt(Math.pow(SwerveModule.DISTANCE_BETWEEN_WHEELS, 2) * 2) / 2,
-//                replanConfig);
-        //^creates path constraints for pathPlanner
-
         RobotConfig config;
         try {
             config = RobotConfig.fromGUISettings();
@@ -154,22 +140,19 @@ public class DriveBase extends SubsystemBase {
 
         }
 
-        AutoBuilder.configure(null, null, null, null, null, config, null, null);
-
-
-        AutoBuilder.configureHolonomic(
-                this::getPose,
-                this::reset,
-                this::getChassisSpeeds,
-                this::drive,
-                pathFollowerConfig,
-                () -> {
+        AutoBuilder.configure(
+            this::getPose,
+            this::reset,
+            this::getChassisSpeeds,
+            (chassisSpeeds, feedForwars) -> {},
+            null,
+            config,
+            () -> {
                     if (DriverStation.getAlliance().isPresent())
                         return DriverStation.getAlliance().get() == Alliance.Red;
                     else return false;
                 },
-                this);
-        //^configures the auto builder for pathPlanner
+            this);
 
         new Trigger(RobotState::isEnabled).whileTrue(new StartEndCommand(() -> // sets the modules to brake mode when the robot is enabled
                 setModulesBrakeMode(true)
@@ -277,7 +260,11 @@ public class DriveBase extends SubsystemBase {
      * @return the current chassis speeds
      */
     public ChassisSpeeds getAbsoluteChassisSpeeds() {
-        return ChassisSpeeds.fromRobotRelativeSpeeds(getChassisSpeeds(), getRotation2d());
+        ChassisSpeeds speeds = getChassisSpeeds();
+
+        speeds.toFieldRelativeSpeeds(getRotation2d());
+
+        return speeds;
     }
 
     /**
@@ -307,10 +294,12 @@ public class DriveBase extends SubsystemBase {
      * @param rotationSpeed the rotation of the robot (left is positive) rad/s
      */
     public void drive(double Xspeed, double Yspeed, double rotationSpeed, Translation2d centerOfRotation) {
-        ChassisSpeeds fieldRelativeSpeeds =
-                ChassisSpeeds.fromFieldRelativeSpeeds(Xspeed, Yspeed, rotationSpeed, getRotation2d());
 
-        targetStates = driveTrainKinematics.toSwerveModuleStates(fieldRelativeSpeeds, centerOfRotation);
+        ChassisSpeeds robotRelativeSpeeds = new ChassisSpeeds(Xspeed, Yspeed, rotationSpeed);
+
+        robotRelativeSpeeds.toRobotRelativeSpeeds(getRotation2d());
+
+        targetStates = driveTrainKinematics.toSwerveModuleStates(robotRelativeSpeeds, centerOfRotation);
         SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, MAX_FREE_WHEEL_SPEED);
 
         for (int i = 0; i < 4; i++) {
@@ -399,18 +388,6 @@ public class DriveBase extends SubsystemBase {
     /**
      * path finds a path from the current pose to the target pose
      *
-     * @param targetPose    the target pose
-     * @param endVelocity   the velocity the robot should be in when it reaches the end of the path in m/s
-     * @param rotationDelay the delay in meters before the robot starts rotation
-     * @return a command that follows a path to the target pose
-     */
-    public Command findPath(Pose2d targetPose, double endVelocity, double rotationDelay) {
-        return AutoBuilder.pathfindToPose(targetPose, DriveBaseConstants.PathPlanner.PATH_CONSTRAINTS, endVelocity, rotationDelay);
-    }
-
-    /**
-     * path finds a path from the current pose to the target pose
-     *
      * @param targetPose  the target pose
      * @param endVelocity the velocity the robot should be in when it reaches the end of the path in m/s
      * @return a command that follows a path to the target pose
@@ -437,17 +414,6 @@ public class DriveBase extends SubsystemBase {
      */
     public Command pathFindToPathAndFollow(PathPlannerPath targetPath) {
         return AutoBuilder.pathfindThenFollowPath(targetPath, DriveBaseConstants.PathPlanner.PATH_CONSTRAINTS);
-    }
-
-    /**
-     * path finds to a given path then follows that path
-     *
-     * @param targetPath    the path to path finds to and follow
-     * @param rotationDelay the delay in meters in which the robot does not change it's holonomic angle
-     * @return a command that path finds to a given path then follows that path
-     */
-    public Command pathFindToPathAndFollow(PathPlannerPath targetPath, double rotationDelay) {
-        return AutoBuilder.pathfindThenFollowPath(targetPath, DriveBaseConstants.PathPlanner.PATH_CONSTRAINTS, rotationDelay);
     }
 
     SwerveModulePosition[] previousPositions = new SwerveModulePosition[]{
