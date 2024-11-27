@@ -1,6 +1,5 @@
 package frc.util.MarinersController;
 
-import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -10,10 +9,12 @@ import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.util.PIDFGains;
 
 /**
  * A class to control a TalonFX motor controller
+ *
  * @see MarinersController
  * @see TalonFX
  */
@@ -28,35 +29,33 @@ public class MarinersTalonFX extends MarinersController {
      * the configuration for the motor output
      * (needed that info is not lost when changing the motor output)
      */
-    private final TalonFXConfiguration config = new TalonFXConfiguration();
+    private final MotorOutputConfigs motorOutputConfig = new MotorOutputConfigs();
 
     /**
      * create a new measurement object for the motor
      * using the built-in position, velocity, and acceleration
      * this creates a measurement object that waits for all the signals to update before returning the value
      * (that means that it is a blocking call)
+     *
      * @param gearRatio the gear ratio of the motor
      * @return the new measurement object
      */
-    private MarinersMeasurements createMeasurement(double gearRatio){
+    private MarinersMeasurements createMeasurement(double gearRatio) {
         return new MarinersMeasurements(
-            () -> {
-                BaseStatusSignal.waitForAll(2 / RUN_HZ, motor.getPosition(), motor.getVelocity(), motor.getAcceleration());
-
-                return motor.getPosition().getValueAsDouble();
-            },
-            () -> motor.getVelocity().getValueAsDouble(),
-            () -> motor.getAcceleration().getValueAsDouble(),
-            gearRatio
+                () -> motor.getPosition().getValueAsDouble(),
+                () -> motor.getVelocity().getValueAsDouble(),
+                () -> motor.getAcceleration().getValueAsDouble(),
+                gearRatio
         );
     }
 
     /**
      * creates the controller
-     * @param name the name of the controller (for logging)
+     *
+     * @param name     the name of the controller (for logging)
      * @param location the location of the controller (RIO or MOTOR)
      */
-    public MarinersTalonFX(String name, ControllerLocation location, int id){
+    public MarinersTalonFX(String name, ControllerLocation location, int id) {
         super(name, location);
 
         this.motor = createMotor(id);
@@ -65,22 +64,24 @@ public class MarinersTalonFX extends MarinersController {
 
     /**
      * creates the controller
-     * @param name the name of the controller (for logging)
+     *
+     * @param name     the name of the controller (for logging)
      * @param location the location of the controller (RIO or MOTOR)
-     * @param gains the PIDF gains for the controller (the units are voltage to measurements units)
+     * @param gains    the PIDF gains for the controller (the units are voltage to measurements units)
      */
-    public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains){
+    public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains) {
         this(name, location, id, gains, 1);
     }
 
     /**
      * creates the controller
-     * @param name the name of the controller (for logging)
-     * @param location the location of the controller (RIO or MOTOR)
-     * @param gains the PIDF gains for the controller
+     *
+     * @param name      the name of the controller (for logging)
+     * @param location  the location of the controller (RIO or MOTOR)
+     * @param gains     the PIDF gains for the controller
      * @param gearRatio the gear ratio of the motor
      */
-    public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains, double gearRatio){
+    public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains, double gearRatio) {
         super(name, location);
 
         this.motor = createMotor(id);
@@ -93,16 +94,17 @@ public class MarinersTalonFX extends MarinersController {
     /**
      * @return the TalonFX motor controller
      */
-    public TalonFX getMotor(){
+    public TalonFX getMotor() {
         return motor;
     }
 
     /**
      * creates a new TalonFX motor controller
+     *
      * @param id the id of the motor controller
      * @return the new motor controller
      */
-    private TalonFX createMotor(int id){
+    private TalonFX createMotor(int id) {
         TalonFX talonFX = new TalonFX(id);
 
         talonFX.getConfigurator().apply(new TalonFXConfiguration());
@@ -158,15 +160,20 @@ public class MarinersTalonFX extends MarinersController {
     }
 
     @Override
-    public void setCurrentLimits(int currentLimit, int currentThreshold) {
+    public void setCurrentLimits(double currentLimit, double currentThreshold) {
 
-        CurrentLimitsConfigs limit = config.CurrentLimits;
+        if (currentLimit <= 0 || currentThreshold <= 0) {
+            DriverStation.reportError("Current limit and threshold must be greater than 0 for motor" + name, false);
+            return;
+        }
 
-        limit.SupplyCurrentLowerLimit = currentLimit;
+        CurrentLimitsConfigs limit = new CurrentLimitsConfigs();
 
-        limit.SupplyCurrentLimit = currentThreshold;
+        limit.SupplyCurrentLimit = currentLimit;
 
         limit.SupplyCurrentLimitEnable = true;
+
+        limit.SupplyCurrentThreshold = currentThreshold;
 
         StatusCode error = motor.getConfigurator().apply(limit);
         reportError("Error setting current limits", error);
@@ -174,9 +181,6 @@ public class MarinersTalonFX extends MarinersController {
 
     @Override
     protected void setMaxMinOutputMotor(double max, double min) {
-
-        MotorOutputConfigs motorOutputConfig = config.MotorOutput;
-
         motorOutputConfig.PeakForwardDutyCycle = max / 12;
 
         motorOutputConfig.PeakReverseDutyCycle = -Math.abs(min / 12);
@@ -187,13 +191,10 @@ public class MarinersTalonFX extends MarinersController {
 
     @Override
     public void setMotorInverted(boolean inverted) {
-        MotorOutputConfigs motorOutputConfig = config.MotorOutput;
+        motor.setInverted(inverted);
 
         motorOutputConfig.Inverted =
                 inverted ? InvertedValue.CounterClockwise_Positive : InvertedValue.Clockwise_Positive;
-
-        StatusCode error = motor.getConfigurator().apply(motorOutputConfig);
-        reportError("Error setting motor inverted", error);
     }
 
     @Override
@@ -208,8 +209,6 @@ public class MarinersTalonFX extends MarinersController {
 
     @Override
     protected void setMotorDeadBandDutyCycleMotor(double deadBand) {
-        MotorOutputConfigs motorOutputConfig = config.MotorOutput;
-
         motorOutputConfig.DutyCycleNeutralDeadband = Math.abs(deadBand);
 
         StatusCode error = motor.getConfigurator().apply(motorOutputConfig);
@@ -218,10 +217,10 @@ public class MarinersTalonFX extends MarinersController {
 
 
     @Override
-    public void setMotorIdleMode(boolean brake){
+    public void setMotorIdleMode(boolean brake) {
         NeutralModeValue mode = brake ? NeutralModeValue.Brake : NeutralModeValue.Coast;
 
-        config.MotorOutput.NeutralMode = mode;
+        motorOutputConfig.NeutralMode = mode;
         motor.setNeutralMode(mode);
     }
 
@@ -239,12 +238,9 @@ public class MarinersTalonFX extends MarinersController {
 
     @Override
     protected void setMotorFollower(MarinersController master, boolean invert) {
-        MarinersTalonFX base = (MarinersTalonFX)master;
+        MarinersTalonFX base = (MarinersTalonFX) master;
 
         Follower follower = new Follower(base.getMotor().getDeviceID(), invert);
-
-        StatusCode error = motor.setControl(follower);
-        reportError("Error setting follower", error);
     }
 
     @Override
@@ -252,37 +248,37 @@ public class MarinersTalonFX extends MarinersController {
         motor.stopMotor();
     }
 
-    /**
-     * reports an error if the error code is not OK
-     * @param message the message to report
-     * @param error the error code
-     */
-    private void reportError(String message, StatusCode error) {
-        if(error != StatusCode.OK){
-            super.reportError(message, error.name());
-        }
-    }
-
     @Override
     protected void setOutput(double motorOutput, ControlMode controlMode, double feedForward) {
-         ControlRequest request = switch (controlMode){
-                case Position, ProfiledPosition -> new PositionVoltage(motorOutput)
-                        .withFeedForward(feedForward);
+        ControlRequest request = switch (controlMode) {
+            case Position, ProfiledPosition -> new PositionVoltage(motorOutput)
+                    .withFeedForward(feedForward);
 
-                case Velocity, ProfiledVelocity -> new VelocityVoltage(motorOutput)
-                        .withFeedForward(feedForward);
+            case Velocity, ProfiledVelocity -> new VelocityVoltage(motorOutput)
+                    .withFeedForward(feedForward);
 
-                case Voltage -> new VoltageOut(motorOutput);
+            case Voltage -> new VoltageOut(motorOutput);
 
-                case DutyCycle -> new DutyCycleOut(motorOutput);
+            case DutyCycle -> new DutyCycleOut(motorOutput);
 
-                default -> config.MotorOutput.NeutralMode == NeutralModeValue.Brake ?
-                        new StaticBrake() :
-                        new CoastOut();
+            default -> switch (motorOutputConfig.NeutralMode) {
+                case Brake -> new StaticBrake();
+                case Coast -> new CoastOut();
             };
+        };
 
-            StatusCode error = motor.setControl(request);
-            reportError("Error setting motor output", error);
+        StatusCode error = motor.setControl(request);
+        reportError("Error setting motor output", error);
+}
 
+    /**
+     * reports an error to the driver station
+     * @param message the message to report
+     * @param statusCode the status code of the error
+     */
+    private void reportError(String message, StatusCode statusCode){
+        if(!statusCode.isOK()){
+            DriverStation.reportError(message + " for motor" + name + ": " + statusCode, false);
+        }
     }
 }

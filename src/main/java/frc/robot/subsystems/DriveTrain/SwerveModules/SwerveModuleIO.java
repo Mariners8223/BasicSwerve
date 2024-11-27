@@ -13,6 +13,7 @@ public abstract class SwerveModuleIO{
         public SwerveModuleState currentState = new SwerveModuleState();
 
         public double drivePositionMeters = 0.0;
+        public double absPosition = 0.0;
     }
 
     /**
@@ -26,6 +27,13 @@ public abstract class SwerveModuleIO{
      * @param reference the target for the built-in PID controller
      */
     public abstract void setDriveMotorReference(double reference);
+
+    /**
+     * sets the voltage for the drive motor
+     *
+     * @param voltage the voltage to set the motor to
+     */
+    public abstract void setDriveMotorVoltage(double voltage);
 
     /**
      * sets the reference for the steer motor
@@ -60,7 +68,11 @@ public abstract class SwerveModuleIO{
      * @return the configured abs encoder
      */
     protected DutyCycleEncoder configDutyCycleEncoder(int absEncoderID, double zeroOffset) {
-        return new DutyCycleEncoder(absEncoderID, 1, zeroOffset);
+        DutyCycleEncoder encoder = new DutyCycleEncoder(absEncoderID);
+        encoder.reset();
+        encoder.setPositionOffset(zeroOffset);
+
+        return encoder;
     }
 
     /**

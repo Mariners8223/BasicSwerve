@@ -1,15 +1,13 @@
 // NavxIO.java
 package frc.util.FastGyros;
 
+import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
-
-import com.studica.frc.AHRS;
-import com.studica.frc.AHRS.NavXComType;
 
 
 public final class NavxIO implements GyroIO {
@@ -37,7 +35,7 @@ public final class NavxIO implements GyroIO {
 
     public NavxIO(boolean isInverted) {
         this.isInverted = isInverted;
-        this.navx = new AHRS(NavXComType.kMXP_SPI);
+        this.navx = new AHRS();
         this.inputs = new NavxInputsAutoLogged();
    }
 

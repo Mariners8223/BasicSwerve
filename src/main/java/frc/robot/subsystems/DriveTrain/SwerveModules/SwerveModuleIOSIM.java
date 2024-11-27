@@ -3,7 +3,6 @@ package frc.robot.subsystems.DriveTrain.SwerveModules;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
@@ -25,10 +24,6 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
 
     public SwerveModuleIOSIM(SwerveModule.ModuleName name) {
-        DCMotor driveMotorModel;
-        DCMotor steerMotorModel;
-
-        double DRIVE_KV, DRIVE_KA, STEER_KV, STEER_KA;
 
         if (Constants.ROBOT_TYPE == Constants.RobotType.DEVELOPMENT) {
             DRIVE_GEAR_RATIO = DevBotConstants.DRIVE_GEAR_RATIO;
@@ -39,39 +34,23 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
             driveMotorPIDController = constants.DRIVE_MOTOR_PID.createPIDController();
             steerMotorPIDController = constants.STEER_MOTOR_PID.createPIDController();
-
-            driveMotorModel = DCMotor.getKrakenX60(1);
-            steerMotorModel = DCMotor.getNEO(1);
-
-            DRIVE_KV = constants.DRIVE_KV;
-            DRIVE_KA = constants.DRIVE_KA;
-            STEER_KV = constants.STEER_KV;
-            STEER_KA = constants.STEER_KA;
         }
         else {
             DRIVE_GEAR_RATIO = CompBotConstants.DRIVE_GEAR_RATIO;
             STEER_GEAR_RATIO = CompBotConstants.STEER_GEAR_RATIO;
             WHEEL_RADIUS_METERS = CompBotConstants.WHEEL_RADIUS_METERS;
 
-            CompBotConstants constants = CompBotConstants.values()[name.ordinal()];
+                                CompBotConstants constants = CompBotConstants.values()[name.ordinal()];
 
             driveMotorPIDController = constants.DRIVE_MOTOR_PID.createPIDController();
             steerMotorPIDController = constants.STEER_MOTOR_PID.createPIDController();
-
-            driveMotorModel = DCMotor.getFalcon500(1);
-            steerMotorModel = DCMotor.getNEO(1);
-
-            DRIVE_KV = constants.DRIVE_KV;
-            DRIVE_KA = constants.DRIVE_KA;
-            STEER_KV = constants.STEER_KV;
-            STEER_KA = constants.STEER_KA;
         }
 
-        driveMotor = new DCMotorSim(LinearSystemId.createDCMotorSystem(DRIVE_KV, DRIVE_KA),
-                driveMotorModel.withReduction(DRIVE_GEAR_RATIO), 0);
+        driveMotor = new DCMotorSim(DCMotor.getFalcon500(1), 1, 0.025 / DRIVE_GEAR_RATIO);
 
-        steerMotor = new DCMotorSim(LinearSystemId.createDCMotorSystem(STEER_KV, STEER_KA),
-                steerMotorModel.withReduction(STEER_GEAR_RATIO), 0);
+        steerMotor = new DCMotorSim(DCMotor.getNEO(1), 1, 0.004 / STEER_GEAR_RATIO);
+
+
 
         this.name = name.name();
     }
@@ -100,6 +79,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         double driveMotorVoltage = driveMotorPIDController.calculate(driveMotorVelocity, driveMotorReferenceNativeUnits);
 
         driveMotor.setInputVoltage(driveMotorVoltage * RobotController.getBatteryVoltage());
+    }
+
+    @Override
+    public void setDriveMotorVoltage(double voltage) {
+        driveMotor.setInputVoltage(voltage);
     }
 
     @Override
@@ -154,6 +138,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
         @Override
         public void setDriveMotorReference(double reference) {
+
+        }
+
+        @Override
+        public void setDriveMotorVoltage(double voltage) {
 
         }
 

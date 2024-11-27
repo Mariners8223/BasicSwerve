@@ -1,23 +1,8 @@
 package frc.util.MarinersController;
 
 import com.revrobotics.*;
-import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkLowLevel;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.config.AbsoluteEncoderConfig;
-import com.revrobotics.spark.config.ClosedLoopConfig;
-import com.revrobotics.spark.config.ExternalEncoderConfig;
-import com.revrobotics.spark.config.SignalsConfig;
-import com.revrobotics.spark.config.SparkBaseConfig;
-import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.util.PIDFGains;
 
 import java.util.function.Function;
@@ -43,13 +28,7 @@ public class MarinersSparkBase extends MarinersController {
     /**
      * the motor controller object
      */
-    private final SparkBase motor;
-
-    /**
-     * the configuration for the motor controller
-     * used for setting the motor controller's settings
-     */
-    private final SparkBaseConfig config;
+    private final CANSparkBase motor;
 
     /**
      * the type of motor controller
@@ -57,10 +36,9 @@ public class MarinersSparkBase extends MarinersController {
      */
     private final MotorType type;
 
-    public static final double ENERGY_LOSS_WATTS = 1;
-
     /**
      * sets the measurements for the motor controller using the built-in encoder
+     *
      * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by)
      */
     private void setMeasurements(double gearRatio) {
@@ -75,41 +53,21 @@ public class MarinersSparkBase extends MarinersController {
         );
     }
 
-        /**
+    /**
      * creates a new spark motor controller
-     * this will create a motor that can only be controlled by duty cycle or voltage
-     * until {@link #setPIDF(PIDFGains)} or {@link #setPIDF(PIDFGains, Function)} is called
-     * @param id the id of the motor controller
+     *
+     * @param id          the id of the motor controller
      * @param isBrushless if the motor is brushless
-     * @param type the type of motor controller
-     * @param name the name of the motor controller
+     * @param type        the type of motor controller
+     * @param gains       the PIDF gains for the motor controller
+     * @param gearRatio   the gear ratio of the motor controller (the value that the measurements will be divided by)
+     * @param name        the name of the motor controller
      */
-    public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type) {
+    public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio) {
         super(name, location);
 
         this.type = type;
-
-        config = switch(type){
-            case SPARK_MAX -> new SparkMaxConfig();
-            case SPARK_FLEX -> new SparkFlexConfig();
-        };
-
         motor = createSparkBase(id, isBrushless, type);
-
-        setMeasurements(1);
-    }
-
-    /**
-     * creates a new spark motor controller
-     * @param id the id of the motor controller
-     * @param isBrushless if the motor is brushless
-     * @param type the type of motor controller
-     * @param gains the PIDF gains for the motor controller
-     * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by)
-     * @param name the name of the motor controller
-     */
-    public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio) {
-        this(name, location, id, isBrushless, type);
 
         super.setPIDF(gains);
 
@@ -118,11 +76,12 @@ public class MarinersSparkBase extends MarinersController {
 
     /**
      * creates a new spark motor controller
-     * @param id the id of the motor controller
+     *
+     * @param id          the id of the motor controller
      * @param isBrushless if the motor is brushless
-     * @param type the type of motor controller
-     * @param gains the PIDF gains for the motor controller
-     * @param name the name of the motor controller
+     * @param type        the type of motor controller
+     * @param gains       the PIDF gains for the motor controller
+     * @param name        the name of the motor controller
      */
     public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains) {
         this(name, location, id, isBrushless, type, gains, 1);
@@ -130,16 +89,20 @@ public class MarinersSparkBase extends MarinersController {
 
     /**
      * creates a new spark motor controller
-     * @param id the id of the motor controller
+     *
+     * @param id          the id of the motor controller
      * @param isBrushless if the motor is brushless
-     * @param type the type of motor controller
-     * @param gains the PIDF gains for the motor controller
-     * @param profile the trapezoid profile for the motor controller (used for motion profiling)
-     * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by)
-     * @param name the name of the motor controller
+     * @param type        the type of motor controller
+     * @param gains       the PIDF gains for the motor controller
+     * @param profile     the trapezoid profile for the motor controller (used for motion profiling)
+     * @param gearRatio   the gear ratio of the motor controller (the value that the measurements will be divided by)
+     * @param name        the name of the motor controller
      */
     public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile, double gearRatio) {
-        this(name, location, id, isBrushless, type);
+        super(name, location);
+
+        this.type = type;
+        motor = createSparkBase(id, isBrushless, type);
 
         super.setPIDF(gains);
 
@@ -150,12 +113,13 @@ public class MarinersSparkBase extends MarinersController {
 
     /**
      * creates a new spark motor controller
-     * @param id the id of the motor controller
+     *
+     * @param id          the id of the motor controller
      * @param isBrushless if the motor is brushless
-     * @param type the type of motor controller
-     * @param gains the PIDF gains for the motor controller
-     * @param profile the trapezoid profile for the motor controller (used for motion profiling)
-     * @param name the name of the motor controller
+     * @param type        the type of motor controller
+     * @param gains       the PIDF gains for the motor controller
+     * @param profile     the trapezoid profile for the motor controller (used for motion profiling)
+     * @param name        the name of the motor controller
      */
     public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, TrapezoidProfile profile) {
         this(name, location, id, isBrushless, type, gains, profile, 1);
@@ -163,19 +127,41 @@ public class MarinersSparkBase extends MarinersController {
 
     /**
      * creates a new spark motor controller
-     * @param id the id of the motor controller
+     * this will create a motor that can only be controlled by duty cycle or voltage
+     * until {@link #setPIDF(PIDFGains)} or {@link #setPIDF(PIDFGains, Function)} is called
+     *
+     * @param id          the id of the motor controller
      * @param isBrushless if the motor is brushless
-     * @param type the type of motor controller
-     * @param name the name of the motor controller
-     * @param gains the PIDF gains for the motor controller
-     * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by)
-     * @param firstDerivativeLimit the first derivative limit for the motor controller (used for motion profiling)
+     * @param type        the type of motor controller
+     * @param name        the name of the motor controller
+     */
+    public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type) {
+        super(name, location);
+
+        this.type = type;
+        motor = createSparkBase(id, isBrushless, type);
+
+        setMeasurements(1);
+    }
+
+    /**
+     * creates a new spark motor controller
+     *
+     * @param id                    the id of the motor controller
+     * @param isBrushless           if the motor is brushless
+     * @param type                  the type of motor controller
+     * @param name                  the name of the motor controller
+     * @param gains                 the PIDF gains for the motor controller
+     * @param gearRatio             the gear ratio of the motor controller (the value that the measurements will be divided by)
+     * @param firstDerivativeLimit  the first derivative limit for the motor controller (used for motion profiling)
      * @param secondDerivativeLimit the second derivative limit for the motor controller (used for motion profiling)
      */
     public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains, double gearRatio, double firstDerivativeLimit, double secondDerivativeLimit) {
-        this(name, location, id, isBrushless, type);
-        
+        super(name, location);
         super.setProfile(firstDerivativeLimit, secondDerivativeLimit);
+
+        this.type = type;
+        motor = createSparkBase(id, isBrushless, type);
 
         super.setPIDF(gains);
 
@@ -186,45 +172,43 @@ public class MarinersSparkBase extends MarinersController {
      * if using a thorough bore encoder use this function instead of {@link #useExternalAbsoluteEncoder(boolean, double, double)}
      * this will have more precise measurements and better overall
      * use this only if you have a thorough bore encoder connected to a spark flex
-     * @param inverted if the encoder is inverted (use to set the same direction as the motor)
+     *
+     * @param inverted   if the encoder is inverted (use to set the same direction as the motor)
      * @param zeroOffset the zero offset for the encoder (a value between 0 and 1) that will be removed from the absolute encoder's position
-     * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by) (need to add this if using a gear ratio between the encoder and the motor)
+     * @param gearRatio  the gear ratio of the motor controller (the value that the measurements will be divided by) (need to add this if using a gear ratio between the encoder and the motor)
      */
-    public void useExternalAbsoluteEncoderUsingRelative(boolean inverted, double zeroOffset, double gearRatio){
+    public void useExternalAbsoluteEncoderUsingRelative(boolean inverted, double zeroOffset, double gearRatio) {
 
-        if(type != MotorType.SPARK_FLEX){
+        if (type != MotorType.SPARK_FLEX) {
             throw new IllegalArgumentException("This function is only for spark flex controllers");
         }
 
-        SparkFlex sparkFlex = (SparkFlex)motor;
+        CANSparkFlex sparkFlex = (CANSparkFlex) motor;
 
-        RelativeEncoder encoder = sparkFlex.getExternalEncoder();
+        RelativeEncoder encoder = sparkFlex.getExternalEncoder(8192);
 
         AbsoluteEncoder absoluteEncoder = getAbsoluteEncoder(inverted, zeroOffset, gearRatio);
 
         REVLibError error;
 
-        SparkFlexConfig config = (SparkFlexConfig) this.config;
+        error = encoder.setInverted(inverted);
+        reportError("Error setting relative encoder inverted", error);
 
-        ExternalEncoderConfig externalEncoderConfig = config.externalEncoder;
+        error = encoder.setPositionConversionFactor(gearRatio);
+        reportError("Error setting relative encoder position conversion factor", error);
 
-        externalEncoderConfig.inverted(inverted).
-        positionConversionFactor(gearRatio).
-        velocityConversionFactor(gearRatio);
+        error = encoder.setVelocityConversionFactor(gearRatio);
+        reportError("Error setting relative encoder velocity conversion factor", error);
 
-        config.signals.externalOrAltEncoderPosition((int) (1000 / RUN_HZ)).
-        externalOrAltEncoderVelocity((int) (1000 / RUN_HZ)).
-        absoluteEncoderPositionPeriodMs(20).
-        absoluteEncoderVelocityPeriodMs(20);
+        error = encoder.setPosition(absoluteEncoder.getPosition());
+        reportError("Error setting relative encoder position", error);
 
-        config.closedLoop.feedbackSensor(FeedbackSensor.kAlternateOrExternalEncoder);
+        error = motor.getPIDController().setFeedbackDevice(encoder);
+        reportError("Error setting feedback device", error);
 
-        error = motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+        error = motor.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus4, (int) (1000 / RUN_HZ));
+        reportError("Error setting status 4 frame period", error);
 
-        reportError("Error configuring motor with external encoder", error);
-
-        encoder.setPosition(absoluteEncoder.getPosition());
-        
         super.setMeasurements(
                 new MarinersMeasurements(
                         encoder::getPosition,
@@ -238,10 +222,11 @@ public class MarinersSparkBase extends MarinersController {
      * if using a thorough bore encoder use this function instead of {@link #useExternalAbsoluteEncoder(boolean, double)}
      * this will have more precise measurements and better overall
      * use this only if you have a thorough bore encoder connected to a spark flex
-     * @param inverted if the encoder is inverted (use to set the same direction as the motor)
+     *
+     * @param inverted   if the encoder is inverted (use to set the same direction as the motor)
      * @param zeroOffset the zero offset for the encoder (a value between 0 and 1) that will be removed from the absolute encoder's position
      */
-    public void useExternalAbsoluteEncoderUsingRelative(boolean inverted, double zeroOffset){
+    public void useExternalAbsoluteEncoderUsingRelative(boolean inverted, double zeroOffset) {
         useExternalAbsoluteEncoderUsingRelative(inverted, zeroOffset, 1);
     }
 
@@ -249,18 +234,13 @@ public class MarinersSparkBase extends MarinersController {
      * sets the measurements for the motor controller using an external encoder
      * also works for using the motor's built-in controller
      * if using a spark flex controller and a thorough bore encoder use {@link #useExternalAbsoluteEncoderUsingRelative(boolean, double, double)}
-     * @param inverted if the encoder is inverted (use to set the same direction as the motor)
+     *
+     * @param inverted   if the encoder is inverted (use to set the same direction as the motor)
      * @param zeroOffset the zero offset for the encoder (a value between 0 and 1) that will be removed from the absolute encoder's position
-     * @param gearRatio the gear ratio of the motor controller (the value that the measurements will be divided by) (need to add this if using a gear ratio between the encoder and the motor)
+     * @param gearRatio  the gear ratio of the motor controller (the value that the measurements will be divided by) (need to add this if using a gear ratio between the encoder and the motor)
      */
-    public void useExternalAbsoluteEncoder(boolean inverted, double zeroOffset, double gearRatio){
+    public void useExternalAbsoluteEncoder(boolean inverted, double zeroOffset, double gearRatio) {
         AbsoluteEncoder encoder = getAbsoluteEncoder(inverted, zeroOffset, gearRatio);
-
-        config.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
-
-        REVLibError error = motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-
-        reportError("Error configuring motor with absolute encoder", error);        
 
         super.setMeasurements(
                 new MarinersMeasurements(
@@ -274,32 +254,41 @@ public class MarinersSparkBase extends MarinersController {
      * sets the measurements for the motor controller using an external encoder
      * also works for using the motor's built-in controller
      * if using a spark flex controller and a thorough bore encoder use {@link #useExternalAbsoluteEncoderUsingRelative(boolean, double)}
-     * @param inverted if the encoder is inverted (use to set the same direction as the motor)
+     *
+     * @param inverted   if the encoder is inverted (use to set the same direction as the motor)
      * @param zeroOffset the zero offset for the encoder (a value between 0 and 1) that will be removed from the absolute encoder's position
      */
-    public void useExternalAbsoluteEncoder(boolean inverted, double zeroOffset){
+    public void useExternalAbsoluteEncoder(boolean inverted, double zeroOffset) {
         useExternalAbsoluteEncoder(inverted, zeroOffset, 1);
     }
 
     /**
      * gets the absolute encoder for the motor controller
-     * @param inverted if the encoder is inverted
+     *
+     * @param inverted   if the encoder is inverted
      * @param zeroOffset the zero offset for the encoder
-     * @param gearRatio the gear ratio of the motor controller
+     * @param gearRatio  the gear ratio of the motor controller
      * @return the absolute encoder for the motor controller
      */
-    private AbsoluteEncoder getAbsoluteEncoder(boolean inverted, double zeroOffset, double gearRatio){
+    private AbsoluteEncoder getAbsoluteEncoder(boolean inverted, double zeroOffset, double gearRatio) {
         AbsoluteEncoder encoder = motor.getAbsoluteEncoder();
 
-        AbsoluteEncoderConfig encoderConfig = config.absoluteEncoder;
+        REVLibError error;
 
-        encoderConfig.inverted(inverted).
-        zeroOffset(zeroOffset).
-        positionConversionFactor(gearRatio).
-        velocityConversionFactor(gearRatio);
+        error = encoder.setInverted(inverted);
+        reportError("Error setting absolute encoder inverted", error);
 
-        config.signals.absoluteEncoderPositionPeriodMs((int) (1000 / RUN_HZ))
-        .absoluteEncoderVelocityPeriodMs((int) (1000 / RUN_HZ));
+        error = encoder.setZeroOffset(zeroOffset);
+        reportError("Error setting absolute encoder zero offset", error);
+
+        error = encoder.setPositionConversionFactor(gearRatio);
+        reportError("Error setting absolute encoder position conversion factor", error);
+
+        error = encoder.setVelocityConversionFactor(gearRatio);
+        reportError("Error setting absolute encoder velocity conversion factor", error);
+
+        error = motor.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus5, (int) (1000 / RUN_HZ));
+        reportError("Error setting status 5 frame period", error);
 
         return encoder;
     }
@@ -307,96 +296,94 @@ public class MarinersSparkBase extends MarinersController {
 
     /**
      * creates a new spark motor controller
-     * @param id the id of the motor controller
+     *
+     * @param id          the id of the motor controller
      * @param isBrushless if the motor is brushless
-     * @param type the type of motor controller
+     * @param type        the type of motor controller
      * @return the new spark motor controller
      */
-    private SparkBase createSparkBase(int id, boolean isBrushless, MotorType type) {
+    private CANSparkBase createSparkBase(int id, boolean isBrushless, MotorType type) {
 
-        SparkLowLevel.MotorType motorType = isBrushless ? SparkLowLevel.MotorType.kBrushless : SparkLowLevel.MotorType.kBrushed;
-
-        SparkBase sparkBase = switch (type) {
+        CANSparkBase sparkBase = switch (type) {
             case SPARK_MAX ->
-                    new SparkMax(id, motorType);
+                    new CANSparkMax(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
             case SPARK_FLEX ->
-                    new SparkFlex(id, motorType);
+                    new CANSparkFlex(id, isBrushless ? CANSparkMax.MotorType.kBrushless : CANSparkMax.MotorType.kBrushed);
         };
+
+        REVLibError error = sparkBase.restoreFactoryDefaults();
+        reportError("Error restoring factory defaults", error);
 
         int period = (int) (1000 / RUN_HZ);
 
-        int robotMainThreadPeriod = 20;
-
         sparkBase.setControlFramePeriodMs(period);
 
-        SignalsConfig signalsConfig = config.signals;
+        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus0, 1000 / 100);
+        reportError("Error setting status 0 frame period", error);
 
-        signalsConfig.appliedOutputPeriodMs(10).
-        primaryEncoderPositionPeriodMs(period).
-        primaryEncoderVelocityPeriodMs(period).
-        busVoltagePeriodMs(robotMainThreadPeriod).
-        faultsPeriodMs(robotMainThreadPeriod).
-        motorTemperaturePeriodMs(robotMainThreadPeriod);
+        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, period);
+        reportError("Error setting status 1 frame period", error);
 
-        config.voltageCompensation(12);
+        error = sparkBase.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, period);
+        reportError("Error setting status 2 frame period", error);
 
-        REVLibError error = motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-        
-        reportError("Error configuring motor", error);
-        
+        error = sparkBase.enableVoltageCompensation(12);
+        reportError("Error enabling voltage compensation", error);
+
         return sparkBase;
     }
 
     /**
      * sets the current limits for the motor
-     * @param stallCurrentLimit the current limit for the motor when stalled
+     *
+     * @param stallCurrentLimit     the current limit for the motor when stalled
      * @param freeSpeedCurrentLimit the current limit for the motor when at free speed
-     * @param thresholdRPM the rpm that below it the motor will be considered stalled (after that value the current limit will scale untill the limit set untill free speed)
+     * @param thresholdRPM          the rpm that above it will be considered free speed
      * @param thresholdCurrentLimit the current threshold for the motor (above this value the motor will be disabled for a short period of time)
      */
     public void setCurrentLimits(int stallCurrentLimit, int freeSpeedCurrentLimit, int thresholdRPM, int thresholdCurrentLimit) {
 
-        config.smartCurrentLimit(stallCurrentLimit, freeSpeedCurrentLimit, thresholdRPM);
+        REVLibError error = motor.setSmartCurrentLimit(stallCurrentLimit, freeSpeedCurrentLimit, thresholdRPM);
+        reportError("Error setting smart current limit", error);
 
-        config.secondaryCurrentLimit(thresholdCurrentLimit);
-
-        REVLibError error = motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-        
-        reportError("Error configuring motor current limits", error);
-        
+        error = motor.setSecondaryCurrentLimit(thresholdCurrentLimit);
+        reportError("Error setting secondary current limit", error);
     }
 
     /**
      * sets the current limits for the motor
-     * @param smartCurrentLimit the current limit for the motor (the motor will try to stay below this value)
+     *
+     * @param smartCurrentLimit     the current limit for the motor (the motor will try to stay below this value)
      * @param thresholdCurrentLimit the current threshold for the motor (above this value the motor will be disabled for a short period of time)
      */
-    @Override
-    public void setCurrentLimits(int smartCurrentLimit, int thresholdCurrentLimit){
+    public void setCurrentLimits(int smartCurrentLimit, int thresholdCurrentLimit) {
 
-        config.smartCurrentLimit(smartCurrentLimit);
+        REVLibError error = motor.setSmartCurrentLimit(smartCurrentLimit);
+        reportError("Error setting smart current limit", error);
 
-        config.secondaryCurrentLimit(thresholdCurrentLimit);
-
-        REVLibError error = motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-        
-        reportError("Error configuring motor current limits", error);
-        
-    }
-
-
-    private void reportError(String message, REVLibError error){
-        if(error != REVLibError.kOk){
-            super.reportError(message, error.name());
-        }
+        error = motor.setSecondaryCurrentLimit(thresholdCurrentLimit);
+        reportError("Error setting secondary current limit", error);
     }
 
     /**
      * gets the motor object
+     *
      * @return the motor object
      */
-    public SparkBase getMotor(){
+    public CANSparkBase getMotor() {
         return motor;
+    }
+
+    /**
+     * reports an error to the driver station
+     *
+     * @param message the message to report
+     * @param error   the error to report
+     */
+    private void reportError(String message, REVLibError error) {
+        if (error != REVLibError.kOk) {
+            DriverStation.reportError(message + " for motor" + name + "with ID" + motor.getDeviceId() + ": " + error, false);
+        }
     }
 
     @Override
@@ -406,7 +393,7 @@ public class MarinersSparkBase extends MarinersController {
         inputs.voltageInput = motor.getBusVoltage();
         inputs.voltageOutput = inputs.dutyCycle * inputs.voltageInput;
         inputs.temperature = motor.getMotorTemperature();
-        inputs.currentDraw = ((inputs.currentOutput * inputs.voltageInput + ENERGY_LOSS_WATTS) / inputs.voltageInput);
+        inputs.currentDraw = (inputs.currentOutput * inputs.voltageInput) / inputs.voltageInput;
         inputs.powerOutput = inputs.voltageOutput * inputs.currentOutput;
         inputs.powerDraw = inputs.voltageInput * inputs.currentDraw;
 
@@ -415,36 +402,26 @@ public class MarinersSparkBase extends MarinersController {
 
     @Override
     protected void setMotorFollower(MarinersController master, boolean invert) {
-        if(master.getClass() != MarinersSparkBase.class){
+        if (master.getClass() != MarinersSparkBase.class) {
             throw new IllegalArgumentException("cannot set a motor as follower to a different kind of motor");
         }
 
-        MarinersSparkBase base = (MarinersSparkBase)master;
+        MarinersSparkBase base = (MarinersSparkBase) master;
 
-        config.follow(base.getMotor(), invert);
+        motor.follow(base.getMotor());
 
-        REVLibError error = motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-        
-        reportError("Error configuring motor follower", error);
-        
+        motor.setInverted(invert != base.getMotor().getInverted());
     }
 
 
     @Override
-    public void setMotorIdleMode(boolean brake){
-        IdleMode mode = brake ? IdleMode.kBrake : IdleMode.kCoast;
-
-        config.idleMode(mode);
-
-        REVLibError error = motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-        
-        reportError("Error configuring motor idle mode", error);
-        
+    public void setMotorIdleMode(boolean brake) {
+        motor.setIdleMode(brake ? CANSparkMax.IdleMode.kBrake : CANSparkMax.IdleMode.kCoast);
     }
 
 
     @Override
-    protected void stopMotorOutput(){
+    protected void stopMotorOutput() {
         motor.stopMotor();
     }
 
@@ -455,37 +432,36 @@ public class MarinersSparkBase extends MarinersController {
 
     @Override
     protected void setPIDFMotor(PIDFGains gains) {
-        
-        ClosedLoopConfig controller = config.closedLoop;
+        SparkPIDController controller = motor.getPIDController();
 
+        REVLibError error;
 
-        controller.p(gains.getP() / measurements.getGearRatio() / 12);
-        controller.i(gains.getI() / measurements.getGearRatio() / 12);
-        controller.d(gains.getD() / measurements.getGearRatio() / 12);
-        controller.iZone(gains.getIZone() / measurements.getGearRatio() / 12);
-        
-        REVLibError error = motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-        
-        reportError("Error configuring motor PID", error);
-        
+        error = controller.setP(gains.getP() / measurements.getGearRatio() / 12);
+        reportError("Error setting P gain", error);
+
+        error = controller.setI(gains.getI() / measurements.getGearRatio() / 12);
+        reportError("Error setting I gain", error);
+
+        error = controller.setD(gains.getD() / measurements.getGearRatio() / 12);
+        reportError("Error setting D gain", error);
+
+        error = controller.setIZone(gains.getIZone() / measurements.getGearRatio() / 12);
+        reportError("Error setting I zone", error);
+    }
+
+    @Override
+    public void setCurrentLimits(double currentLimit, double currentThreshold) {
+        setCurrentLimits((int) currentLimit, (int) currentThreshold);
     }
 
     @Override
     protected void setMaxMinOutputMotor(double max, double min) {
-
-        ClosedLoopConfig controller = config.closedLoop;
-
-        controller.outputRange(-Math.abs(min) / 12, max / 12);
-
-        REVLibError error = motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-        
-        reportError("Error configuring motor output range", error);
-        
+        motor.getPIDController().setOutputRange(-Math.abs(min) / 12, max / 12);
     }
 
     @Override
     protected void setMotorDeadBandDutyCycleMotor(double deadBand) {
-        reportWarning("Dead band for spark controllers is only available for controllers running on rio");
+        DriverStation.reportError("Dead band for spark controllers is only available for controllers running on rio", false);
     }
 
     @Override
@@ -500,15 +476,14 @@ public class MarinersSparkBase extends MarinersController {
 
     @Override
     protected void setOutput(double output, ControlMode controlMode, double feedForward) {
-        SparkBase.ControlType controlType = switch (controlMode){
-            case Voltage -> SparkBase.ControlType.kVoltage;
-            case Position, ProfiledPosition -> SparkBase.ControlType.kPosition;
-            case Velocity, ProfiledVelocity -> SparkBase.ControlType.kVelocity;
-            default -> SparkBase.ControlType.kDutyCycle;
+        CANSparkBase.ControlType controlType = switch (controlMode) {
+            case Voltage -> CANSparkBase.ControlType.kVoltage;
+            case Velocity, ProfiledVelocity -> CANSparkBase.ControlType.kVelocity;
+            case Position, ProfiledPosition -> CANSparkBase.ControlType.kPosition;
+            default -> CANSparkBase.ControlType.kDutyCycle;
         };
 
-        REVLibError error = motor.getClosedLoopController().setReference(output, controlType, 0, feedForward);
-        
-        reportError("Error setting motor output", error);
+        REVLibError error = motor.getPIDController().setReference(output, controlType, 0, feedForward);
+        reportError("Error setting reference", error);
     }
 }

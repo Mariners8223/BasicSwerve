@@ -1,6 +1,6 @@
 package frc.util;
 
-import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.util.PIDConstants;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -45,17 +45,29 @@ public class PIDFGains {
       this._Period = 0.02;
     }
 
-    public PIDFGains(double kP, double kI, double kD, double period) {
+    public PIDFGains(double kP, double kI, double kD, double kF) {
       this._kP = kP;
       this._kI = kI;
       this._kD = kD;
-      this._kF = 0;
+      this._kF = kF;
       this._tolerance = 0;
       this._iZone = 0;
       this._maxAcceleration = 0;
       this._maxVelocity = 0;
-      this._Period = period;
+      this._Period = 0.02;
     }
+
+    // public PIDFGains(double kP, double kI, double kD, double period) {
+    //   this._kP = kP;
+    //   this._kI = kI;
+    //   this._kD = kD;
+    //   this._kF = 0;
+    //   this._tolerance = 0;
+    //   this._iZone = 0;
+    //   this._maxAcceleration = 0;
+    //   this._maxVelocity = 0;
+    //   this._Period = period;
+    // }
 
     public PIDFGains(double kP, double kI, double kD, double maxVelocity, double maxAcceleration) {
       this._kP = kP;
@@ -139,15 +151,29 @@ public class PIDFGains {
 
     public PIDController createPIDController() {
       var controller = new PIDController(_kP, _kI, _kD, _Period);
-      controller.setTolerance(_tolerance);
-      controller.setIZone(_iZone);
+    
+      if(_tolerance != 0) {
+        controller.setTolerance(_tolerance);
+      }
+
+      if(_iZone != 0) {
+        controller.setIZone(_iZone);
+      }
+
       return controller;
     }
 
     public ProfiledPIDController createProfiledPIDController() {
       var controller = new ProfiledPIDController(_kP, _kI, _kD, new TrapezoidProfile.Constraints(_maxVelocity , _maxAcceleration), _Period);
-      controller.setTolerance(_tolerance);
-      controller.setIZone(_iZone);
+      
+      if(_tolerance != 0) {
+        controller.setTolerance(_tolerance);
+      }
+      
+      if(_iZone != 0) {
+        controller.setIZone(_iZone);
+      }
+
       return controller;
     }
   }

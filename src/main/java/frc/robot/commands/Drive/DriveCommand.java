@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import frc.robot.subsystems.DriveTrain.DriveBase;
 
-import static frc.robot.subsystems.DriveTrain.DriveBaseConstants.DISTANCE_BETWEEN_WHEELS;
+import static frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModule.DISTANCE_BETWEEN_WHEELS;
 
 public class DriveCommand extends Command {
 
