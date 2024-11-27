@@ -17,7 +17,7 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
 
     public SwerveModuleIOCompBot(SwerveModule.ModuleName name) {
 
-        CompBotConstants constants = CompBotConstants.values()[name.ordinal()];
+        CompBotConstants constants = CompBotConstants.valueOf(name.name());
 
         DutyCycleEncoder absEncoder = configDutyCycleEncoder(constants.ABSOLUTE_ENCODER_ID, constants.ABSOLUTE_ZERO_OFFSET);
 
@@ -55,12 +55,8 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
 
     @Override
     public void setDriveMotorReference(double reference) {
-        driveMotor.setReference(reference, MarinersController.ControlMode.Velocity);
-    }
 
-    @Override
-    public void setDriveMotorVoltage(double voltage) {
-        driveMotor.setVoltage(voltage);
+        driveMotor.setReference(reference, MarinersController.ControlMode.Velocity);
     }
 
     @Override

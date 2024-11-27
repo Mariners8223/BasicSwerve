@@ -5,14 +5,15 @@
 
 package frc.robot;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+
+import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -27,18 +28,24 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.DriveTrain.DriveBase;
+import frc.util.MarinersController.MarinersController;
+import frc.util.MarinersController.MarinersTalonFX;
+import frc.util.MarinersController.MarinersController.ControllerLocation;
 
 public class RobotContainer{
-     public static DriveBase driveBase;
+    // public static DriveBase driveBase;
     public static CommandPS5Controller driveController;
 
     public static Field2d field;
     public static LoggedDashboardChooser<Command> autoChooser;
 
+    public static MarinersController motor;
+
+
     public RobotContainer()
     {
         driveController = new CommandPS5Controller(0);
-         driveBase = new DriveBase();
+        // driveBase = new DriveBase();
 
         configureBindings();
 
@@ -47,6 +54,15 @@ public class RobotContainer{
         SmartDashboard.putData(field);
 
         // configChooser();
+
+
+        motor = new MarinersTalonFX("steer", ControllerLocation.MOTOR, 2);
+
+        motor.setMotorIdleMode(false);
+
+        motor.setMaxMinOutput(6, -6);
+
+        SmartDashboard.putNumber("value", 0);
 
     }
 
@@ -100,28 +116,16 @@ public class RobotContainer{
                 poses.addAll(path.getPathPoses());
             });
         }
-        catch (RuntimeException ignored){
-        }
+        catch (IOException | ParseException e){
+            e.printStackTrace();
+        }   
 
         field.getObject("AutoPath").setPoses(poses);
     }
     
     
     private void configureBindings() {
-        driveController.options().onTrue(driveBase.resetOnlyDirection());
-
-        Supplier<Rotation2d> controllerAngle = () -> Rotation2d.fromRadians(Math.atan(driveController.getLeftY() / driveController.getLeftX()));
-
-        driveController.cross().onTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));
-        driveController.square().onTrue(driveBase.runSysIDQuasistatic(true, controllerAngle));
-
-        driveController.circle().onTrue(driveBase.runSysIDDynamic(false, controllerAngle));
-        driveController.triangle().onTrue(driveBase.runSysIDDynamic(true, controllerAngle));
-//        driveController.cross().onTrue(driveBase.startModuleDriveCalibration());
-//        driveController.square().onTrue(driveBase.stopModuleDriveCalibration());
-//
-//        driveController.circle().onTrue(driveBase.startModuleSteerCalibration());
-//        driveController.triangle().onTrue(driveBase.stopModuleSteerCalibration());
+        // driveController.options().onTrue(driveBase.resetOnlyDirection());
     }
     
     

@@ -4,14 +4,11 @@
 
 package frc.robot.subsystems.DriveTrain;
 
+import com.pathplanner.lib.config.RobotConfig;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.*;
-import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.Drive.DriveCommand;
 import frc.robot.subsystems.DriveTrain.SwerveModules.CompBotConstants;
 import frc.robot.subsystems.DriveTrain.SwerveModules.DevBotConstants;
@@ -20,13 +17,12 @@ import frc.util.FastGyros.GyroIO;
 import frc.util.FastGyros.NavxIO;
 import frc.util.FastGyros.PigeonIO;
 import frc.util.FastGyros.SimGyroIO;
+import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -40,7 +36,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 
-import java.util.function.Supplier;
+import java.io.IOException;
 
 /**
  * The DriveBase class represents the drivetrain of the robot.
@@ -56,7 +52,7 @@ public class DriveBase extends SubsystemBase {
     /**
      * the kinematics of the swerve drivetrain (how the modules are placed and calculating the kinematics)
      */
-    private final SwerveDriveKinematics driveTrainKinematics = new SwerveDriveKinematics(SwerveModule.MODULE_TRANSLATIONS);
+    private final SwerveDriveKinematics driveTrainKinematics = new SwerveDriveKinematics(DriveBaseConstants.MODULE_TRANSLATIONS);
 
     /**
      * a variable representing the deltas of the modules (how much they have moved since the last update)
@@ -100,8 +96,6 @@ public class DriveBase extends SubsystemBase {
      */
     private Pose2d currentPose = new Pose2d();
 
-    private final SysIdRoutine sysIdRoutine;
-
 
     @AutoLog
     public static class DriveBaseInputs {
@@ -114,21 +108,19 @@ public class DriveBase extends SubsystemBase {
                 new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()}; //the current states of the modules
 
         protected String activeCommand; //the active command of the robot
-
-        protected String sysIDState = "None";
     }
 
     /**
      * Creates a new DriveBase.
      */
-    public DriveBase() {
+    public DriveBase() throws IOException, ParseException {
         modules[0] = new SwerveModule(SwerveModule.ModuleName.Front_Left);
         modules[1] = new SwerveModule(SwerveModule.ModuleName.Front_Right);
         modules[2] = new SwerveModule(SwerveModule.ModuleName.Back_Left);
         modules[3] = new SwerveModule(SwerveModule.ModuleName.Back_Right);
 
         if (RobotBase.isReal()) {
-            gyro = switch (Constants.ROBOT_TYPE) {
+            gyro = switch (Constants.ROBOT_TYPE){
                 case DEVELOPMENT -> new PigeonIO(DriveBaseConstants.PIGEON_ID);
                 case COMPETITION -> new NavxIO(false);
                 case REPLAY -> throw new IllegalArgumentException("Robot cannot be replay if it's real");
@@ -140,19 +132,30 @@ public class DriveBase extends SubsystemBase {
 
         SmartDashboard.putData("Gyro", gyro);
 
-        ReplanningConfig replanConfig =
-                new ReplanningConfig(DriveBaseConstants.PathPlanner.PLAN_PATH_TO_STARTING_POINT,
-                        DriveBaseConstants.PathPlanner.DYNAMIC_RE_PLANNING,
-                        DriveBaseConstants.PathPlanner.PATH_ERROR_TOLERANCE,
-                        DriveBaseConstants.PathPlanner.PATH_ERROR_SPIKE_TOLERANCE);
-        // ^how pathplanner reacts to position error
-        HolonomicPathFollowerConfig pathFollowerConfig = new HolonomicPathFollowerConfig(
-                DriveBaseConstants.PathPlanner.XY_PID.createPIDConstants(),
-                DriveBaseConstants.PathPlanner.THETA_PID.createPIDConstants(),
-                MAX_FREE_WHEEL_SPEED,
-                Math.sqrt(Math.pow(SwerveModule.DISTANCE_BETWEEN_WHEELS, 2) * 2) / 2,
-                replanConfig);
+//        ReplanningConfig replanConfig =
+//                new ReplanningConfig(DriveBaseConstants.PathPlanner.PLAN_PATH_TO_STARTING_POINT,
+//                        DriveBaseConstants.PathPlanner.DYNAMIC_RE_PLANNING,
+//                        DriveBaseConstants.PathPlanner.PATH_ERROR_TOLERANCE,
+//                        DriveBaseConstants.PathPlanner.PATH_ERROR_SPIKE_TOLERANCE);
+//        // ^how pathplanner reacts to position error
+//        HolonomicPathFollowerConfig pathFollowerConfig = new HolonomicPathFollowerConfig(
+//                DriveBaseConstants.PathPlanner.XY_PID.createPIDConstants(),
+//                DriveBaseConstants.PathPlanner.THETA_PID.createPIDConstants(),
+//                MAX_FREE_WHEEL_SPEED,
+//                Math.sqrt(Math.pow(SwerveModule.DISTANCE_BETWEEN_WHEELS, 2) * 2) / 2,
+//                replanConfig);
         //^creates path constraints for pathPlanner
+
+        RobotConfig config;
+        try {
+            config = RobotConfig.fromGUISettings();
+        }catch (IOException | ParseException e){
+            config = DriveBaseConstants.PathPlanner.ROBOT_CONFIG;
+
+        }
+
+        AutoBuilder.configure(null, null, null, null, null, config, null, null);
+
 
         AutoBuilder.configureHolonomic(
                 this::getPose,
@@ -175,17 +178,6 @@ public class DriveBase extends SubsystemBase {
             if (!DriverStation.isFMSAttached()) setModulesBrakeMode(false);
         }
         ).ignoringDisable(true));
-
-        sysIdRoutine = new SysIdRoutine(new SysIdRoutine.Config(
-                null,
-                null,
-                null,
-                (state) -> inputs.sysIDState = state.toString()
-        ), new SysIdRoutine.Mechanism(
-                this::driveSysID,
-                null,
-                this
-        ));
 
         new Trigger(RobotState::isTeleop).and(RobotState::isEnabled).whileTrue(new StartEndCommand(() ->
                 this.setDefaultCommand(new DriveCommand(this, RobotContainer.driveController)),
@@ -370,24 +362,6 @@ public class DriveBase extends SubsystemBase {
         inputs.YspeedInput = chassisSpeeds.vyMetersPerSecond;
         inputs.rotationSpeedInput = chassisSpeeds.omegaRadiansPerSecond;
         Logger.processInputs(getName(), inputs);
-    }
-
-    private Supplier<Rotation2d> sysIDAngle;
-
-    private void driveSysID(Measure<Voltage> voltage) {
-        for (int i = 0; i < 4; i++) {
-            modules[i].runSysID(voltage, sysIDAngle.get().minus(getRotation2d()));
-        }
-    }
-
-    public Command runSysIDQuasistatic(boolean isReverse, Supplier<Rotation2d> angle) {
-        sysIDAngle = angle;
-        return sysIdRoutine.quasistatic(isReverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward);
-    }
-
-    public Command runSysIDDynamic(boolean isReverse, Supplier<Rotation2d> angle) {
-        sysIDAngle = angle;
-        return sysIdRoutine.dynamic(isReverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward);
     }
 
     public Command startModuleDriveCalibration() {

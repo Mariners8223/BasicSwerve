@@ -1,12 +1,9 @@
 package frc.robot.subsystems.DriveTrain.SwerveModules;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Constants;
 
@@ -27,18 +24,10 @@ public class SwerveModule {
     }
 
     public static final double MODULE_THREAD_HZ = 50;
-    public static final double DISTANCE_BETWEEN_WHEELS = 0.576; // the distance between each wheel in meters
-    public static final Translation2d[] MODULE_TRANSLATIONS = new Translation2d[]{
-            new Translation2d(DISTANCE_BETWEEN_WHEELS / 2, DISTANCE_BETWEEN_WHEELS / 2),
-            new Translation2d(DISTANCE_BETWEEN_WHEELS / 2, -DISTANCE_BETWEEN_WHEELS / 2),
-            new Translation2d(-DISTANCE_BETWEEN_WHEELS / 2, DISTANCE_BETWEEN_WHEELS / 2),
-            new Translation2d(-DISTANCE_BETWEEN_WHEELS / 2, -DISTANCE_BETWEEN_WHEELS / 2)};
 
     private final String moduleName;
     private final SwerveModuleIO io;
     private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
-
-    private SwerveModuleState targetState = new SwerveModuleState();
 
     public SwerveModule(ModuleName name) {
         this.moduleName = name.toString();
@@ -65,20 +54,14 @@ public class SwerveModule {
     }
 
     public SwerveModuleState run(SwerveModuleState targetState) {
-        targetState = SwerveModuleState.optimize(targetState, inputs.currentState.angle);
-        targetState.speedMetersPerSecond *= inputs.currentState.angle.minus(targetState.angle).getCos();
+        targetState.optimize(inputs.currentState.angle);
+
+        targetState.cosineScale(inputs.currentState.angle);
 
         io.setDriveMotorReference(targetState.speedMetersPerSecond);
         io.setSteerMotorReference(targetState.angle.getRotations());
 
-        this.targetState = targetState;
-
         return targetState;
-    }
-
-    public void runSysID(Measure<Voltage> voltage, Rotation2d angle) {
-        io.setDriveMotorReference(voltage.baseUnitMagnitude());
-        io.setSteerMotorReference(angle.getRotations());
     }
 
     public SwerveModuleState getCurrentState() {
