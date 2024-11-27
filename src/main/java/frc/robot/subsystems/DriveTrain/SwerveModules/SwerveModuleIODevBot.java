@@ -11,10 +11,14 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
     private final MarinersController driveMotor;
     private final MarinersController steerMotor;
 
+    private final double DRIVE_KA;
+
 
     public SwerveModuleIODevBot(SwerveModule.ModuleName name) {
 
         DevBotConstants constants = DevBotConstants.valueOf(name.name());
+
+        this.DRIVE_KA = constants.DRIVE_KA;
 
         driveMotor = new MarinersTalonFX(
                 name.name() + " Drive Motor",
@@ -55,6 +59,12 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
     @Override
     public void setDriveMotorReference(double reference) {
         driveMotor.setReference(reference, MarinersController.ControlMode.Velocity);
+    }
+
+    @Override
+    public void setDriveMotorReference(double reference, double acceleration) {
+        driveMotor.setReference(reference, MarinersController.ControlMode.Velocity,
+                acceleration * DRIVE_KA);
     }
 
     @Override

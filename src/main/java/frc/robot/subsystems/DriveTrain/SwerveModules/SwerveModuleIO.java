@@ -28,6 +28,13 @@ public abstract class SwerveModuleIO{
     public abstract void setDriveMotorReference(double reference);
 
     /**
+     * sets the reference for the drive motor
+     * @param reference the target for the built-in PID controller
+     * @param accelerationFeedForward the acceleration feed forward in (volts) / (m/s^2)
+     */
+    public abstract  void setDriveMotorReference(double reference, double accelerationFeedForward);
+
+    /**
      * sets the reference for the steer motor
      *
      * @param reference the target for the built-in PID controller

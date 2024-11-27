@@ -41,7 +41,6 @@ public class SwerveModule {
             io = ROBOT_TYPE == Constants.RobotType.REPLAY ? new SwerveModuleIOSIM.SwerveModuleIOReplay() : new SwerveModuleIOSIM(name);
 
         }
-
     }
 
     public SwerveModulePosition modulePeriodic() {
@@ -58,6 +57,27 @@ public class SwerveModule {
         targetState.cosineScale(inputs.currentState.angle);
 
         io.setDriveMotorReference(targetState.speedMetersPerSecond);
+        io.setSteerMotorReference(targetState.angle.getRotations());
+
+        return targetState;
+    }
+
+    public SwerveModuleState run(SwerveModuleState targetState, double acceleration) {
+        SwerveModuleState optimizedTargetState = new SwerveModuleState(targetState.speedMetersPerSecond, targetState.angle);
+
+        optimizedTargetState.optimize(inputs.currentState.angle);
+
+        if(optimizedTargetState.speedMetersPerSecond != targetState.speedMetersPerSecond) acceleration *= -1;
+
+        targetState = optimizedTargetState;
+
+        double cos = targetState.angle.minus(inputs.currentState.angle).getCos();
+
+        targetState.speedMetersPerSecond *= cos;
+
+        acceleration *= cos;
+
+        io.setDriveMotorReference(targetState.speedMetersPerSecond, acceleration);
         io.setSteerMotorReference(targetState.angle.getRotations());
 
         return targetState;

@@ -15,11 +15,15 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
     private final MarinersController driveMotor;
     private final MarinersController steerMotor;
 
+    private final double DRIVE_KA;
+
     public SwerveModuleIOCompBot(SwerveModule.ModuleName name) {
 
         CompBotConstants constants = CompBotConstants.valueOf(name.name());
 
         DutyCycleEncoder absEncoder = configDutyCycleEncoder(constants.ABSOLUTE_ENCODER_ID, constants.ABSOLUTE_ZERO_OFFSET);
+
+        this.DRIVE_KA = constants.DRIVE_KA;
 
 
         driveMotor = new MarinersTalonFX(
@@ -55,8 +59,13 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
 
     @Override
     public void setDriveMotorReference(double reference) {
-
         driveMotor.setReference(reference, MarinersController.ControlMode.Velocity);
+    }
+
+    @Override
+    public void setDriveMotorReference(double reference, double acceleration) {
+        driveMotor.setReference(reference, MarinersController.ControlMode.Velocity,
+                acceleration * DRIVE_KA);
     }
 
     @Override

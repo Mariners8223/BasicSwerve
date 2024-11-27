@@ -5,6 +5,9 @@
 package frc.robot.subsystems.DriveTrain;
 
 import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.controllers.PathFollowingController;
+import com.pathplanner.lib.util.DriveFeedforwards;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj.*;
@@ -37,6 +40,7 @@ import frc.robot.Constants;
 import frc.robot.RobotContainer;
 
 import java.io.IOException;
+import java.util.function.DoubleSupplier;
 
 /**
  * The DriveBase class represents the drivetrain of the robot.
@@ -113,14 +117,14 @@ public class DriveBase extends SubsystemBase {
     /**
      * Creates a new DriveBase.
      */
-    public DriveBase(){
+    public DriveBase() {
         modules[0] = new SwerveModule(SwerveModule.ModuleName.Front_Left);
         modules[1] = new SwerveModule(SwerveModule.ModuleName.Front_Right);
         modules[2] = new SwerveModule(SwerveModule.ModuleName.Back_Left);
         modules[3] = new SwerveModule(SwerveModule.ModuleName.Back_Right);
 
         if (RobotBase.isReal()) {
-            gyro = switch (Constants.ROBOT_TYPE){
+            gyro = switch (Constants.ROBOT_TYPE) {
                 case DEVELOPMENT -> new PigeonIO(DriveBaseConstants.PIGEON_ID);
                 case COMPETITION -> new NavxIO(false);
                 case REPLAY -> throw new IllegalArgumentException("Robot cannot be replay if it's real");
@@ -135,24 +139,29 @@ public class DriveBase extends SubsystemBase {
         RobotConfig config;
         try {
             config = RobotConfig.fromGUISettings();
-        }catch (IOException | ParseException e){
+        } catch (IOException | ParseException e) {
             config = DriveBaseConstants.PathPlanner.ROBOT_CONFIG;
 
         }
 
+        PathFollowingController pathPlannerPIDController = new PPHolonomicDriveController(
+                DriveBaseConstants.PathPlanner.XY_PID.createPIDConstants(),
+                DriveBaseConstants.PathPlanner.THETA_PID.createPIDConstants()
+        );
+
         AutoBuilder.configure(
-            this::getPose,
-            this::reset,
-            this::getChassisSpeeds,
-            (chassisSpeeds, feedForwars) -> {},
-            null,
-            config,
-            () -> {
+                this::getPose,
+                this::reset,
+                this::getChassisSpeeds,
+                this::drivePP,
+                pathPlannerPIDController,
+                config,
+                () -> {
                     if (DriverStation.getAlliance().isPresent())
                         return DriverStation.getAlliance().get() == Alliance.Red;
                     else return false;
                 },
-            this);
+                this);
 
         new Trigger(RobotState::isEnabled).whileTrue(new StartEndCommand(() -> // sets the modules to brake mode when the robot is enabled
                 setModulesBrakeMode(true)
@@ -353,6 +362,20 @@ public class DriveBase extends SubsystemBase {
         Logger.processInputs(getName(), inputs);
     }
 
+    public void drivePP(ChassisSpeeds chassisSpeeds, DriveFeedforwards feedforwards) {
+        targetStates = driveTrainKinematics.toSwerveModuleStates(chassisSpeeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, MAX_FREE_WHEEL_SPEED);
+
+        for (int i = 0; i < 4; i++) {
+            targetStates[i] = modules[i].run(targetStates[i], feedforwards.accelerationsMPSSq()[i]);
+        }
+
+        inputs.XspeedInput = chassisSpeeds.vxMetersPerSecond;
+        inputs.YspeedInput = chassisSpeeds.vyMetersPerSecond;
+        inputs.rotationSpeedInput = chassisSpeeds.omegaRadiansPerSecond;
+        Logger.processInputs(getName(), inputs);
+    }
+
     public Command startModuleDriveCalibration() {
         return new InstantCommand(() -> {
             for (int i = 0; i < 4; i++) {
@@ -384,6 +407,84 @@ public class DriveBase extends SubsystemBase {
             }
         }).withName("Stop Module Steer Calibration").ignoringDisable(true);
     }
+
+    /**
+     * sets the speed target of the robot during pathplanner driving (overrides the pathplanner)
+     * for example used to go towards a note while in-taking
+     * @param xSpeed the x speed of the robot in m/s (field relative) (away from the alliance station is positive)
+     * @param ySpeed the y speed of the robot in m/s (field relative) (left from the alliance station is positive)
+     * @param thetaSpeed the theta speed of the robot in rad/s (left is positive)
+     */
+    public void overrideXYThetaSpeeds(DoubleSupplier xSpeed, DoubleSupplier ySpeed, DoubleSupplier thetaSpeed){
+        PPHolonomicDriveController.overrideXYFeedback(xSpeed, ySpeed);
+        PPHolonomicDriveController.overrideRotationFeedback(thetaSpeed);
+    }
+
+    /**
+     * sets the speed target of the robot during pathplanner driving (overrides the pathplanner) in field relative speeds
+     * for example used to go towards a note while in-taking
+     * @param xSpeed the x speed of the robot in m/s (field relative) (away from the alliance station is positive)
+     * @param ySpeed the y speed of the robot in m/s (field relative) (left from the alliance station is positive)
+     */
+    public void overridePPXSpeeds(DoubleSupplier xSpeed, DoubleSupplier ySpeed){
+        PPHolonomicDriveController.overrideXYFeedback(xSpeed, ySpeed);
+    }
+
+    /**
+     * sets the speed target of the robot during pathplanner driving (overrides the pathplanner) in field relative speeds
+     * for example used to go towards a note while in-taking
+     * @param xSpeed the x speed of the robot in m/s (field relative) (away from the alliance station is positive)
+     */
+    public void overridePPXSpeeds(DoubleSupplier xSpeed){
+        PPHolonomicDriveController.overrideXFeedback(xSpeed);
+    }
+
+    /**
+     * sets the speed target of the robot during pathplanner driving (overrides the pathplanner) in field relative speeds
+     * for example used to go towards a note while in-taking
+     * @param ySpeed the y speed of the robot in m/s (field relative) (left from the alliance station is positive)
+     */
+    public void overridePPYSpeeds(DoubleSupplier ySpeed) {
+        PPHolonomicDriveController.overrideYFeedback(ySpeed);
+    }
+
+    /**
+     * sets the speed target of the robot during pathplanner driving (overrides the pathplanner)
+     * for example used to go towards a note while in-taking
+     * @param thetaSpeed the theta speed of the robot in rad/s (left is positive)
+     */
+    public void overridePPThetaSpeed(DoubleSupplier thetaSpeed){
+        PPHolonomicDriveController.overrideRotationFeedback(thetaSpeed);
+    }
+
+    /**
+     * stops the pathplanner speed overrides (x, y, and theta)
+     */
+    public void stopPPOverrides(){
+        PPHolonomicDriveController.clearFeedbackOverrides();
+    }
+
+    /**
+     * stops the pathplanner x speed override
+     */
+    public void stopPPXSpeedOverride(){
+        PPHolonomicDriveController.clearXFeedbackOverride();
+    }
+
+    /**
+     * stops the pathplanner y speed override
+     */
+    public void stopPPYSpeedOverride(){
+        PPHolonomicDriveController.clearYFeedbackOverride();
+    }
+
+    /**
+     * stops the pathplanner theta speed override
+     */
+    public void stopPPThetaSpeedOverride(){
+        PPHolonomicDriveController.clearRotationFeedbackOverride();
+    }
+
 
     /**
      * path finds a path from the current pose to the target pose
