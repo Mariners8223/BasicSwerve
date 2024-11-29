@@ -110,13 +110,13 @@ public class RobotContainer{
     private void configureBindings() {
         driveController.options().onTrue(driveBase.resetOnlyDirection());
 
-        Supplier<Rotation2d> controllerAngle = () -> Rotation2d.fromRadians(Math.atan(driveController.getLeftY() / driveController.getLeftX()));
+        Supplier<Rotation2d> controllerAngle = () -> new Rotation2d(-RobotContainer.driveController.getRawAxis(1), -RobotContainer.driveController.getRawAxis(0));
 
-        driveController.cross().onTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));
-        driveController.square().onTrue(driveBase.runSysIDQuasistatic(true, controllerAngle));
+        driveController.cross().whileTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));
+        driveController.square().whileTrue(driveBase.runSysIDQuasistatic(true, controllerAngle));
 
-        driveController.circle().onTrue(driveBase.runSysIDDynamic(false, controllerAngle));
-        driveController.triangle().onTrue(driveBase.runSysIDDynamic(true, controllerAngle));
+        driveController.circle().whileTrue(driveBase.runSysIDDynamic(false, controllerAngle));
+        driveController.triangle().whileTrue(driveBase.runSysIDDynamic(true, controllerAngle));
 //        driveController.cross().onTrue(driveBase.startModuleDriveCalibration());
 //        driveController.square().onTrue(driveBase.stopModuleDriveCalibration());
 //

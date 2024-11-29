@@ -7,6 +7,7 @@ package frc.robot.subsystems.DriveTrain;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
@@ -178,7 +179,7 @@ public class DriveBase extends SubsystemBase {
 
         sysIdRoutine = new SysIdRoutine(new SysIdRoutine.Config(
                 null,
-                null,
+                Units.Volts.of(4),
                 null,
                 (state) -> inputs.sysIDState = state.toString()
         ), new SysIdRoutine.Mechanism(
