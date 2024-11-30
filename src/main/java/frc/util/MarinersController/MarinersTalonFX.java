@@ -241,6 +241,8 @@ public class MarinersTalonFX extends MarinersController {
         MarinersTalonFX base = (MarinersTalonFX) master;
 
         Follower follower = new Follower(base.getMotor().getDeviceID(), invert);
+
+        motor.setControl(follower);
     }
 
     @Override

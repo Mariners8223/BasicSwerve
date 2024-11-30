@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.util.PIDFGains;
+import frc.robot.Constants;
 
 public class SwerveModuleIOSIM extends SwerveModuleIO {
     private final DCMotorSim driveMotor;
@@ -18,15 +18,41 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
     private final String name;
 
-    public SwerveModuleIOSIM(String name) {
-        driveMotor = new DCMotorSim(DCMotor.getFalcon500(1), 1, 0.025 / constants.DRIVE_GEAR_RATIO);
+    private final double DRIVE_GEAR_RATIO;
+    private final double STEER_GEAR_RATIO;
+    private final double WHEEL_RADIUS_METERS;
 
-        steerMotor = new DCMotorSim(DCMotor.getNEO(1), 1, 0.004 / constants.STEER_GEAR_RATIO);
 
-        driveMotorPIDController = constants.DRIVE_MOTOR_PID[0].createPIDController();
-        steerMotorPIDController = constants.STEER_MOTOR_PID[0].createPIDController();
+    public SwerveModuleIOSIM(SwerveModule.ModuleName name) {
 
-        this.name = name;
+        if (Constants.ROBOT_TYPE == Constants.RobotType.DEVELOPMENT) {
+            DRIVE_GEAR_RATIO = DevBotConstants.DRIVE_GEAR_RATIO;
+            STEER_GEAR_RATIO = DevBotConstants.STEER_GEAR_RATIO;
+            WHEEL_RADIUS_METERS = DevBotConstants.WHEEL_RADIUS_METERS;
+
+            DevBotConstants constants = DevBotConstants.values()[name.ordinal()];
+
+            driveMotorPIDController = constants.DRIVE_MOTOR_PID.createPIDController();
+            steerMotorPIDController = constants.STEER_MOTOR_PID.createPIDController();
+        }
+        else {
+            DRIVE_GEAR_RATIO = CompBotConstants.DRIVE_GEAR_RATIO;
+            STEER_GEAR_RATIO = CompBotConstants.STEER_GEAR_RATIO;
+            WHEEL_RADIUS_METERS = CompBotConstants.WHEEL_RADIUS_METERS;
+
+                                CompBotConstants constants = CompBotConstants.values()[name.ordinal()];
+
+            driveMotorPIDController = constants.DRIVE_MOTOR_PID.createPIDController();
+            steerMotorPIDController = constants.STEER_MOTOR_PID.createPIDController();
+        }
+
+        driveMotor = new DCMotorSim(DCMotor.getFalcon500(1), 1, 0.025 / DRIVE_GEAR_RATIO);
+
+        steerMotor = new DCMotorSim(DCMotor.getNEO(1), 1, 0.004 / STEER_GEAR_RATIO);
+
+
+
+        this.name = name.name();
     }
 
     @Override
@@ -35,12 +61,12 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         steerMotor.update(1 / SwerveModule.MODULE_THREAD_HZ);
 
         inputs.currentState.speedMetersPerSecond =
-                (driveMotor.getAngularVelocityRadPerSec() / constants.DRIVE_GEAR_RATIO) * constants.WHEEL_RADIUS_METERS;
+                (driveMotor.getAngularVelocityRadPerSec() /DRIVE_GEAR_RATIO) * WHEEL_RADIUS_METERS;
 
-        inputs.currentState.angle = Rotation2d.fromRadians(steerMotor.getAngularPositionRad() / constants.STEER_GEAR_RATIO);
+        inputs.currentState.angle = Rotation2d.fromRadians(steerMotor.getAngularPositionRad() / STEER_GEAR_RATIO);
 
         inputs.drivePositionMeters =
-                (driveMotor.getAngularPositionRad() / constants.DRIVE_GEAR_RATIO) * constants.WHEEL_RADIUS_METERS;
+                (driveMotor.getAngularPositionRad() / DRIVE_GEAR_RATIO) * WHEEL_RADIUS_METERS;
     }
 
     @Override
@@ -48,7 +74,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         double driveMotorVelocity = driveMotor.getAngularVelocityRPM() / 60; //turn to rotations per second
 
         double driveMotorReferenceNativeUnits =
-                (reference / constants.WHEEL_CIRCUMFERENCE_METERS) * constants.DRIVE_GEAR_RATIO;
+                (reference / WHEEL_RADIUS_METERS) * DRIVE_GEAR_RATIO;
 
         double driveMotorVoltage = driveMotorPIDController.calculate(driveMotorVelocity, driveMotorReferenceNativeUnits);
 
@@ -56,10 +82,15 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
     }
 
     @Override
+    public void setDriveMotorVoltage(double voltage) {
+        driveMotor.setInputVoltage(voltage);
+    }
+
+    @Override
     public void setSteerMotorReference(double reference) {
         double steerMotorPosition = steerMotor.getAngularPositionRotations();
 
-        double steerMotorReferenceNativeUnits = reference * constants.STEER_GEAR_RATIO;
+        double steerMotorReferenceNativeUnits = reference * STEER_GEAR_RATIO;
 
         double steerMotorVoltage = steerMotorPIDController.calculate(steerMotorPosition, steerMotorReferenceNativeUnits);
 
@@ -107,6 +138,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
         @Override
         public void setDriveMotorReference(double reference) {
+
+        }
+
+        @Override
+        public void setDriveMotorVoltage(double voltage) {
 
         }
 

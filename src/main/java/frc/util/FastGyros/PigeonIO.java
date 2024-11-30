@@ -83,6 +83,8 @@ public class PigeonIO implements GyroIO{
 
     @Override
     public void reset(Pose2d var1) {
+        pigeon.reset();
+
         inputs.angle = var1.getRotation();
         inputs.rotationOffset = var1.getRotation().unaryMinus();
     }

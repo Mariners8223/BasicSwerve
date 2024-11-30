@@ -1,9 +1,12 @@
 package frc.robot.subsystems.DriveTrain.SwerveModules;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Constants;
 
@@ -47,7 +50,7 @@ public class SwerveModule {
                 case REPLAY -> throw new IllegalArgumentException("Robot cannot be replay if it's real");
             };
         } else {
-            io = ROBOT_TYPE == Constants.RobotType.REPLAY ? new SwerveModuleIOSIM.SwerveModuleIOReplay() : new SwerveModuleIOSIM(moduleName);
+            io = ROBOT_TYPE == Constants.RobotType.REPLAY ? new SwerveModuleIOSIM.SwerveModuleIOReplay() : new SwerveModuleIOSIM(name);
 
         }
 
@@ -55,11 +58,6 @@ public class SwerveModule {
 
     public SwerveModulePosition modulePeriodic() {
         io.updateInputs(inputs);
-
-        targetState.speedMetersPerSecond *= Math.cos(targetState.angle.getRadians() - inputs.currentState.angle.getRadians());
-
-        io.setDriveMotorReference(targetState.speedMetersPerSecond);
-        io.setSteerMotorReference(targetState.angle.getRotations());
 
         Logger.processInputs("SwerveModule/" + moduleName, inputs);
 
@@ -70,9 +68,17 @@ public class SwerveModule {
         targetState = SwerveModuleState.optimize(targetState, inputs.currentState.angle);
         targetState.speedMetersPerSecond *= inputs.currentState.angle.minus(targetState.angle).getCos();
 
+        io.setDriveMotorReference(targetState.speedMetersPerSecond);
+        io.setSteerMotorReference(targetState.angle.getRotations());
+
         this.targetState = targetState;
 
         return targetState;
+    }
+
+    public void runSysID(Measure<Voltage> voltage, Rotation2d angle) {
+        io.setDriveMotorReference(voltage.baseUnitMagnitude());
+        io.setSteerMotorReference(angle.getRotations());
     }
 
     public SwerveModuleState getCurrentState() {
@@ -84,7 +90,7 @@ public class SwerveModule {
     }
 
     public void stopDriveCalibration() {
-        io.endSteerCalibration();
+        io.endDriveCalibration();
     }
 
     public void runSteerCalibration() {

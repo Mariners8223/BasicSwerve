@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -25,24 +27,18 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.DriveTrain.DriveBase;
-import frc.util.MarinersController.MarinersController;
-import frc.util.MarinersController.MarinersTalonFX;
-import frc.util.MarinersController.MarinersController.ControllerLocation;
 
 public class RobotContainer{
-    // public static DriveBase driveBase;
+     public static DriveBase driveBase;
     public static CommandPS5Controller driveController;
 
     public static Field2d field;
     public static LoggedDashboardChooser<Command> autoChooser;
 
-    public static MarinersController motor;
-
-
     public RobotContainer()
     {
         driveController = new CommandPS5Controller(0);
-        // driveBase = new DriveBase();
+         driveBase = new DriveBase();
 
         configureBindings();
 
@@ -51,15 +47,6 @@ public class RobotContainer{
         SmartDashboard.putData(field);
 
         // configChooser();
-
-
-        motor = new MarinersTalonFX("steer", ControllerLocation.MOTOR, 2);
-
-        motor.setMotorIdleMode(false);
-
-        motor.setMaxMinOutput(6, -6);
-
-        SmartDashboard.putNumber("value", 0);
 
     }
 
@@ -121,7 +108,20 @@ public class RobotContainer{
     
     
     private void configureBindings() {
-        // driveController.options().onTrue(driveBase.resetOnlyDirection());
+        driveController.options().onTrue(driveBase.resetOnlyDirection());
+
+        Supplier<Rotation2d> controllerAngle = () -> new Rotation2d(-RobotContainer.driveController.getRawAxis(1), -RobotContainer.driveController.getRawAxis(0));
+
+        driveController.cross().whileTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));
+        driveController.square().whileTrue(driveBase.runSysIDQuasistatic(true, controllerAngle));
+
+        driveController.circle().whileTrue(driveBase.runSysIDDynamic(false, controllerAngle));
+        driveController.triangle().whileTrue(driveBase.runSysIDDynamic(true, controllerAngle));
+//        driveController.cross().onTrue(driveBase.startModuleDriveCalibration());
+//        driveController.square().onTrue(driveBase.stopModuleDriveCalibration());
+//
+//        driveController.circle().onTrue(driveBase.startModuleSteerCalibration());
+//        driveController.triangle().onTrue(driveBase.stopModuleSteerCalibration());
     }
     
     

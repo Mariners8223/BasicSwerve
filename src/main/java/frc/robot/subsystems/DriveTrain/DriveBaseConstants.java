@@ -4,7 +4,8 @@ import com.pathplanner.lib.path.PathConstraints;
 
 import frc.robot.Constants;
 import frc.robot.Constants.RobotType;
-import frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModuleConstants;
+import frc.robot.subsystems.DriveTrain.SwerveModules.CompBotConstants;
+import frc.robot.subsystems.DriveTrain.SwerveModules.DevBotConstants;
 import frc.util.PIDFGains;
 
 public class DriveBaseConstants {
@@ -16,8 +17,8 @@ public class DriveBaseConstants {
 
             public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
                     Constants.ROBOT_TYPE == RobotType.DEVELOPMENT ?
-                            SwerveModuleConstants.DEVBOT.MAX_WHEEL_LINEAR_VELOCITY :
-                            SwerveModuleConstants.COMPBOT.MAX_WHEEL_LINEAR_VELOCITY,
+                            DevBotConstants.MAX_WHEEL_LINEAR_VELOCITY :
+                            CompBotConstants.MAX_WHEEL_LINEAR_VELOCITY,
                     10,
                     10,
                     20); //the constraints for pathPlanner
@@ -25,4 +26,6 @@ public class DriveBaseConstants {
             public static final PIDFGains THETA_PID = new PIDFGains(1.4574, 0, 0); //the pid gains for the PID Controller of the robot angle, units are radians per second
             public static final PIDFGains XY_PID = new PIDFGains(5.5, 0.055, 0.05); //the pid gains for the pid controller of the robot's velocity, units are meters per second
         }
+
+        public static final int PIGEON_ID = 2; //the id of the pigeon IMU //TODO change this to the correct ID
 }
