@@ -273,14 +273,15 @@ public class MarinersTalonFX extends MarinersController {
         reportError("Error setting motor output", error);
 }
 
-    /**
-     * reports an error to the driver station
-     * @param message the message to report
-     * @param statusCode the status code of the error
-     */
-    private void reportError(String message, StatusCode statusCode){
-        if(!statusCode.isOK()){
-            DriverStation.reportError(message + " for motor" + name + ": " + statusCode, false);
-        }
+/**
+ * reports an error to the driver station
+ *
+ * @param message    the message to report
+ * @param statusCode the status code of the error
+ */
+private void reportError(String message, StatusCode statusCode) {
+    if (!statusCode.isOK()) {
+        DriverStation.reportError(message + " for motor" + name + "with ID" + motor.getDeviceID() + ": " + statusCode, false);
     }
+}
 }
