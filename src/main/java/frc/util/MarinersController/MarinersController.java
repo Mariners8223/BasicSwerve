@@ -1,6 +1,7 @@
 package frc.util.MarinersController;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.Measure;
@@ -265,67 +266,88 @@ public abstract class MarinersController {
         }
 
         double output;
-        ControlMode controlMode;
+        ControlMode outputMode;
+        double feedForward;
 
         try {
             setpointLock.lock();
 
-            controlMode = this.controlMode;
+            if (controlMode == ControlMode.Follower || controlMode == ControlMode.Stopped) return;
 
-            if (controlMode == ControlMode.Follower || controlMode == ControlMode.Stopped) {
-                return;
-            }
+            outputMode = location == ControllerLocation.RIO ? ControlMode.Voltage : controlMode;
 
-            if (!controlMode.needPID()) {
-                setOutput(setpoint.position, controlMode, 0);
-                return;
-            }
+            Pair<Double, Double> outputPair = calculateOutput(outputMode);
 
-            double measurement = switch (controlMode) {
-                case Position, ProfiledPosition -> measurements.getPosition();
-                case Velocity, ProfiledVelocity -> measurements.getVelocity();
-                default -> 0;
-            };
+            output = outputPair.getFirst();
+            feedForward = outputPair.getSecond();
 
-
-
-            //if the controller is in position control mode and the position is outside of this range, the controller will wrap the position to be within this range
-            if (wrappingMinMax != null && controlMode.isPositionControl())
-                setpoint.position = calculatePositionWrapping(measurement, setpoint.position);
-
-            //if using profiled control mode, will do the same for the goal
-            if (wrappingMinMax != null && controlMode == ControlMode.ProfiledPosition)
-                goal.position = calculatePositionWrapping(measurement, goal.position);
-
-            if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
-
-            double feedForward = this.feedForward.apply(measurement) * setpoint.position;
-
-            if (location == ControllerLocation.MOTOR) {
-                setOutput(setpoint.position * measurements.getGearRatio(), controlMode, feedForward);
-                return;
-            }
-
-
-            // calculate the output of the pid controller
-            output = pidController.calculate(measurement, setpoint.position);
-
-            // if the pid controller is at the setpoint, set the output to the feed forward
-            if (pidController.atSetpoint()) {
-                output = feedForward;
-            } else {
-                output += feedForward;
-            }
-
-            if (Math.abs(output) <= motorVoltageDeadBand) {
-                output = 0;
-            }
         } finally {
             setpointLock.unlock();
         }
 
         //sends the motor output to the motor
-        setOutput(MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]), ControlMode.Voltage, 0);
+        setOutput(output, outputMode, feedForward);
+    }
+
+    private Pair<Double, Double> calculateOutput(ControlMode controlMode) {
+        if (controlMode == ControlMode.DutyCycle || controlMode == ControlMode.Voltage) {
+            double output = switch (controlMode) {
+                case DutyCycle -> MathUtil.clamp(setpoint.position, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
+                case Voltage -> MathUtil.clamp(setpoint.position, maxMinOutput[1], maxMinOutput[0]);
+                default -> 0;
+            };
+
+            return new Pair<>(output, 0.0);
+        }
+
+        double measurement = switch (controlMode) {
+            case Position, ProfiledPosition -> measurements.getPosition();
+            case Velocity, ProfiledVelocity -> measurements.getVelocity();
+            default -> 0;
+        };
+
+        if (controlMode == ControlMode.Position)
+            setpoint.position = MathUtil.clamp(setpoint.position, softLimitMaxMin[1], softLimitMaxMin[0]);
+
+        else if (controlMode == ControlMode.ProfiledPosition)
+            goal.position = MathUtil.clamp(goal.position, softLimitMaxMin[1], softLimitMaxMin[0]);
+
+        else setpoint.position =
+                    (measurements.getPosition() > 0 && setpoint.position < 0) ||
+                            (measurements.getPosition() < 0 && setpoint.position > 0) ? 0 : setpoint.position;
+
+
+        //if the controller is in position control mode and the position is outside of this range, the controller will wrap the position to be within this range
+        if (wrappingMinMax != null && controlMode.isPositionControl())
+            setpoint.position = calculatePositionWrapping(measurement, setpoint.position);
+
+        //if using profiled control mode, will do the same for the goal
+        if (wrappingMinMax != null && controlMode == ControlMode.ProfiledPosition)
+            goal.position = calculatePositionWrapping(measurement, goal.position);
+
+        if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
+
+        double feedForward = this.feedForward.apply(measurement) * setpoint.position;
+
+        if (location == ControllerLocation.MOTOR) {
+            return new Pair<>(setpoint.position * measurements.getGearRatio(), feedForward);
+        }
+
+        // calculate the output of the pid controller
+        double output = pidController.calculate(measurement, setpoint.position);
+
+        // if the pid controller is at the setpoint, set the output to the feed forward
+        if (pidController.atSetpoint()) {
+            output = feedForward;
+        } else {
+            output += feedForward;
+        }
+
+        if (Math.abs(output) <= motorVoltageDeadBand) {
+            output = 0;
+        }
+
+        return new Pair<>(MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]), 0.0);
     }
 
     private double calculatePositionWrapping(double measurement, double setpoint) {
