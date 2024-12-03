@@ -758,12 +758,26 @@ public abstract class MarinersController {
      * @param maxMin An array containing the minimum and maximum values for position limits. (max first, then min)
      */
     public void enableSoftLimit(Double[] maxMin) {
-        if (maxMin != null && maxMin.length != 2) {
+        Objects.requireNonNull(maxMin, "Max min cannot be null");
+
+        if (maxMin.length != 2) {
             throw new IllegalArgumentException("minMax must have exactly 2 elements");
+        }
+
+        if(maxMin[0] < maxMin[1]) {
+            throw new IllegalArgumentException("max must be greater than min");
+        }
+
+        if(maxMin[0] == Double.POSITIVE_INFINITY && maxMin[1] == Double.NEGATIVE_INFINITY) {
+            disableSoftLimitMotor();
+        } else {
+            setMotorSoftLimit(maxMin[1], maxMin[0]);
         }
 
         softLimitMaxMin = maxMin;
     }
+
+    protected abstract void setMotorSoftLimit(double minimum, double maximum);
 
     /**
      * Enables position limits for the controller.
@@ -785,6 +799,8 @@ public abstract class MarinersController {
     public void disableSoftLimit() {
         enableSoftLimit(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
     }
+
+    protected abstract void disableSoftLimitMotor();
 
     /**
      * Checks if position limits are enabled for the controller.

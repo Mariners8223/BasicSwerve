@@ -29,7 +29,7 @@ public class MarinersTalonFX extends MarinersController {
      * the configuration for the motor output
      * (needed that info is not lost when changing the motor output)
      */
-    private final MotorOutputConfigs motorOutputConfig = new MotorOutputConfigs();
+    private final TalonFXConfiguration config = new TalonFXConfiguration();
 
     /**
      * create a new measurement object for the motor
@@ -180,12 +180,33 @@ public class MarinersTalonFX extends MarinersController {
     }
 
     @Override
+    protected void setMotorSoftLimit(double minimum, double maximum) {
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = maximum;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = minimum;
+
+        config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+        config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+
+        StatusCode error = motor.getConfigurator().apply(config.SoftwareLimitSwitch);
+        reportError("Error setting soft limits", error);
+    }
+
+    @Override
+    protected void disableSoftLimitMotor() {
+        config.SoftwareLimitSwitch.ForwardSoftLimitEnable = false;
+        config.SoftwareLimitSwitch.ReverseSoftLimitEnable = false;
+
+        StatusCode error = motor.getConfigurator().apply(config.SoftwareLimitSwitch);
+        reportError("Error disabling soft limits", error);
+    }
+
+    @Override
     protected void setMaxMinOutputMotor(double max, double min) {
-        motorOutputConfig.PeakForwardDutyCycle = max / 12;
+        config.MotorOutput.PeakForwardDutyCycle = max / 12;
 
-        motorOutputConfig.PeakReverseDutyCycle = -Math.abs(min / 12);
+        config.MotorOutput.PeakReverseDutyCycle = -Math.abs(min / 12);
 
-        StatusCode error = motor.getConfigurator().apply(motorOutputConfig);
+        StatusCode error = motor.getConfigurator().apply(config.MotorOutput);
         reportError("Error setting max and min output", error);
     }
 
@@ -193,7 +214,7 @@ public class MarinersTalonFX extends MarinersController {
     public void setMotorInverted(boolean inverted) {
         motor.setInverted(inverted);
 
-        motorOutputConfig.Inverted =
+        config.MotorOutput.Inverted =
                 inverted ? InvertedValue.CounterClockwise_Positive : InvertedValue.Clockwise_Positive;
     }
 
@@ -209,9 +230,9 @@ public class MarinersTalonFX extends MarinersController {
 
     @Override
     protected void setMotorDeadBandDutyCycleMotor(double deadBand) {
-        motorOutputConfig.DutyCycleNeutralDeadband = Math.abs(deadBand);
+        config.MotorOutput.DutyCycleNeutralDeadband = Math.abs(deadBand);
 
-        StatusCode error = motor.getConfigurator().apply(motorOutputConfig);
+        StatusCode error = motor.getConfigurator().apply(config.MotorOutput);
         reportError("Error setting deadband", error);
     }
 
@@ -220,7 +241,7 @@ public class MarinersTalonFX extends MarinersController {
     public void setMotorIdleMode(boolean brake) {
         NeutralModeValue mode = brake ? NeutralModeValue.Brake : NeutralModeValue.Coast;
 
-        motorOutputConfig.NeutralMode = mode;
+        config.MotorOutput.NeutralMode = mode;
         motor.setNeutralMode(mode);
     }
 
@@ -263,7 +284,7 @@ public class MarinersTalonFX extends MarinersController {
 
             case DutyCycle -> new DutyCycleOut(motorOutput);
 
-            default -> switch (motorOutputConfig.NeutralMode) {
+            default -> switch (config.MotorOutput.NeutralMode) {
                 case Brake -> new StaticBrake();
                 case Coast -> new CoastOut();
             };
