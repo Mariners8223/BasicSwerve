@@ -461,7 +461,7 @@ public class MarinersSparkBase extends MarinersController {
 
     @Override
     protected void setMotorDeadBandDutyCycleMotor(double deadBand) {
-        DriverStation.reportError("Dead band for spark controllers is only available for controllers running on rio", false);
+        DriverStation.reportWarning("Dead band for spark controllers is only available for controllers running on rio", false);
     }
 
     @Override
