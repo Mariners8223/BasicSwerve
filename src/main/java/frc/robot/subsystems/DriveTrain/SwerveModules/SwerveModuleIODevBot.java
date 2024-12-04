@@ -41,8 +41,8 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
         steerMotor.setMeasurements(
                 new MarinersMeasurements(
-                        absEncoder.getPosition()::getValueAsDouble,
-                        absEncoder.getVelocity()::getValueAsDouble,
+                        () -> absEncoder.getPosition().getValueAsDouble(),
+                        () -> absEncoder.getVelocity().getValueAsDouble(),
                         1
                 )
         );

@@ -118,11 +118,12 @@ public class MarinersSparkBase extends MarinersController {
 
     /**
      * creates a new spark motor controller
+     * @param name the name of the motor controller
+     * @param location the location of the motor controller
      * @param id the id of the motor controller
      * @param isBrushless if the motor is brushless
      * @param type the type of motor controller
      * @param gains the PIDF gains for the motor controller
-     * @param name the name of the motor controller
      */
     public MarinersSparkBase(String name, ControllerLocation location, int id, boolean isBrushless, MotorType type, PIDFGains gains) {
         this(name, location, id, isBrushless, type, gains, 1);
