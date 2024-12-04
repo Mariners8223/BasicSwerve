@@ -12,7 +12,6 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -31,8 +30,7 @@ import frc.robot.subsystems.DriveTrain.DriveBase;
 
 public class RobotContainer{
      public static DriveBase driveBase;
-    // public static CommandPS5Controller driveController;
-    public static CommandPS4Controller driveController;
+     public static CommandPS5Controller driveController;
 
     public static Field2d field;
     public static LoggedDashboardChooser<Command> autoChooser;
@@ -40,7 +38,7 @@ public class RobotContainer{
     public RobotContainer()
     {
         // driveController = new CommandPS5Controller(0);
-        driveController = new CommandPS4Controller(0);
+        driveController = new CommandPS5Controller(0);
         driveBase = new DriveBase();
 
         configureBindings();
