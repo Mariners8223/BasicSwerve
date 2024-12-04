@@ -4,6 +4,7 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.*;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -33,6 +34,12 @@ public abstract class SwerveModuleIO{
      * @param accelerationFeedForward the acceleration feed forward in (volts) / (m/s^2)
      */
     public abstract  void setDriveMotorReference(double reference, double accelerationFeedForward);
+
+    /**
+     * sets the voltage for the drive motor
+     * @param voltage the voltage to set the motor to
+     */
+    public abstract void setDriveMotorVoltage(Voltage voltage);
 
     /**
      * sets the reference for the steer motor

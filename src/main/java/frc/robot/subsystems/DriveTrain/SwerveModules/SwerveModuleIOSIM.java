@@ -2,6 +2,7 @@ package frc.robot.subsystems.DriveTrain.SwerveModules;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
@@ -93,6 +94,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
     }
 
     @Override
+    public void setDriveMotorVoltage(Voltage voltage) {
+        driveMotor.setVoltage(voltage);
+    }
+
+    @Override
     public void setSteerMotorReference(double reference) {
         steerMotor.setReference(reference, MarinersController.ControlMode.Position);
     }
@@ -143,6 +149,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
         @Override
         public void setDriveMotorReference(double reference, double accelerationFeedForward) {
+
+        }
+
+        @Override
+        public void setDriveMotorVoltage(Voltage voltage) {
 
         }
 

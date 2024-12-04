@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 
 import org.json.simple.parser.ParseException;
@@ -126,6 +128,13 @@ public class RobotContainer{
     
     private void configureBindings() {
         // driveController.options().onTrue(driveBase.resetOnlyDirection());
+        Supplier<Rotation2d> controllerAngle = () -> new Rotation2d(-RobotContainer.driveController.getRawAxis(1), -RobotContainer.driveController.getRawAxis(0));
+
+        driveController.cross().whileTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));
+        driveController.square().whileTrue(driveBase.runSysIDQuasistatic(true, controllerAngle));
+
+        driveController.circle().whileTrue(driveBase.runSysIDDynamic(false, controllerAngle));
+        driveController.triangle().whileTrue(driveBase.runSysIDDynamic(true, controllerAngle));
     }
     
     

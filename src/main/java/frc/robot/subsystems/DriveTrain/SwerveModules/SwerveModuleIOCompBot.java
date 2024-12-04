@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.util.MarinersController.MarinersController;
 import frc.util.MarinersController.MarinersMeasurements;
@@ -66,6 +67,11 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
     public void setDriveMotorReference(double reference, double acceleration) {
         driveMotor.setReference(reference, MarinersController.ControlMode.Velocity,
                 acceleration * DRIVE_KA);
+    }
+
+    @Override
+    public void setDriveMotorVoltage(Voltage voltage) {
+        driveMotor.setVoltage(voltage);
     }
 
     @Override
