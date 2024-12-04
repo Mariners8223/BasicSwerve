@@ -2,6 +2,7 @@ package frc.util.MarinersController;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.util.PIDFGains;
 
@@ -35,6 +36,7 @@ public class MarinersSimMotor extends MarinersController {
                     return motor.getAngularPositionRotations();
                 },
                 () -> motor.getAngularVelocityRPM() / 60,
+                () -> motor.getAngularAcceleration().in(Units.RotationsPerSecondPerSecond),
                 1
         );
     }
