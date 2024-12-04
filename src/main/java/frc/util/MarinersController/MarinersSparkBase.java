@@ -373,11 +373,11 @@ public class MarinersSparkBase extends MarinersController {
      * @param thresholdCurrentLimit the current threshold for the motor (above this value the motor will be disabled for a short period of time)
      */
     @Override
-    public void setCurrentLimits(int smartCurrentLimit, int thresholdCurrentLimit){
+    public void setCurrentLimits(int currentLimit, int currentThreshold){
 
-        config.smartCurrentLimit(smartCurrentLimit);
+        config.smartCurrentLimit(currentLimit);
 
-        config.secondaryCurrentLimit(thresholdCurrentLimit);
+        config.secondaryCurrentLimit(currentThreshold);
 
         REVLibError error = motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
         
@@ -401,7 +401,7 @@ public class MarinersSparkBase extends MarinersController {
     }
 
     @Override
-    protected void updateInputs(BaseControllerInputsAutoLogged inputs) {
+    protected void updateInputs(MotorInputs inputs) {
         inputs.currentOutput = motor.getOutputCurrent();
         inputs.dutyCycle = motor.getAppliedOutput();
         inputs.voltageInput = motor.getBusVoltage();

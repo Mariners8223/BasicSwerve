@@ -1,6 +1,7 @@
 package frc.util.MarinersController;
 
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.util.PIDFGains;
 
@@ -48,7 +49,9 @@ public class MarinersSimMotor extends MarinersController {
     public MarinersSimMotor(String name, DCMotor motorType, double gearRatio, double momentOfInertia) {
         super(name, ControllerLocation.RIO);
 
-        motor = new DCMotorSim(motorType, gearRatio, momentOfInertia);
+        motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(motorType, momentOfInertia, gearRatio),
+                motorType.withReduction(gearRatio),
+                0);
 
         super.setMeasurements(createMeasurement());
     }
@@ -62,6 +65,16 @@ public class MarinersSimMotor extends MarinersController {
      */
     public MarinersSimMotor(String name, DCMotor motorType, double momentOfInertia) {
         this(name, motorType, 1, momentOfInertia);
+    }
+
+    public MarinersSimMotor(String name, DCMotor motorType, double kV, double kA, double gearRatio){
+        super(name, ControllerLocation.RIO);
+
+        motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(kV, kA),
+                motorType.withReduction(gearRatio),
+                0);
+
+        super.setMeasurements(createMeasurement());
     }
 
     /**
@@ -131,7 +144,7 @@ public class MarinersSimMotor extends MarinersController {
     }
 
     @Override
-    public void setCurrentLimits(double currentLimit, double currentThreshold) {
+    public void setCurrentLimits(int currentLimit, int currentThreshold) {
         //nothing to do here
     }
 

@@ -103,6 +103,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
     }
 
     @Override
+    public void setDriveMotorReference(double reference, double accelerationFeedForward) {
+
+    }
+
+    @Override
     public void setSteerMotorReference(double reference) {
         double steerMotorPosition = steerMotor.getAngularPositionRotations();
 
@@ -154,6 +159,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
         @Override
         public void setDriveMotorReference(double reference) {
+
+        }
+
+        @Override
+        public void setDriveMotorReference(double reference, double accelerationFeedForward) {
 
         }
 

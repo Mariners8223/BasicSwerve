@@ -3,11 +3,9 @@ package frc.util.MarinersController;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.util.PIDFGains;
 import org.littletonrobotics.junction.AutoLog;
@@ -139,6 +137,30 @@ public abstract class MarinersController {
         public String currentFaults = "";
     }
 
+    protected static class MotorInputs {
+        protected double temperature = 0;
+        protected double currentDraw = 0;
+        protected double currentOutput = 0;
+        protected double voltageOutput = 0;
+        protected double voltageInput = 0;
+        protected double powerDraw = 0;
+        protected double powerOutput = 0;
+        protected double dutyCycle = 0;
+        protected String currentFaults = "";
+
+        protected void fillInputs(BaseControllerInputsAutoLogged inputs){
+            inputs.temperature = temperature;
+            inputs.currentDraw = currentDraw;
+            inputs.currentOutput = currentOutput;
+            inputs.voltageOutput = voltageOutput;
+            inputs.voltageInput = voltageInput;
+            inputs.powerDraw = powerDraw;
+            inputs.powerOutput = powerOutput;
+            inputs.dutyCycle = dutyCycle;
+            inputs.currentFaults = currentFaults;
+        }
+    }
+
     /**
      * The measurements of the system (position, velocity, acceleration)
      */
@@ -204,6 +226,11 @@ public abstract class MarinersController {
     private final BaseControllerInputsAutoLogged inputs = new BaseControllerInputsAutoLogged();
 
     /**
+     * The inputs of the motor controller (filled by the motor extending this class) (fills the inputs with the controller)
+     */
+    private final MotorInputs motorInputs = new MotorInputs();
+
+    /**
      * the position wrapping min max
      * if the controller is in position control mode and the position is outside of this range, the controller will wrap the position to be within this range
      * the array should be the minimum value first then the maximum
@@ -238,11 +265,9 @@ public abstract class MarinersController {
     private PIDFGains currentGains;
 
     /**
-     * an arbitrary feed forward value (in volts)
-     * added on top of the calculated feed forward (or static)
-     * and set by the reference command
+     * the arbitrary feed forward used for using a feed forward that is set by the reference
      */
-    private double arbFeedForward = 0;
+    private double arbitraryFeedForward = 0;
 
     /**
      * runs the controller
@@ -297,7 +322,7 @@ public abstract class MarinersController {
 
             if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
 
-            double feedForward = arbFeedForward + this.feedForward.apply(measurement) * setpoint.position;
+            double feedForward = arbitraryFeedForward + this.feedForward.apply(measurement) * setpoint.position;
 
             if (location == ControllerLocation.MOTOR) {
                 setOutput(setpoint.position * measurements.getGearRatio(), controlMode, feedForward);
@@ -315,12 +340,9 @@ public abstract class MarinersController {
                 output += feedForward;
             }
 
-            output += arbFeedForward;
-
             if (Math.abs(output) <= motorVoltageDeadBand) {
                 output = 0;
             }
-
         } finally {
             setpointLock.unlock();
         }
@@ -367,7 +389,9 @@ public abstract class MarinersController {
             measurementLock.unlock();
         }
 
-        updateInputs(inputs);
+        updateInputs(motorInputs);
+
+        motorInputs.fillInputs(inputs);
 
         Logger.processInputs("Motors/" + name, inputs);
     }
@@ -377,7 +401,7 @@ public abstract class MarinersController {
      *
      * @param inputs the inputs of the controller
      */
-    protected abstract void updateInputs(BaseControllerInputsAutoLogged inputs);
+    protected abstract void updateInputs(MotorInputs inputs);
 
     /**
      * gets the current control mode of the controller
@@ -509,9 +533,9 @@ public abstract class MarinersController {
      *
      * @param setpoint    the setpoint of the controller (needs to be appropriately set for the control mode)
      * @param controlMode the control mode of the controller
-     * @param arbFeedForward the arbitrary feed forward of the controller (in volts) added on top of the calculated feed forward
+     * @param arbitraryFeedForward the feed forward of the controller that is set by the reference
      */
-    public void setReference(double setpoint, ControlMode controlMode, double arbFeedForward) {
+    public void setReference(double setpoint, ControlMode controlMode, double arbitraryFeedForward) {
 
         Objects.requireNonNull(controlMode, "Control mode cannot be null");
 
@@ -519,10 +543,6 @@ public abstract class MarinersController {
 
         if (controlMode.needMotionProfile())
             Objects.requireNonNull(profile, "Profiled control mode requires a profile");
-
-        if(controlMode == ControlMode.Follower){
-            throw new IllegalArgumentException("cannot set reference to a follower motor");
-        }
 
         try {
             setpointLock.lock();
@@ -541,12 +561,11 @@ public abstract class MarinersController {
                 return;
             }
 
-            this.arbFeedForward = arbFeedForward;
-
             this.controlMode = controlMode;
+            this.arbitraryFeedForward = arbitraryFeedForward;
 
             switch (controlMode) {
-                case Stopped, Follower -> stopMotorOutput();
+                case Stopped -> stopMotorOutput();
                 case Voltage -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1], maxMinOutput[0]);
                 case DutyCycle -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
                 case Position, Velocity -> this.setpoint.position = setpoint;
@@ -556,7 +575,6 @@ public abstract class MarinersController {
         } finally {
             setpointLock.unlock();
         }
-
     }
 
     /**
@@ -566,7 +584,45 @@ public abstract class MarinersController {
      * @param controlMode the control mode of the controller
      */
     public void setReference(double setpoint, ControlMode controlMode) {
-        setReference(setpoint, controlMode, 0);
+
+        Objects.requireNonNull(controlMode, "Control mode cannot be null");
+
+        if (controlMode.needPID()) Objects.requireNonNull(pidController, "PID control on mode requires pid gains");
+
+        if (controlMode.needMotionProfile())
+            Objects.requireNonNull(profile, "Profiled control mode requires a profile");
+
+        try {
+            setpointLock.lock();
+
+            if (RobotState.isDisabled()) {
+                if (this.controlMode != ControlMode.Stopped) {
+                    stopMotorOutput();
+                    this.controlMode = ControlMode.Stopped;
+
+                }
+                return;
+            }
+
+            if(controlMode == ControlMode.Follower){
+                DriverStation.reportError("cannot set reference to a follower motor", true);
+                return;
+            }
+
+            this.controlMode = controlMode;
+            this.arbitraryFeedForward = 0;
+
+            switch (controlMode) {
+                case Stopped -> stopMotorOutput();
+                case Voltage -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1], maxMinOutput[0]);
+                case DutyCycle -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
+                case Position, Velocity -> this.setpoint.position = setpoint;
+                case ProfiledPosition, ProfiledVelocity -> this.goal.position = setpoint;
+            }
+
+        } finally {
+            setpointLock.unlock();
+        }
     }
 
     /**
@@ -578,7 +634,7 @@ public abstract class MarinersController {
      *                    this will be used when the end state first derivative is not zero
      * @param controlMode the control mode of the controller (needs to be ProfiledPosition or ProfiledVelocity)
      */
-    public void setReference(TrapezoidProfile.State goal, ControlMode controlMode, double arbFeedForward) {
+    public void setReference(TrapezoidProfile.State goal, ControlMode controlMode) {
 
         Objects.requireNonNull(goal, "Goal cannot be null");
 
@@ -609,26 +665,11 @@ public abstract class MarinersController {
                 return;
             }
 
-            this.arbFeedForward = arbFeedForward;
-
             this.controlMode = controlMode;
             this.goal = goal;
         } finally {
             setpointLock.unlock();
         }
-    }
-
-    /**
-     * sets the reference of the controller
-     *
-     * @param goal        the goal of the controller (needs to be appropriately set for the control mode)
-     *                    when using profiled position control mode, this would be the position and velocity of the controlled value
-     *                    when using profiled velocity control mode, this would be the velocity and acceleration of the controlled value
-     *                    this will be used when the end state first derivative is not zero
-     * @param controlMode the control mode of the controller (needs to be ProfiledPosition or ProfiledVelocity)
-     */
-    public void setReference(TrapezoidProfile.State goal, ControlMode controlMode) {
-        setReference(goal, controlMode, 0);
     }
 
     /**
@@ -672,7 +713,7 @@ public abstract class MarinersController {
      *
      * @param voltage the voltage output of the controller
      */
-    public void setVoltage(Voltage voltage) {
+    public void setVoltage(edu.wpi.first.units.measure.Voltage voltage) {
         setVoltage(voltage.baseUnitMagnitude());
     }
 
@@ -738,7 +779,7 @@ public abstract class MarinersController {
 
         DriverStation.reportError(send, false);
 
-        new Alert(send, AlertType.kError).set(true);
+        new Alert(send, Alert.AlertType.kError).set(true);
     }
 
     /**
@@ -751,7 +792,7 @@ public abstract class MarinersController {
 
         DriverStation.reportWarning(send, false);
 
-        new Alert(send, AlertType.kWarning);
+        new Alert(send, Alert.AlertType.kWarning);
     }
 
     /**
