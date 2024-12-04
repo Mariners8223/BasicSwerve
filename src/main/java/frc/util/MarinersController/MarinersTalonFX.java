@@ -225,7 +225,7 @@ public class MarinersTalonFX extends MarinersController {
     }
 
     @Override
-    protected void updateInputs(BaseControllerInputsAutoLogged inputs) {
+    protected void updateInputs(MotorInputs inputs) {
         inputs.currentDraw = motor.getSupplyCurrent().getValueAsDouble();
         inputs.currentOutput = motor.getStatorCurrent().getValueAsDouble();
         inputs.voltageOutput = motor.getMotorVoltage().getValueAsDouble();
@@ -234,6 +234,7 @@ public class MarinersTalonFX extends MarinersController {
         inputs.powerOutput = inputs.currentOutput * inputs.voltageOutput;
         inputs.temperature = motor.getDeviceTemp().getValueAsDouble();
         inputs.dutyCycle = motor.getDutyCycle().getValueAsDouble();
+
     }
 
     @Override

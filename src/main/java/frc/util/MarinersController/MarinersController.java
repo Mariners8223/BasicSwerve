@@ -138,6 +138,30 @@ public abstract class MarinersController {
         public String currentFaults = "";
     }
 
+    protected static class MotorInputs {
+        protected double temperature = 0;
+        protected double currentDraw = 0;
+        protected double currentOutput = 0;
+        protected double voltageOutput = 0;
+        protected double voltageInput = 0;
+        protected double powerDraw = 0;
+        protected double powerOutput = 0;
+        protected double dutyCycle = 0;
+        protected String currentFaults = "";
+
+        protected void fillInputs(BaseControllerInputsAutoLogged inputs){
+            inputs.temperature = temperature;
+            inputs.currentDraw = currentDraw;
+            inputs.currentOutput = currentOutput;
+            inputs.voltageOutput = voltageOutput;
+            inputs.voltageInput = voltageInput;
+            inputs.powerDraw = powerDraw;
+            inputs.powerOutput = powerOutput;
+            inputs.dutyCycle = dutyCycle;
+            inputs.currentFaults = currentFaults;
+        }
+    }
+
     /**
      * The measurements of the system (position, velocity, acceleration)
      */
@@ -201,6 +225,11 @@ public abstract class MarinersController {
      * The inputs of the controller
      */
     private final BaseControllerInputsAutoLogged inputs = new BaseControllerInputsAutoLogged();
+
+    /**
+     * The inputs of the motor controller (filled by the motor extending this class) (fills the inputs with the controller)
+     */
+    private final MotorInputs motorInputs = new MotorInputs();
 
     /**
      * the position wrapping min max
@@ -356,7 +385,9 @@ public abstract class MarinersController {
             measurementLock.unlock();
         }
 
-        updateInputs(inputs);
+        updateInputs(motorInputs);
+
+        motorInputs.fillInputs(inputs);
 
         Logger.processInputs("Motors/" + name, inputs);
     }
@@ -366,7 +397,7 @@ public abstract class MarinersController {
      *
      * @param inputs the inputs of the controller
      */
-    protected abstract void updateInputs(BaseControllerInputsAutoLogged inputs);
+    protected abstract void updateInputs(MotorInputs inputs);
 
     /**
      * gets the current control mode of the controller
