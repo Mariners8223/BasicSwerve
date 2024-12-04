@@ -48,8 +48,15 @@ public class MarinersSimMotor extends MarinersController {
     }
 
     @Override
-    protected void updateInputs(BaseControllerInputsAutoLogged inputs) {
+    protected void updateInputs(MotorInputs inputs) {
         inputs.currentDraw = motor.getCurrentDrawAmps();
+        inputs.voltageInput = 12;
+        inputs.powerDraw = inputs.currentDraw * 12;
+        inputs.voltageOutput = motorOutput;
+        inputs.powerOutput = inputs.powerDraw;
+        inputs.currentOutput = inputs.powerOutput / inputs.voltageOutput;
+        inputs.temperature = 0;
+        inputs.dutyCycle = motorOutput / 12;
     }
 
     @Override
