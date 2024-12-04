@@ -38,8 +38,6 @@ public class SwerveModule {
     private final SwerveModuleIO io;
     private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
 
-    private SwerveModuleState targetState = new SwerveModuleState();
-
     public SwerveModule(ModuleName name) {
         this.moduleName = name.toString();
 
@@ -70,8 +68,6 @@ public class SwerveModule {
 
         io.setDriveMotorReference(targetState.speedMetersPerSecond);
         io.setSteerMotorReference(targetState.angle.getRotations());
-
-        this.targetState = targetState;
 
         return targetState;
     }

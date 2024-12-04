@@ -6,28 +6,75 @@ import frc.util.PIDFGains;
 
 import java.util.function.Supplier;
 
+/**
+ * A class to control a simulated motor
+ * used in conjunction with the {@link MarinersController} class
+ * can be used to simulate any motor
+ */
 public class MarinersSimMotor extends MarinersController {
+    /**
+     * the motor object
+     */
     private final DCMotorSim motor;
 
+    /**
+     * the voltage of the master motor (if this motor is a follower) (null if this motor is not a follower)
+     */
     private Supplier<Double> motorMasterVoltage;
 
+    /**
+     * the output of the motor in volts
+     */
     private double motorOutput = 0;
 
+    private MarinersMeasurements createMeasurement() {
+        return new MarinersMeasurements(
+                () -> {
+                    motor.update(1 / RUN_HZ);
+                    return motor.getAngularPositionRotations();
+                },
+                () -> motor.getAngularVelocityRPM() / 60,
+                1
+        );
+    }
+
+    /**
+     * creates the controller
+     * @param name the name of the controller (for logging)
+     * @param motorType the type of motor to simulate
+     * @param gearRatio the gear ratio of the motor (larger than 1 if the motor is geared down)
+     * @param momentOfInertia the moment of inertia of the system (in kg m^2)
+     */
     public MarinersSimMotor(String name, DCMotor motorType, double gearRatio, double momentOfInertia) {
         super(name, ControllerLocation.RIO);
 
         motor = new DCMotorSim(motorType, gearRatio, momentOfInertia);
 
-
-        super.setMeasurements(new MarinersMeasurements(
-                motor::getAngularPositionRotations,
-                () -> motor.getAngularVelocityRPM() / 60,
-                1
-        ));
+        super.setMeasurements(createMeasurement());
     }
 
+    /**
+     * creates the controller
+     * using a gear ratio of 1
+     * @param name the name of the controller (for logging)
+     * @param motorType the type of motor to simulate
+     * @param momentOfInertia the moment of inertia of the system (in kg m^2)
+     */
     public MarinersSimMotor(String name, DCMotor motorType, double momentOfInertia) {
         this(name, motorType, 1, momentOfInertia);
+    }
+
+    /**
+     * creates the controller
+     * @param name the name of the motor
+     * @param motor the sim motor object (don't forget to set the gear ratio in the motor object)
+     */
+    public MarinersSimMotor(String name, DCMotorSim motor){
+        super(name, ControllerLocation.RIO);
+
+        this.motor = motor;
+
+        super.setMeasurements(createMeasurement());
     }
 
     @Override
