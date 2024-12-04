@@ -387,7 +387,7 @@ public class MarinersSparkBase extends MarinersController {
     }
 
     @Override
-    protected void updateInputs(BaseControllerInputsAutoLogged inputs) {
+    protected void updateInputs(MotorInputs inputs) {
         inputs.currentOutput = motor.getOutputCurrent();
         inputs.dutyCycle = motor.getAppliedOutput();
         inputs.voltageInput = motor.getBusVoltage();
