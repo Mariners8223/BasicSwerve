@@ -3,6 +3,7 @@ package frc.robot.commands.Drive;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import frc.robot.subsystems.DriveTrain.DriveBase;
 
@@ -11,9 +12,9 @@ import static frc.robot.subsystems.DriveTrain.SwerveModules.SwerveModule.DISTANC
 public class DriveCommand extends Command {
 
     private final DriveBase driveBase;
-    private final CommandPS5Controller controller;
+    private final CommandPS4Controller controller;
 
-    public DriveCommand(DriveBase driveBase, CommandPS5Controller controller) {
+    public DriveCommand(DriveBase driveBase, CommandPS4Controller controller) {
         this.driveBase = driveBase;
         this.controller = controller;
         addRequirements(this.driveBase);

@@ -239,6 +239,8 @@ public class MarinersTalonFX extends MarinersController {
 
     @Override
     protected void setMotorFollower(MarinersController master, boolean invert) {
+        assert master instanceof MarinersTalonFX;
+
         MarinersTalonFX base = (MarinersTalonFX) master;
 
         Follower follower = new Follower(base.getMotor().getDeviceID(), invert);

@@ -1,100 +1,83 @@
 package frc.robot.subsystems.DriveTrain.SwerveModules;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
+import frc.util.MarinersController.MarinersController;
+import frc.util.MarinersController.MarinersSimMotor;
+import frc.util.PIDFGains;
 
 public class SwerveModuleIOSIM extends SwerveModuleIO {
-    private final DCMotorSim driveMotor;
-    private final DCMotorSim steerMotor;
-
-    private final PIDController driveMotorPIDController;
-    private final PIDController steerMotorPIDController;
-
-    private final String name;
-
-    private final double DRIVE_GEAR_RATIO;
-    private final double STEER_GEAR_RATIO;
-    private final double WHEEL_RADIUS_METERS;
+    private final MarinersController driveMotor;
+    private final MarinersController steerMotor;
 
 
     public SwerveModuleIOSIM(SwerveModule.ModuleName name) {
+        double DRIVE_GEAR_RATIO;
+        double WHEEL_CIRCUMFERENCE_METERS;
+
+        double STEER_GEAR_RATIO;
+
+        PIDFGains drivePIDF;
+        PIDFGains steerPIDF;
 
         if (Constants.ROBOT_TYPE == Constants.RobotType.DEVELOPMENT) {
             DRIVE_GEAR_RATIO = DevBotConstants.DRIVE_GEAR_RATIO;
             STEER_GEAR_RATIO = DevBotConstants.STEER_GEAR_RATIO;
-            WHEEL_RADIUS_METERS = DevBotConstants.WHEEL_RADIUS_METERS;
+            WHEEL_CIRCUMFERENCE_METERS = DevBotConstants.WHEEL_CIRCUMFERENCE_METERS;
 
             DevBotConstants constants = DevBotConstants.values()[name.ordinal()];
 
-            driveMotorPIDController = constants.DRIVE_MOTOR_PID.createPIDController();
-            steerMotorPIDController = constants.STEER_MOTOR_PID.createPIDController();
+            drivePIDF = constants.DRIVE_MOTOR_PID;
+            steerPIDF = constants.STEER_MOTOR_PID;
         }
         else {
             DRIVE_GEAR_RATIO = CompBotConstants.DRIVE_GEAR_RATIO;
             STEER_GEAR_RATIO = CompBotConstants.STEER_GEAR_RATIO;
-            WHEEL_RADIUS_METERS = CompBotConstants.WHEEL_RADIUS_METERS;
+            WHEEL_CIRCUMFERENCE_METERS = CompBotConstants.WHEEL_CIRCUMFERENCE_METERS;
 
-                                CompBotConstants constants = CompBotConstants.values()[name.ordinal()];
+            CompBotConstants constants = CompBotConstants.values()[name.ordinal()];
 
-            driveMotorPIDController = constants.DRIVE_MOTOR_PID.createPIDController();
-            steerMotorPIDController = constants.STEER_MOTOR_PID.createPIDController();
+            drivePIDF = constants.DRIVE_MOTOR_PID;
+            steerPIDF = constants.STEER_MOTOR_PID;
         }
 
-        driveMotor = new DCMotorSim(DCMotor.getFalcon500(1), 1, 0.025 / DRIVE_GEAR_RATIO);
+        driveMotor = new MarinersSimMotor(name.name() + " Drive Motor",
+                DCMotor.getKrakenX60(1), DRIVE_GEAR_RATIO / WHEEL_CIRCUMFERENCE_METERS, 1);
 
-        steerMotor = new DCMotorSim(DCMotor.getNEO(1), 1, 0.004 / STEER_GEAR_RATIO);
+        driveMotor.setPIDF(drivePIDF);
 
+        steerMotor = new MarinersSimMotor(name.name() + " Steer Motor",
+                DCMotor.getNEO(1), STEER_GEAR_RATIO, 0.01);
 
+        steerMotor.setPIDF(steerPIDF);
 
-        this.name = name.name();
+        steerMotor.enablePositionWrapping(-0.5, 0.5);
     }
 
     @Override
     public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
-        driveMotor.update(1 / SwerveModule.MODULE_THREAD_HZ);
-        steerMotor.update(1 / SwerveModule.MODULE_THREAD_HZ);
+        inputs.currentState.speedMetersPerSecond = driveMotor.getVelocity();
 
-        inputs.currentState.speedMetersPerSecond =
-                (driveMotor.getAngularVelocityRadPerSec() /DRIVE_GEAR_RATIO) * WHEEL_RADIUS_METERS;
+        inputs.currentState.angle = Rotation2d.fromRotations(steerMotor.getPosition());
 
-        inputs.currentState.angle = Rotation2d.fromRadians(steerMotor.getAngularPositionRad() / STEER_GEAR_RATIO);
-
-        inputs.drivePositionMeters =
-                (driveMotor.getAngularPositionRad() / DRIVE_GEAR_RATIO) * WHEEL_RADIUS_METERS;
+        inputs.drivePositionMeters = driveMotor.getPosition();
     }
 
     @Override
     public void setDriveMotorReference(double reference) {
-        double driveMotorVelocity = driveMotor.getAngularVelocityRPM() / 60; //turn to rotations per second
-
-        double driveMotorReferenceNativeUnits =
-                (reference / WHEEL_RADIUS_METERS) * DRIVE_GEAR_RATIO;
-
-        double driveMotorVoltage = driveMotorPIDController.calculate(driveMotorVelocity, driveMotorReferenceNativeUnits);
-
-        driveMotor.setInputVoltage(driveMotorVoltage * RobotController.getBatteryVoltage());
+        driveMotor.setReference(reference, MarinersController.ControlMode.Velocity);
     }
 
     @Override
     public void setDriveMotorVoltage(double voltage) {
-        driveMotor.setInputVoltage(voltage);
+        driveMotor.setVoltage(voltage);
     }
 
     @Override
     public void setSteerMotorReference(double reference) {
-        double steerMotorPosition = steerMotor.getAngularPositionRotations();
-
-        double steerMotorReferenceNativeUnits = reference * STEER_GEAR_RATIO;
-
-        double steerMotorVoltage = steerMotorPIDController.calculate(steerMotorPosition, steerMotorReferenceNativeUnits);
-
-        steerMotor.setInputVoltage(steerMotorVoltage * RobotController.getBatteryVoltage());
+        steerMotor.setReference(reference, MarinersController.ControlMode.Position);
     }
 
     @Override
@@ -104,27 +87,27 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
     @Override
     public void resetDriveEncoder() {
-        driveMotor.setState(0, 0);
+        driveMotor.resetMotorEncoder();
     }
 
     @Override
     void startDriveCalibration() {
-        SmartDashboard.putData(name + " Drive Motor PID", driveMotorPIDController);
+        driveMotor.startPIDTuning();
     }
 
     @Override
     void endDriveCalibration() {
-
+        driveMotor.stopPIDTuning();
     }
 
     @Override
     void startSteerCalibration() {
-        SmartDashboard.putData(name + " Steer Motor PID", steerMotorPIDController);
+        steerMotor.startPIDTuning();
     }
 
     @Override
     void endSteerCalibration() {
-
+        steerMotor.stopPIDTuning();
     }
 
 

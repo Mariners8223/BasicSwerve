@@ -402,9 +402,7 @@ public class MarinersSparkBase extends MarinersController {
 
     @Override
     protected void setMotorFollower(MarinersController master, boolean invert) {
-        if (master.getClass() != MarinersSparkBase.class) {
-            throw new IllegalArgumentException("cannot set a motor as follower to a different kind of motor");
-        }
+        assert master instanceof MarinersSparkBase;
 
         MarinersSparkBase base = (MarinersSparkBase) master;
 
@@ -461,7 +459,7 @@ public class MarinersSparkBase extends MarinersController {
 
     @Override
     protected void setMotorDeadBandDutyCycleMotor(double deadBand) {
-        DriverStation.reportError("Dead band for spark controllers is only available for controllers running on rio", false);
+        DriverStation.reportWarning("Dead band for spark controllers is only available for controllers running on rio", false);
     }
 
     @Override
