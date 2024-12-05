@@ -15,7 +15,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
     public SwerveModuleIOSIM(SwerveModule.ModuleName name) {
         double DRIVE_GEAR_RATIO;
-        double WHEEL_RADIUS_METERS;
+        double WHEEL_CIRCUMFERENCE_METERS;
 
         double STEER_GEAR_RATIO;
 
@@ -25,7 +25,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         if (Constants.ROBOT_TYPE == Constants.RobotType.DEVELOPMENT) {
             DRIVE_GEAR_RATIO = DevBotConstants.DRIVE_GEAR_RATIO;
             STEER_GEAR_RATIO = DevBotConstants.STEER_GEAR_RATIO;
-            WHEEL_RADIUS_METERS = DevBotConstants.WHEEL_RADIUS_METERS;
+            WHEEL_CIRCUMFERENCE_METERS = DevBotConstants.WHEEL_CIRCUMFERENCE_METERS;
 
             DevBotConstants constants = DevBotConstants.values()[name.ordinal()];
 
@@ -35,7 +35,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         else {
             DRIVE_GEAR_RATIO = CompBotConstants.DRIVE_GEAR_RATIO;
             STEER_GEAR_RATIO = CompBotConstants.STEER_GEAR_RATIO;
-            WHEEL_RADIUS_METERS = CompBotConstants.WHEEL_RADIUS_METERS;
+            WHEEL_CIRCUMFERENCE_METERS = CompBotConstants.WHEEL_CIRCUMFERENCE_METERS;
 
             CompBotConstants constants = CompBotConstants.values()[name.ordinal()];
 
@@ -44,21 +44,23 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         }
 
         driveMotor = new MarinersSimMotor(name.name() + " Drive Motor",
-                DCMotor.getKrakenX60(1), DRIVE_GEAR_RATIO / WHEEL_RADIUS_METERS, 0.025);
+                DCMotor.getKrakenX60(1), DRIVE_GEAR_RATIO / WHEEL_CIRCUMFERENCE_METERS, 1);
 
         driveMotor.setPIDF(drivePIDF);
 
         steerMotor = new MarinersSimMotor(name.name() + " Steer Motor",
-                DCMotor.getNEO(1), STEER_GEAR_RATIO, 0.025);
+                DCMotor.getNEO(1), STEER_GEAR_RATIO, 0.01);
 
         steerMotor.setPIDF(steerPIDF);
+
+        steerMotor.enablePositionWrapping(-0.5, 0.5);
     }
 
     @Override
     public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
         inputs.currentState.speedMetersPerSecond = driveMotor.getVelocity();
 
-        inputs.currentState.angle = Rotation2d.fromRadians(steerMotor.getPosition());
+        inputs.currentState.angle = Rotation2d.fromRotations(steerMotor.getPosition());
 
         inputs.drivePositionMeters = driveMotor.getPosition();
     }
