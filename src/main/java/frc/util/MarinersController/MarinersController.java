@@ -1,6 +1,7 @@
 package frc.util.MarinersController;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.Measure;
@@ -240,6 +241,13 @@ public abstract class MarinersController {
     private Double[] wrappingMinMax;
 
     /**
+     * the position max min the controller will clamp the target position to this range,
+     * if using other control modes, it will not output any power if the position is outside of this range and is facing the wrong direction
+     * units are the units of the measurements
+     */
+    private Double[] softLimitMaxMin = {Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY};
+
+    /**
      * The deadband of the motor in voltage
      * if the motor output is less than this value, the motor will not put out any power
      */
@@ -278,73 +286,97 @@ public abstract class MarinersController {
             measurementLock.unlock();
         }
 
-        if(isRunningPIDTuning && location == ControllerLocation.MOTOR){
+        if (isRunningPIDTuning && location == ControllerLocation.MOTOR) {
             PIDFGains newGains = PIDFGains.fromController(pidController);
-            if(!newGains.equals(currentGains)){
+            if (!newGains.equals(currentGains)) {
                 setPIDFMotor(newGains);
                 currentGains = newGains;
             }
         }
 
         double output;
-        ControlMode controlMode;
+        ControlMode outputMode;
+        double feedForward;
 
         try {
             setpointLock.lock();
 
-            controlMode = this.controlMode;
+            if (controlMode == ControlMode.Follower || controlMode == ControlMode.Stopped) return;
 
-            if(controlMode == ControlMode.Follower || controlMode == ControlMode.Stopped){
-                return;
-            }
+            outputMode = location == ControllerLocation.RIO ? ControlMode.Voltage : controlMode;
 
-            if(!controlMode.needPID()){
-                setOutput(setpoint.position, controlMode, 0);
-                return;
-            }
+            Pair<Double, Double> outputPair = calculateOutput(outputMode);
 
-            double measurement = switch (controlMode) {
-                case Position, ProfiledPosition -> measurements.getPosition();
-                case Velocity, ProfiledVelocity -> measurements.getVelocity();
-                default -> 0;
-            };
+            output = outputPair.getFirst();
+            feedForward = outputPair.getSecond();
 
-            if (wrappingMinMax != null && controlMode.isPositionControl()) {
-                setpoint.position = calculatePositionWrapping(measurement, setpoint.position);
-
-                if (controlMode == ControlMode.ProfiledPosition)
-                    goal.position = calculatePositionWrapping(measurement, goal.position);
-            }
-
-            if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
-
-            double feedForward = this.feedForward.apply(measurement) * setpoint.position;
-
-            if (location == ControllerLocation.MOTOR) {
-                setOutput(setpoint.position * measurements.getGearRatio(), controlMode, feedForward);
-                return;
-            }
-
-
-            // calculate the output of the pid controller
-            output = pidController.calculate(measurement, setpoint.position);
-
-            // if the pid controller is at the setpoint, set the output to the feed forward
-            if (pidController.atSetpoint()) {
-                output = feedForward;
-            } else {
-                output += feedForward;
-            }
-
-            if (Math.abs(output) <= motorVoltageDeadBand) {
-                output = 0;
-            }
         } finally {
             setpointLock.unlock();
         }
 
         //sends the motor output to the motor
-        setOutput(MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]), ControlMode.Voltage, 0);
+        setOutput(output, outputMode, feedForward);
+    }
+
+    private Pair<Double, Double> calculateOutput(ControlMode controlMode) {
+        if (controlMode == ControlMode.DutyCycle || controlMode == ControlMode.Voltage) {
+            double output = switch (controlMode) {
+                case DutyCycle -> MathUtil.clamp(setpoint.position, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
+                case Voltage -> MathUtil.clamp(setpoint.position, maxMinOutput[1], maxMinOutput[0]);
+                default -> 0;
+            };
+
+            return new Pair<>(output, 0.0);
+        }
+
+        double measurement = switch (controlMode) {
+            case Position, ProfiledPosition -> measurements.getPosition();
+            case Velocity, ProfiledVelocity -> measurements.getVelocity();
+            default -> 0;
+        };
+
+        if (controlMode == ControlMode.Position)
+            setpoint.position = MathUtil.clamp(setpoint.position, softLimitMaxMin[1], softLimitMaxMin[0]);
+
+        else if (controlMode == ControlMode.ProfiledPosition)
+            goal.position = MathUtil.clamp(goal.position, softLimitMaxMin[1], softLimitMaxMin[0]);
+
+        else setpoint.position =
+                    (measurements.getPosition() > 0 && setpoint.position < 0) ||
+                            (measurements.getPosition() < 0 && setpoint.position > 0) ? 0 : setpoint.position;
+
+
+        //if the controller is in position control mode and the position is outside of this range, the controller will wrap the position to be within this range
+        if (wrappingMinMax != null && controlMode.isPositionControl())
+            setpoint.position = calculatePositionWrapping(measurement, setpoint.position);
+
+        //if using profiled control mode, will do the same for the goal
+        if (wrappingMinMax != null && controlMode == ControlMode.ProfiledPosition)
+            goal.position = calculatePositionWrapping(measurement, goal.position);
+
+        if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
+
+        double feedForward = this.feedForward.apply(measurement) * setpoint.position;
+
+        if (location == ControllerLocation.MOTOR) {
+            return new Pair<>(setpoint.position * measurements.getGearRatio(), feedForward);
+        }
+
+        // calculate the output of the pid controller
+        double output = pidController.calculate(measurement, setpoint.position);
+
+        // if the pid controller is at the setpoint, set the output to the feed forward
+        if (pidController.atSetpoint()) {
+            output = feedForward;
+        } else {
+            output += feedForward;
+        }
+
+        if (Math.abs(output) <= motorVoltageDeadBand) {
+            output = 0;
+        }
+
+        return new Pair<>(MathUtil.clamp(output, maxMinOutput[1], maxMinOutput[0]), 0.0);
     }
 
     private double calculatePositionWrapping(double measurement, double setpoint) {
@@ -487,9 +519,10 @@ public abstract class MarinersController {
 
     /**
      * gets the current PID gains of the controller (will only include P, I, D, maybe F)
+     *
      * @return the current PID gains of the controller
      */
-    public PIDFGains getPIDF(){
+    public PIDFGains getPIDF() {
         return currentGains;
     }
 
@@ -505,17 +538,18 @@ public abstract class MarinersController {
      * this will make the motor follow the output of the master motor
      * (this will make the motor ignore any reference set to it)
      * can only be undone by restarting the code
+     *
      * @param master the master motor controller (the one that this motor will follow)
      * @param invert true if the motor should follow the master in reverse (if the master spins clockwise, this motor will spin counter-clockwise)
      */
-    public void setMotorAsFollower(MarinersController master, boolean invert){
-        if(master.getClass() != this.getClass())
+    public void setMotorAsFollower(MarinersController master, boolean invert) {
+        if (master.getClass() != this.getClass())
             throw new IllegalArgumentException("cannot set a motor as follower to a different kind of motor");
 
-        try{
+        try {
             setpointLock.lock();
             controlMode = ControlMode.Follower;
-        }finally {
+        } finally {
             setpointLock.unlock();
         }
 
@@ -551,7 +585,7 @@ public abstract class MarinersController {
                 return;
             }
 
-            if(controlMode == ControlMode.Follower){
+            if (controlMode == ControlMode.Follower) {
                 DriverStation.reportError("cannot set reference to a follower motor", true);
                 return;
             }
@@ -561,7 +595,8 @@ public abstract class MarinersController {
             switch (controlMode) {
                 case Stopped -> stopMotorOutput();
                 case Voltage -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1], maxMinOutput[0]);
-                case DutyCycle -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
+                case DutyCycle ->
+                        this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
                 case Position, Velocity -> this.setpoint.position = setpoint;
                 case ProfiledPosition, ProfiledVelocity -> this.goal.position = setpoint;
             }
@@ -607,7 +642,7 @@ public abstract class MarinersController {
                 return;
             }
 
-            if(controlMode == ControlMode.Follower){
+            if (controlMode == ControlMode.Follower) {
                 DriverStation.reportError("cannot set reference to a follower motor", true);
                 return;
             }
@@ -746,6 +781,68 @@ public abstract class MarinersController {
     }
 
     /**
+     * Enables position limits for the controller.
+     * This method is used to clamp the target position to be within a specified range.
+     * If the controller is in position control mode and the position is outside of this range, the controller will not output any power.
+     * units are the units of the measurements
+     *
+     * @param maxMin An array containing the minimum and maximum values for position limits. (max first, then min)
+     */
+    public void enableSoftLimit(Double[] maxMin) {
+        Objects.requireNonNull(maxMin, "Max min cannot be null");
+
+        if (maxMin.length != 2) {
+            throw new IllegalArgumentException("minMax must have exactly 2 elements");
+        }
+
+        if(maxMin[0] < maxMin[1]) {
+            throw new IllegalArgumentException("max must be greater than min");
+        }
+
+        if(maxMin[0] == Double.POSITIVE_INFINITY && maxMin[1] == Double.NEGATIVE_INFINITY) {
+            disableSoftLimitMotor();
+        } else {
+            setMotorSoftLimit(maxMin[1], maxMin[0]);
+        }
+
+        softLimitMaxMin = maxMin;
+    }
+
+    protected abstract void setMotorSoftLimit(double minimum, double maximum);
+
+    /**
+     * Enables position limits for the controller.
+     * This method is used to clamp the target position to be within a specified range.
+     * If the controller is in position control mode and the position is outside of this range, the controller will not output any power.
+     * units are the units of the measurements
+     *
+     * @param maximum the maximum value
+     * @param minimum the minimum value
+     */
+    public void enableSoftLimit(double maximum, double minimum) {
+        enableSoftLimit(new Double[]{maximum, minimum});
+    }
+
+    /**
+     * Disables position limits for the controller.
+     * The controller will not clamp the target position to any range.
+     */
+    public void disableSoftLimit() {
+        enableSoftLimit(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
+    }
+
+    protected abstract void disableSoftLimitMotor();
+
+    /**
+     * Checks if position limits are enabled for the controller.
+     *
+     * @return true if position limits are enabled, false otherwise.
+     */
+    public boolean isSoftLimitEnabled() {
+        return softLimitMaxMin[0] != Double.POSITIVE_INFINITY || softLimitMaxMin[1] != Double.NEGATIVE_INFINITY;
+    }
+
+    /**
      * sets the pid gains and feed forward of the controller
      *
      * @param gains       the pid gains of the controller (F is ignored)
@@ -788,15 +885,16 @@ public abstract class MarinersController {
      * stops the pid tuning
      * only does something if started the tuning and using the motor controller on the motor
      */
-    public void stopPIDTuning(){
+    public void stopPIDTuning() {
         isRunningPIDTuning = false;
     }
 
     /**
      * checks if the pid tuning is running
+     *
      * @return true if the pid tuning is running
      */
-    public boolean isRunningPIDTuning(){
+    public boolean isRunningPIDTuning() {
         return isRunningPIDTuning;
     }
 
