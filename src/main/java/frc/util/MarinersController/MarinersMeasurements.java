@@ -201,7 +201,7 @@ public class MarinersMeasurements {
      * @param velocity the supplier for the velocity of the system (before gear ratio)
      */
     private void createAccelerationSupplier(Supplier<Double> velocity){
-        double[] lastVelocity = {velocity.get()};
+        double[] lastVelocity = new double[1];
 
         acceleration = () -> {
             double currentVelocity = velocity.get();
