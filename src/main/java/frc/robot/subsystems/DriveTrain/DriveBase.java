@@ -178,8 +178,8 @@ public class DriveBase extends SubsystemBase {
         ).ignoringDisable(true));
 
         sysIdRoutine = new SysIdRoutine(new SysIdRoutine.Config(
-                null,
-                Units.Volts.of(4),
+                Units.Volts.of(0.75).per(Units.Second),
+                Units.Volts.of(3.5),
                 null,
                 (state) -> inputs.sysIDState = state.toString()
         ), new SysIdRoutine.Mechanism(
