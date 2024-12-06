@@ -15,12 +15,12 @@ public enum DevBotConstants {
 
     BACK_LEFT(9, 10, 11,
             true, true, 0.467,
-            new PIDFGains(2, 0, 0, 1.8), //Drive motor PID
+            new PIDFGains(2, 0, 0, 1.9608), //Drive motor PID
             new PIDFGains(20, 30, 6, 0, 0.01, 0)), //Steer motor PID
 
     BACK_RIGHT(12, 13, 14,
             true, true, -0.188,
-            new PIDFGains(2, 0, 0, 1.8), //Drive motor PID
+            new PIDFGains(2, 0, 0, 1.8443), //Drive motor PID
             new PIDFGains(20, 30, 6, 0, 0.01, 0)); //Steer motor PID
 
     public static final double DRIVE_GEAR_RATIO = 5.14;
