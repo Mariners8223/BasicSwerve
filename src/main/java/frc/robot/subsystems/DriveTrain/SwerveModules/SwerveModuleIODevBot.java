@@ -29,7 +29,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
         driveMotor.setCurrentLimits(50, 70);
 
-        // driveMotor.setProfile(40,40);
+         driveMotor.setProfile(40,80);
 
         driveMotor.setMotorDeadBandDutyCycle(0.05);
 
@@ -44,7 +44,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
         steerMotor.setCurrentLimits(30, 50);
 
-        steerMotor.setProfile(40, 80);
+        steerMotor.setProfile(10, 20);
 
         steerMotor.setMotorDeadBandVoltage(0.3);
 
@@ -73,7 +73,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
     @Override
     public void setDriveMotorReference(double reference) {
-        driveMotor.setReference(reference, MarinersController.ControlMode.Velocity);
+        driveMotor.setReference(reference, MarinersController.ControlMode.ProfiledVelocity);
     }
 
     @Override

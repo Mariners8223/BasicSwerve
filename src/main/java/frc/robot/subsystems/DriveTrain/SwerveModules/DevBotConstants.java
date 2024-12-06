@@ -5,30 +5,30 @@ import frc.util.PIDFGains;
 public enum DevBotConstants {
     FRONT_LEFT(3, 4, 5,
             true, true, -0.422,
-            new PIDFGains(2, 0, 0, 1.8), //Drive motor PID
-            new PIDFGains(20, 30.0, 6, 0, 0.01, 0)), //Steer motor PID
+            new PIDFGains(3, 0, 0, 1.8749), //Drive motor PID
+            new PIDFGains(15, 10, 2, 0, 0.01, 0)), //Steer motor PID
 
     FRONT_RIGHT(6, 7, 8,
             true, true, 0.389,
-            new PIDFGains(2, 0, 0, 1.8), //Drive motor PID
-            new PIDFGains(20, 30, 6, 0, 0.01, 0)), //Steer motor PID
+            new PIDFGains(3, 0, 0, 1.8552), //Drive motor PID
+            new PIDFGains(15, 10, 2, 0, 0.01, 0)), //Steer motor PID
 
     BACK_LEFT(9, 10, 11,
             true, true, 0.467,
-            new PIDFGains(2, 0, 0, 1.9608), //Drive motor PID
-            new PIDFGains(20, 30, 6, 0, 0.01, 0)), //Steer motor PID
+            new PIDFGains(3, 0, 0, 1.9608), //Drive motor PID
+            new PIDFGains(15, 10, 2, 0, 0.01, 0)), //Steer motor PID
 
     BACK_RIGHT(12, 13, 14,
             true, true, -0.188,
-            new PIDFGains(2, 0, 0, 1.8443), //Drive motor PID
-            new PIDFGains(20, 30, 6, 0, 0.01, 0)); //Steer motor PID
+            new PIDFGains(3, 0, 0, 1.8443), //Drive motor PID
+            new PIDFGains(15, 10, 2, 0, 0.01, 0)); //Steer motor PID
 
     public static final double DRIVE_GEAR_RATIO = 5.14;
     public static final double STEER_GEAR_RATIO = 12.8;
     public static final double WHEEL_RADIUS_METERS = 0.0508;
     public static final double WHEEL_CIRCUMFERENCE_METERS = 2 * Math.PI * WHEEL_RADIUS_METERS;
 
-    public static final double MAX_WHEEL_LINEAR_VELOCITY = 5.5;
+    public static final double MAX_WHEEL_LINEAR_VELOCITY = 5;
 
     /**
      * the motor id for the drive motor
