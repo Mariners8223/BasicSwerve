@@ -190,7 +190,7 @@ public abstract class MarinersController {
     /**
      * The maximum and minimum output of the controller in volts
      */
-    private double[] maxMinOutput = {12, -12};
+    private double[] maxMinOutput = {13, -13};
 
     /**
      * The lock for the setpoint of the controller
