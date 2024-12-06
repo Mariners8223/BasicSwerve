@@ -7,25 +7,25 @@ public enum DevBotConstants {
             true, true, 0,
             new PIDFGains(0.1, 0, 0), //Drive motor PID
             new PIDFGains(0.1, 0, 0),
-            1, 1, 1, 1), //Steer motor PID
+            1.8749, 0.11683, 1, 1), //Steer motor PID
 
     FRONT_RIGHT(6, 7, 8,
             true, true, 0,
             new PIDFGains(0.1, 0, 0), //Drive motor PID
             new PIDFGains(0.1, 0, 0),
-            1, 1, 1, 1), //Steer motor PID
+            1.8552, 0.10686, 1, 1), //Steer motor PID
 
     BACK_LEFT(9, 10, 11,
             true, true, 0,
             new PIDFGains(0.1, 0, 0), //Drive motor PID
             new PIDFGains(0.1, 0, 0),
-            1, 1, 1, 1), //Steer motor PID
+            1.9608, 0.13495, 1, 1), //Steer motor PID
 
     BACK_RIGHT(12, 13, 14,
             true, true, 0,
             new PIDFGains(0.1, 0, 0), //Drive motor PID
             new PIDFGains(0.1, 0, 0),
-            1, 1, 1, 1); //Steer motor PID
+            1.8443, 0.083782, 1, 1); //Steer motor PID
 
     public static final double DRIVE_GEAR_RATIO = 5.14;
     public static final double STEER_GEAR_RATIO = 12.8;
