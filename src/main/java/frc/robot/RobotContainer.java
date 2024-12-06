@@ -12,6 +12,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -48,7 +49,6 @@ public class RobotContainer{
         SmartDashboard.putData(field);
 
         // configChooser();
-
     }
 
     private static final BooleanSupplier checkForPathChoiceUpdate = new BooleanSupplier() {

@@ -10,6 +10,8 @@ import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.RobotController;
+import frc.util.BatteryVoltageLow;
 import frc.util.LocalADStarAK;
 import frc.util.MarinersController.*;
 
@@ -82,6 +84,11 @@ public class Robot extends LoggedRobot
 
 
         ControllerMaster.getInstance();
+
+
+        if(RobotController.getBatteryVoltage() <= 12){
+            throw new BatteryVoltageLow("battery voltage to low, please replace batter");
+        }
     }
     
     
