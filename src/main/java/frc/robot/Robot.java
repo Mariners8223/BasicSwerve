@@ -56,8 +56,12 @@ public class Robot extends LoggedRobot
         if(isReal()){
             // Logger.addDataReceiver(new WPILOGWriter("/U/logs/AdvantageKit"));
             Logger.addDataReceiver(new NT4Publisher());
-            if(Constants.ROBOT_TYPE == Constants.RobotType.DEVELOPMENT)
-                Logger.addDataReceiver(new WPILOGWriter("/media/logs"));
+            switch (Constants.ROBOT_TYPE) {
+                case DEVELOPMENT -> Logger.addDataReceiver(new WPILOGWriter("/media/logs"));
+                case COMPETITION -> Logger.addDataReceiver(new WPILOGWriter("/U/logs"));
+                case REPLAY -> throw new IllegalArgumentException("Robot cannot be replay if it's real");
+            }
+
         }
         else{
             if(Constants.ROBOT_TYPE == Constants.RobotType.REPLAY){
