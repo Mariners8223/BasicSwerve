@@ -565,7 +565,7 @@ public abstract class MarinersController {
             this.arbitraryFeedForward = arbitraryFeedForward;
 
             switch (controlMode) {
-                case Stopped -> stopMotorOutput();
+                default -> stopMotorOutput();
                 case Voltage -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1], maxMinOutput[0]);
                 case DutyCycle -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
                 case Position, Velocity -> this.setpoint.position = setpoint;
@@ -613,7 +613,7 @@ public abstract class MarinersController {
             this.arbitraryFeedForward = 0;
 
             switch (controlMode) {
-                case Stopped -> stopMotorOutput();
+                default -> stopMotorOutput();
                 case Voltage -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1], maxMinOutput[0]);
                 case DutyCycle -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
                 case Position, Velocity -> this.setpoint.position = setpoint;
@@ -779,7 +779,9 @@ public abstract class MarinersController {
 
         DriverStation.reportError(send, false);
 
-        new Alert(send, Alert.AlertType.kError).set(true);
+        try (Alert alert = new Alert(send, Alert.AlertType.kError)) {
+            alert.set(true);
+        }
     }
 
     /**
@@ -792,7 +794,9 @@ public abstract class MarinersController {
 
         DriverStation.reportWarning(send, false);
 
-        new Alert(send, Alert.AlertType.kWarning);
+        try (Alert alert = new Alert(send, Alert.AlertType.kWarning)) {
+            alert.set(true);
+        }
     }
 
     /**

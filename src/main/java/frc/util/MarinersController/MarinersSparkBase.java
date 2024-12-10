@@ -491,7 +491,11 @@ public class MarinersSparkBase extends MarinersController {
 
     @Override
     public void setMotorInverted(boolean inverted) {
-        motor.setInverted(inverted);
+        config.inverted(inverted);
+
+        REVLibError error = motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+
+        reportError("Error configuring motor inverted", error);
     }
 
     @Override

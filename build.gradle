@@ -58,9 +58,9 @@ task(checkAkitInstall, dependsOn: "classes", type: JavaExec) {
 }
 // compileJava.finalizedBy checkAkitInstall
 
-configurations.all {
-    exclude group: "edu.wpi.first.wpilibj"
-}
+// configurations.all {
+//     exclude group: "edu.wpi.first.wpilibj"
+// }
 
 def deployArtifact = deploy.targets.roborio.artifacts.frcJava
 
@@ -95,7 +95,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
-    annotationProcessor "org.littletonrobotics.akit.junction:junction-autolog:$akitJson.version"
+    annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
 }
 
 test {
