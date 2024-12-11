@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.DriveTrain;
 
+import com.ctre.phoenix6.Orchestra;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.units.Measure;
@@ -21,6 +22,8 @@ import frc.util.FastGyros.GyroIO;
 import frc.util.FastGyros.NavxIO;
 import frc.util.FastGyros.PigeonIO;
 import frc.util.FastGyros.SimGyroIO;
+import frc.util.MarinersController.MarinersController;
+import frc.util.MarinersController.MarinersTalonFX;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
@@ -102,6 +105,8 @@ public class DriveBase extends SubsystemBase {
     private Pose2d currentPose = new Pose2d();
 
     private final SysIdRoutine sysIdRoutine;
+
+    private final Orchestra orchestra = new Orchestra();
 
 
     @AutoLog
@@ -187,6 +192,17 @@ public class DriveBase extends SubsystemBase {
                 null,
                 this
         ));
+
+        if(RobotBase.isReal()){
+            for(SwerveModule module : modules){
+                MarinersController driveController = module.getDriveMotorController();
+                if(driveController.getClass() == MarinersTalonFX.class){
+                    orchestra.addInstrument(((MarinersTalonFX) driveController).getMotor());
+                }
+            }
+
+            orchestra.loadMusic("music");
+        }
 
         new Trigger(RobotState::isTeleop).and(RobotState::isEnabled).whileTrue(new StartEndCommand(() ->
                 this.setDefaultCommand(new DriveCommand(this, RobotContainer.driveController)),
@@ -421,6 +437,11 @@ public class DriveBase extends SubsystemBase {
                 modules[i].stopSteerCalibration();
             }
         }).withName("Stop Module Steer Calibration").ignoringDisable(true);
+    }
+
+    public Command playAndStopMusic(){
+        return new StartEndCommand(orchestra::play, orchestra::stop)
+                .withName("Play and Stop Music").ignoringDisable(true);
     }
 
     /**

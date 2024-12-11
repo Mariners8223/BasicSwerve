@@ -117,5 +117,10 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
         steerMotor.startPIDTuning();
     }
 
+    @Override
+    MarinersController getDriveMotorController() {
+        return driveMotor;
+    }
+
 
 }

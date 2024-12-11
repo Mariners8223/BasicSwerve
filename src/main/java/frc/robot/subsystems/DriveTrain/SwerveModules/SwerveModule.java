@@ -10,6 +10,7 @@ import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Constants;
 
+import frc.util.MarinersController.MarinersController;
 import org.littletonrobotics.junction.Logger;
 
 import static frc.robot.Constants.ROBOT_TYPE;
@@ -103,5 +104,9 @@ public class SwerveModule {
 
     public void resetDriveEncoder() {
         io.resetDriveEncoder();
+    }
+
+    public MarinersController getDriveMotorController() {
+        return io.getDriveMotorController();
     }
 }

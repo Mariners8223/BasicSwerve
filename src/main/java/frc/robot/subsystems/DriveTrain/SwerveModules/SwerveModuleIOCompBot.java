@@ -98,4 +98,9 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
     void endSteerCalibration() {
         steerMotor.stopPIDTuning();
     }
+
+    @Override
+    MarinersController getDriveMotorController() {
+        return driveMotor;
+    }
 }

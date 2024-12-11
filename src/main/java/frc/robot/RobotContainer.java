@@ -123,6 +123,8 @@ public class RobotContainer{
 //
 //        driveController.circle().onTrue(driveBase.startModuleSteerCalibration());
 //        driveController.triangle().onTrue(driveBase.stopModuleSteerCalibration());
+
+        driveController.touchpad().whileTrue(driveBase.playAndStopMusic());
     }
     
     

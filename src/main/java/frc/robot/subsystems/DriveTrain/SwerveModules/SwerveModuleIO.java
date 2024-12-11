@@ -5,6 +5,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.*;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import frc.util.MarinersController.MarinersController;
 import org.littletonrobotics.junction.AutoLog;
 
 public abstract class SwerveModuleIO{
@@ -59,6 +60,8 @@ public abstract class SwerveModuleIO{
 
     abstract void startSteerCalibration();
     abstract void endSteerCalibration();
+
+    abstract MarinersController getDriveMotorController();
 
     /**
      * configures the absolute encoder (duty cycle encoder)

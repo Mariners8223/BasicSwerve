@@ -1,10 +1,7 @@
 package frc.util.MarinersController;
 
 import com.ctre.phoenix6.StatusCode;
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -108,6 +105,8 @@ public class MarinersTalonFX extends MarinersController {
         TalonFX talonFX = new TalonFX(id);
 
         talonFX.getConfigurator().apply(new TalonFXConfiguration());
+
+        talonFX.getConfigurator().apply(new AudioConfigs().withAllowMusicDurDisable(true));
 
         StatusCode error;
 

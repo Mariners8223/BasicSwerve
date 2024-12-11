@@ -110,6 +110,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         steerMotor.stopPIDTuning();
     }
 
+    @Override
+    MarinersController getDriveMotorController() {
+        return driveMotor;
+    }
+
 
     /**
      * A fake class for replaying data
@@ -160,6 +165,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         @Override
         void endSteerCalibration() {
 
+        }
+
+        @Override
+        MarinersController getDriveMotorController() {
+            return null;
         }
     }
 }
