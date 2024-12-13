@@ -68,7 +68,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 //        steerMotor = new MarinersSimMotor(name.name() + " Steer Motor", steerMotorModel,
 //                STEER_KV, STEER_KA, STEER_GEAR_RATIO);
         steerMotor = new MarinersSimMotor(name.name() + " Steer Motor", steerMotorModel,
-                STEER_GEAR_RATIO, 0.1);
+                STEER_GEAR_RATIO, 0.01);
 
         steerMotor.setPIDF(steerMotorPIDController);
 
