@@ -201,7 +201,7 @@ public class DriveBase extends SubsystemBase {
                 }
             }
 
-            orchestra.loadMusic("music");
+            orchestra.loadMusic("music.chrp");
         }
 
         new Trigger(RobotState::isTeleop).and(RobotState::isEnabled).whileTrue(new StartEndCommand(() ->
