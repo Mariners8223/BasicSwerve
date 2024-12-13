@@ -90,7 +90,7 @@ public abstract class SwerveModuleIO{
         CANcoderConfiguration config = new CANcoderConfiguration();
         config.FutureProofConfigs = false;
 
-        config.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
+        config.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.5;
         config.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
         config.MagnetSensor.MagnetOffset = -absoluteEncoderZeroOffset;
 

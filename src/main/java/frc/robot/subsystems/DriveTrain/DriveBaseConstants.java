@@ -5,6 +5,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.Constants;
 import frc.robot.Constants.RobotType;
 import frc.robot.subsystems.DriveTrain.SwerveModules.CompBotConstants;
@@ -32,14 +33,16 @@ public class DriveBaseConstants {
                 PATH_ERROR_TOLERANCE,
                 PATH_ERROR_SPIKE_TOLERANCE,
                 DISTANCE_BETWEEN_WHEELS,
-                null,
+                Constants.ROBOT_TYPE == RobotType.COMPETITION ?
+                        CompBotConstants.DRIVE_MOTOR_MODEL :
+                        DevBotConstants.DRIVE_MOTOR_MODEL,
                 DISTANCE_BETWEEN_WHEELS,
                 PIGEON_ID);
 
         public static final RobotConfig ROBOT_CONFIG = new RobotConfig(
                 50,
                 1,
-                null,
+                MODULE_CONFIG,
                 DISTANCE_BETWEEN_WHEELS,
                 DISTANCE_BETWEEN_WHEELS);
 

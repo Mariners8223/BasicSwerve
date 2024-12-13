@@ -52,8 +52,7 @@ public class MarinersSimMotor extends MarinersController {
         super(name, ControllerLocation.RIO);
 
         motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(motorType, momentOfInertia, gearRatio),
-                motorType.withReduction(gearRatio),
-                0);
+                motorType.withReduction(gearRatio));
 
         super.setMeasurements(createMeasurement());
     }
@@ -73,8 +72,7 @@ public class MarinersSimMotor extends MarinersController {
         super(name, ControllerLocation.RIO);
 
         motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(kV, kA),
-                motorType.withReduction(gearRatio),
-                0);
+                motorType.withReduction(gearRatio));
 
         super.setMeasurements(createMeasurement());
     }

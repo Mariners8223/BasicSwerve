@@ -1,5 +1,6 @@
 package frc.robot.subsystems.DriveTrain.SwerveModules;
 
+import edu.wpi.first.math.system.plant.DCMotor;
 import frc.util.PIDFGains;
 
 public enum CompBotConstants {
@@ -33,6 +34,8 @@ public enum CompBotConstants {
     public static final double WHEEL_CIRCUMFERENCE_METERS = 2 * Math.PI * WHEEL_RADIUS_METERS;
 
     public static final double MAX_WHEEL_LINEAR_VELOCITY = 4.5;
+
+    public static final DCMotor DRIVE_MOTOR_MODEL = DCMotor.getFalcon500(1).withReduction(DRIVE_GEAR_RATIO);
 
     /**
      * the motor id for the drive motor
