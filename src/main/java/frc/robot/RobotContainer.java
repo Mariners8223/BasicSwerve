@@ -119,7 +119,7 @@ public class RobotContainer{
             });
         }
         catch (IOException | ParseException e){
-            e.printStackTrace();
+            DriverStation.reportError("Error loading auto path", e.getStackTrace());
         }   
 
         field.getObject("AutoPath").setPoses(poses);
