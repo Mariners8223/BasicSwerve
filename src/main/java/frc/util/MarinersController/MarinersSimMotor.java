@@ -2,7 +2,11 @@ package frc.util.MarinersController;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.units.Units;
+import edu.wpi.first.units.*;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Per;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.util.PIDFGains;
 
@@ -43,9 +47,10 @@ public class MarinersSimMotor extends MarinersController {
 
     /**
      * creates the controller
-     * @param name the name of the controller (for logging)
-     * @param motorType the type of motor to simulate
-     * @param gearRatio the gear ratio of the motor (larger than 1 if the motor is geared down)
+     *
+     * @param name            the name of the controller (for logging)
+     * @param motorType       the type of motor to simulate
+     * @param gearRatio       the gear ratio of the motor (larger than 1 if the motor is geared down)
      * @param momentOfInertia the moment of inertia of the system (in kg m^2)
      */
     public MarinersSimMotor(String name, DCMotor motorType, double gearRatio, double momentOfInertia) {
@@ -60,8 +65,9 @@ public class MarinersSimMotor extends MarinersController {
     /**
      * creates the controller
      * using a gear ratio of 1
-     * @param name the name of the controller (for logging)
-     * @param motorType the type of motor to simulate
+     *
+     * @param name            the name of the controller (for logging)
+     * @param motorType       the type of motor to simulate
      * @param momentOfInertia the moment of inertia of the system (in kg m^2)
      */
     public MarinersSimMotor(String name, DCMotor motorType, double momentOfInertia) {
@@ -70,13 +76,14 @@ public class MarinersSimMotor extends MarinersController {
 
     /**
      * creates the controller
-     * @param name the name of the motor (for logging)
+     *
+     * @param name      the name of the motor (for logging)
      * @param motorType the type of motor
-     * @param kV the kv of the motor (in volts / w (radians per sec))
-     * @param kA the ka of the motor (int volts / w / s (radians per sec^2))
+     * @param kV        the kv of the motor (in volts / w (radians per sec))
+     * @param kA        the ka of the motor (int volts / w / s (radians per sec^2))
      * @param gearRatio the gear ratio of the motor
      */
-    public MarinersSimMotor(String name, DCMotor motorType, double kV, double kA, double gearRatio){
+    public MarinersSimMotor(String name, DCMotor motorType, double kV, double kA, double gearRatio) {
         super(name, ControllerLocation.RIO);
 
         motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(kV, kA),
@@ -87,10 +94,35 @@ public class MarinersSimMotor extends MarinersController {
 
     /**
      * creates the controller
-     * @param name the name of the motor
+     *
+     * @param name      the name of the motor (for logging)
+     * @param motorType the type of motor
+     * @param kV        the kv of the motor
+     * @param kA        the ka of the motor
+     * @param gearRatio the gear ratio of the motor
+     */
+    public MarinersSimMotor(String name, DCMotor motorType,
+                            Per<VoltageUnit, AngularVelocityUnit> kV,
+                            Per<VoltageUnit, AngularAccelerationUnit> kA,
+                            double gearRatio) {
+        super(name, ControllerLocation.RIO);
+
+        double kv = kV.in(Units.VoltsPerRadianPerSecond);
+        double ka = kA.in(Units.VoltsPerRadianPerSecondSquared);
+
+        motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(kv, ka),
+                motorType.withReduction(gearRatio));
+
+        super.setMeasurements(createMeasurement());
+    }
+
+    /**
+     * creates the controller
+     *
+     * @param name  the name of the motor
      * @param motor the sim motor object (don't forget to set the gear ratio in the motor object)
      */
-    public MarinersSimMotor(String name, DCMotorSim motor){
+    public MarinersSimMotor(String name, DCMotorSim motor) {
         super(name, ControllerLocation.RIO);
 
         this.motor = motor;
