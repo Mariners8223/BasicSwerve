@@ -13,7 +13,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
     private final MarinersController driveMotor;
     private final MarinersController steerMotor;
 
-    private final double DRIVE_KA, WHEEL_CIRCUMFERENCE_METERS;
+    private final double DRIVE_KA;
 
     public SwerveModuleIOSIM(SwerveModule.ModuleName name) {
         DCMotor driveMotorModel;
@@ -21,7 +21,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
         PIDFGains driveMotorPIDController, steerMotorPIDController;
 
-        double DRIVE_KV, STEER_KV, STEER_KA, DRIVE_GEAR_RATIO, STEER_GEAR_RATIO, WHEEL_RADIUS_METERS;
+        double DRIVE_KV, STEER_KV, STEER_KA, DRIVE_GEAR_RATIO, STEER_GEAR_RATIO, WHEEL_RADIUS_METERS, WHEEL_CIRCUMFERENCE_METERS;
 
         if (Constants.ROBOT_TYPE == Constants.RobotType.DEVELOPMENT) {
             DRIVE_GEAR_RATIO = DevBotConstants.DRIVE_GEAR_RATIO;
@@ -63,7 +63,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         }
 
         driveMotor = new MarinersSimMotor(name.name() + " Drive Motor", driveMotorModel,
-                DRIVE_KV * WHEEL_RADIUS_METERS, DRIVE_KA * WHEEL_RADIUS_METERS, DRIVE_GEAR_RATIO);
+                DRIVE_KV * WHEEL_RADIUS_METERS, DRIVE_KA * WHEEL_RADIUS_METERS, DRIVE_GEAR_RATIO * WHEEL_CIRCUMFERENCE_METERS);
 
         driveMotor.setPIDF(driveMotorPIDController);
 
@@ -79,21 +79,21 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
     @Override
     public void updateInputs(SwerveModuleIOInputsAutoLogged inputs) {
-        inputs.currentState.speedMetersPerSecond = driveMotor.getVelocity() * WHEEL_CIRCUMFERENCE_METERS;
+        inputs.currentState.speedMetersPerSecond = driveMotor.getVelocity();
 
         inputs.currentState.angle = Rotation2d.fromRotations(steerMotor.getPosition());
 
-        inputs.drivePositionMeters = driveMotor.getPosition() * WHEEL_CIRCUMFERENCE_METERS;
+        inputs.drivePositionMeters = driveMotor.getPosition();
     }
 
     @Override
     public void setDriveMotorReference(double reference) {
-        driveMotor.setReference(reference / WHEEL_CIRCUMFERENCE_METERS, MarinersController.ControlMode.Velocity);
+        driveMotor.setReference(reference, MarinersController.ControlMode.Velocity);
     }
 
     @Override
     public void setDriveMotorReference(double reference, double accelerationFeedForward) {
-        driveMotor.setReference(reference / WHEEL_CIRCUMFERENCE_METERS, MarinersController.ControlMode.Velocity, accelerationFeedForward * DRIVE_KA);
+        driveMotor.setReference(reference, MarinersController.ControlMode.Velocity, accelerationFeedForward * DRIVE_KA);
     }
 
     @Override
