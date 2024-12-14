@@ -35,7 +35,7 @@ public enum DevBotConstants {
 
     public static final double MAX_WHEEL_LINEAR_VELOCITY = 4.5;
 
-    public static final DCMotor DRIVE_MOTOR_MODEL = DCMotor.getKrakenX60(1).withReduction(DRIVE_GEAR_RATIO);
+    public static final DCMotor DRIVE_MOTOR_MODEL = DCMotor.getKrakenX60(1);
 
     /**
      * the motor id for the drive motor

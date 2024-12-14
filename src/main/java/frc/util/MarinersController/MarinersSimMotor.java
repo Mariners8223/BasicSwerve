@@ -35,7 +35,7 @@ public class MarinersSimMotor extends MarinersController {
                     motor.update(1 / RUN_HZ);
                     return motor.getAngularPositionRotations();
                 },
-                () -> motor.getAngularVelocityRPM() / 60,
+                () -> motor.getAngularVelocity().in(Units.RotationsPerSecond),
                 () -> motor.getAngularAcceleration().in(Units.RotationsPerSecondPerSecond),
                 1
         );
