@@ -52,7 +52,7 @@ public class MarinersSimMotor extends MarinersController {
         super(name, ControllerLocation.RIO);
 
         motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(motorType, momentOfInertia, gearRatio),
-                motorType.withReduction(gearRatio));
+                motorType);
 
         super.setMeasurements(createMeasurement());
     }
@@ -68,6 +68,14 @@ public class MarinersSimMotor extends MarinersController {
         this(name, motorType, 1, momentOfInertia);
     }
 
+    /**
+     * creates the controller
+     * @param name the name of the motor (for logging)
+     * @param motorType the type of motor
+     * @param kV the kv of the motor (in volts / w (radians per sec))
+     * @param kA the ka of the motor (int volts / w / s (radians per sec^2))
+     * @param gearRatio the gear ratio of the motor
+     */
     public MarinersSimMotor(String name, DCMotor motorType, double kV, double kA, double gearRatio){
         super(name, ControllerLocation.RIO);
 
