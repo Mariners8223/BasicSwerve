@@ -136,6 +136,8 @@ public class MarinersSimMotor extends MarinersController {
     @Override
     protected void stopMotorOutput() {
         motorOutput = 0;
+
+        motor.setInputVoltage(0);
     }
 
     @Override
