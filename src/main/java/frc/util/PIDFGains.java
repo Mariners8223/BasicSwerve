@@ -45,16 +45,16 @@ public class PIDFGains {
       this._Period = 0.02;
     }
 
-    public PIDFGains(double kP, double kI, double kD, double period) {
+    public PIDFGains(double kP, double kI, double kD, double kF) {
       this._kP = kP;
       this._kI = kI;
       this._kD = kD;
-      this._kF = 0;
+      this._kF = kF;
       this._tolerance = 0;
       this._iZone = 0;
       this._maxAcceleration = 0;
       this._maxVelocity = 0;
-      this._Period = period;
+      this._Period = 0.02;
     }
 
     public PIDFGains(double kP, double kI, double kD, double maxVelocity, double maxAcceleration) {

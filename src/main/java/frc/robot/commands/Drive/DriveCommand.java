@@ -42,7 +42,8 @@ public class DriveCommand extends Command {
         //sets the value of the 3 vectors we need (accounting for drift)
         double leftX = -deadBand(controller.getLeftY());
         double leftY = -deadBand(controller.getLeftX());
-        double rightX = -deadBand(controller.getRightX());
+        // double rightX = -deadBand(controller.getRightX());
+        double rightX = 0;
 
         //drives the robot with the values
         driveBase.drive(

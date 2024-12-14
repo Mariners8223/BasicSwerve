@@ -10,15 +10,9 @@ import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.util.LocalADStarAK;
-import frc.util.MarinersController.*;
-import frc.util.PIDFGains;
-import frc.util.MarinersController.MarinersController.ControlMode;
-import frc.util.MarinersController.MarinersController.ControllerLocation;
+import frc.util.MarinersController.ControllerMaster;
 
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -33,8 +27,6 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot
 {
     private Command autonomousCommand;    
-
-    private MarinersController motor;
     
     public Robot() {
         new RobotContainer();
@@ -89,38 +81,6 @@ public class Robot extends LoggedRobot
 
 
         ControllerMaster.getInstance();
-
-        PIDFGains gains = new PIDFGains(0.7, 0, 0, 0.7, 0, 0);
-
-        TrapezoidProfile.Constraints constraints = new Constraints(3, 3);
-
-        motor = new MarinersTalonFX("steer", ControllerLocation.MOTOR, 2, gains, 5.14);
-//        motor = new MarinersSparkBase("steer", ControllerLocation.RIO, 4, true,
-//                MarinersSparkBase.MotorType.SPARK_MAX, gains, 12.8);
-
-        motor.setMaxMinOutput(3, -3);
-
-//        CANcoder canCoder =  new CANcoder(3);
-//
-//        canCoder.getConfigurator().apply(new MagnetSensorConfigs().withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf));
-//
-//
-//        canCoder.setPosition(canCoder.getAbsolutePosition().getValueAsDouble());
-//
-//        canCoder.getPosition().setUpdateFrequency(100);
-//        canCoder.getVelocity().setUpdateFrequency(100);
-//
-//        motor.setMeasurements(new MarinersMeasurements(
-//                () -> canCoder.getPosition().getValueAsDouble(),
-//                () -> canCoder.getVelocity().getValueAsDouble(),
-//                1
-//        ));
-//
-//        motor.enablePositionWrapping(-0.5, 0.5);
-
-        motor.setProfile(constraints);
-
-        motor.resetMotorEncoder();
     }
     
     
@@ -128,10 +88,6 @@ public class Robot extends LoggedRobot
     public void robotPeriodic()
     {
         CommandScheduler.getInstance().run();
-
-        double value = SmartDashboard.getNumber("value", 0);
-
-        motor.setReference(value, ControlMode.ProfiledVelocity);
     }
     
     
