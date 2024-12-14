@@ -270,6 +270,11 @@ public abstract class MarinersController {
     private double arbitraryFeedForward = 0;
 
     /**
+     * the voltage needed to overcome static friction
+     */
+    private double motorKs = 0;
+
+    /**
      * runs the controller
      */
     public void runController() {
@@ -323,6 +328,8 @@ public abstract class MarinersController {
             if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
 
             double feedForward = arbitraryFeedForward + this.feedForward.apply(measurement) * setpoint.position;
+
+            feedForward += Math.signum(measurements.getVelocity()) * motorKs;
 
             if (location == ControllerLocation.MOTOR) {
                 setOutput(setpoint.position * measurements.getGearRatio(), controlMode, feedForward);
@@ -613,11 +620,11 @@ public abstract class MarinersController {
             this.arbitraryFeedForward = 0;
 
             switch (controlMode) {
-                default -> stopMotorOutput();
                 case Voltage -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1], maxMinOutput[0]);
                 case DutyCycle -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
                 case Position, Velocity -> this.setpoint.position = setpoint;
                 case ProfiledPosition, ProfiledVelocity -> this.goal.position = setpoint;
+                default -> stopMotorOutput();
             }
 
         } finally {
@@ -797,6 +804,15 @@ public abstract class MarinersController {
         try (Alert alert = new Alert(send, Alert.AlertType.kWarning)) {
             alert.set(true);
         }
+    }
+
+    /**
+     * sets the static feed forward of the controller
+     * (the voltage needed to overcome static friction)
+     * @param feedForward the voltage needed to overcome static friction (positive value)
+     */
+    public void setStaticFeedForward(double feedForward){
+        this.motorKs = feedForward;
     }
 
     /**
