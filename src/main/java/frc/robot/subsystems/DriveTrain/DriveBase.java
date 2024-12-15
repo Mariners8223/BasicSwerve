@@ -10,7 +10,6 @@ import com.pathplanner.lib.controllers.PathFollowingController;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
-import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -44,7 +43,6 @@ import frc.robot.RobotContainer;
 
 import java.io.IOException;
 import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 
 /**
  * The DriveBase class represents the drivetrain of the robot.
@@ -103,9 +101,6 @@ public class DriveBase extends SubsystemBase {
      * the current pose of the robot (the position and rotation of the robot)
      */
     private Pose2d currentPose = new Pose2d();
-
-    private final SysIdRoutine sysIdRoutine;
-
 
     @AutoLog
     public static class DriveBaseInputs {
@@ -170,17 +165,6 @@ public class DriveBase extends SubsystemBase {
                     else return false;
                 },
                 this);
-
-        sysIdRoutine = new SysIdRoutine(new SysIdRoutine.Config(
-                null,
-                Units.Volts.of(4),
-                null,
-                (state) -> inputs.sysIDState = state.toString()
-        ), new SysIdRoutine.Mechanism(
-                this::driveSysID,
-                null,
-                this
-        ));
 
         new Trigger(RobotState::isEnabled).whileTrue(new StartEndCommand(() -> // sets the modules to brake mode when the robot is enabled
                 setModulesBrakeMode(true)
@@ -395,22 +379,28 @@ public class DriveBase extends SubsystemBase {
         Logger.processInputs(getName(), inputs);
     }
 
-    private Supplier<Rotation2d> sysIDAngle;
+    /**
+     * drives the robot with the sysID routine
+     * not using module optimizations
+     * @param states the states to drive the robot in (speeds is voltage)
+     *               in order of front left, front right, back left, back right
+     */
+    public void driveSysID(SwerveModuleState[] states) {
+        if(states == null || states.length != 4) return;
 
-    private void driveSysID(Voltage voltage) {
         for (int i = 0; i < 4; i++) {
-            modules[i].runSysID(voltage, sysIDAngle.get().minus(getRotation2d()));
+            modules[i].runSysID(states[i].speedMetersPerSecond, states[i].angle);
         }
     }
 
-    public Command runSysIDQuasistatic(boolean isReverse, Supplier<Rotation2d> angle) {
-        sysIDAngle = angle;
-        return sysIdRoutine.quasistatic(isReverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward);
+    public void runSYSIDSteer(Voltage voltage){
+        for (int i = 0; i < 4; i++) {
+            modules[i].runSysIDSteer(voltage);
+        }
     }
 
-    public Command runSysIDDynamic(boolean isReverse, Supplier<Rotation2d> angle) {
-        sysIDAngle = angle;
-        return sysIdRoutine.dynamic(isReverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward);
+    public void setSysIDState(SysIdRoutine.State state) {
+        inputs.sysIDState = state.toString();
     }
 
     public Command startModuleDriveCalibration() {

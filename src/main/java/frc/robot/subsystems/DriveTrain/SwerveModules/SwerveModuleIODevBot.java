@@ -2,7 +2,6 @@ package frc.robot.subsystems.DriveTrain.SwerveModules;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.units.measure.Voltage;
 import frc.util.MarinersController.MarinersController;
 import frc.util.MarinersController.MarinersSparkBase;
 import frc.util.MarinersController.MarinersMeasurements;
@@ -71,13 +70,18 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
     }
 
     @Override
-    public void setDriveMotorVoltage(Voltage voltage) {
+    public void setDriveMotorVoltage(double voltage) {
         driveMotor.setVoltage(voltage);
     }
 
     @Override
     public void setSteerMotorReference(double reference) {
         steerMotor.setReference(reference, MarinersController.ControlMode.Position);
+    }
+
+    @Override
+    public void setSteerMotorVoltage(double voltage) {
+        steerMotor.setVoltage(voltage);
     }
 
     @Override

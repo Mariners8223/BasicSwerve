@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.subsystems.DriveTrain.DriveBaseSYSID;
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -34,7 +34,7 @@ import frc.util.MarinersController.MarinersController;
 import frc.util.MarinersController.MarinersTalonFX;
 import frc.util.MarinersController.MarinersController.ControllerLocation;
 
-public class RobotContainer{
+public class RobotContainer {
     public static DriveBase driveBase;
     public static CommandPS5Controller driveController;
 
@@ -44,8 +44,7 @@ public class RobotContainer{
     public static MarinersController motor;
 
 
-    public RobotContainer()
-    {
+    public RobotContainer() {
         driveController = new CommandPS5Controller(0);
         driveBase = new DriveBase();
 
@@ -69,24 +68,24 @@ public class RobotContainer{
     }
 
     private static final BooleanSupplier checkForPathChoiceUpdate = new BooleanSupplier() {
-        private String lastAutoName = "InstantCommand"; 
+        private String lastAutoName = "InstantCommand";
+
         @Override
         public boolean getAsBoolean() {
-            if(autoChooser.get() == null) return false;
+            if (autoChooser.get() == null) return false;
 
             String currentAutoName = autoChooser.get().getName();
 
-            try{ 
+            try {
                 return !Objects.equals(lastAutoName, currentAutoName);
-            }
-            finally{
+            } finally {
                 lastAutoName = currentAutoName;
             }
-            
+
         }
     };
 
-    private void configChooser(){
+    private void configChooser() {
         List<String> namesOfAutos = AutoBuilder.getAllAutoNames();
         List<PathPlannerAuto> autosOfAutos = new ArrayList<>();
 
@@ -105,7 +104,7 @@ public class RobotContainer{
         new Trigger(RobotState::isDisabled).and(checkForPathChoiceUpdate).onTrue(new InstantCommand(() -> updateFieldFromAuto(autoChooser.get().getName())).ignoringDisable(true));
     }
 
-    private static void updateFieldFromAuto(String autoName){
+    private static void updateFieldFromAuto(String autoName) {
         List<Pose2d> poses = new ArrayList<>();
 
         try {
@@ -117,30 +116,35 @@ public class RobotContainer{
 
                 poses.addAll(path.getPathPoses());
             });
-        }
-        catch (IOException | ParseException e){
+        } catch (IOException | ParseException e) {
             DriverStation.reportError("Error loading auto path", e.getStackTrace());
-        }   
+        }
 
         field.getObject("AutoPath").setPoses(poses);
     }
-    
-    
+
+
     private void configureBindings() {
-        // driveController.options().onTrue(driveBase.resetOnlyDirection());
-        Supplier<Rotation2d> controllerAngle = () -> new Rotation2d(-RobotContainer.driveController.getRawAxis(1), -RobotContainer.driveController.getRawAxis(0));
+        driveController.options().onTrue(driveBase.resetOnlyDirection());
 
-        driveController.cross().whileTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));
-        driveController.square().whileTrue(driveBase.runSysIDQuasistatic(true, controllerAngle));
+        DriveBaseSYSID driveBaseSYSID = new DriveBaseSYSID(driveBase, driveController);
 
-        driveController.circle().whileTrue(driveBase.runSysIDDynamic(false, controllerAngle));
-        driveController.triangle().whileTrue(driveBase.runSysIDDynamic(true, controllerAngle));
+        driveController.cross().whileTrue(driveBaseSYSID.getXRoutineDynamic(SysIdRoutine.Direction.kForward));
+        driveController.square().whileTrue(driveBaseSYSID.getXRoutineDynamic(SysIdRoutine.Direction.kReverse));
+
+        driveController.circle().whileTrue(driveBaseSYSID.getXRoutineQuasistatic(SysIdRoutine.Direction.kForward));
+        driveController.triangle().whileTrue(driveBaseSYSID.getXRoutineQuasistatic(SysIdRoutine.Direction.kReverse));
+
+
+//        driveController.cross().whileTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));
+//        driveController.square().whileTrue(driveBase.runSysIDQuasistatic(true, controllerAngle));
+
+//        driveController.circle().whileTrue(driveBase.runSysIDDynamic(false, controllerAngle));
+//        driveController.triangle().whileTrue(driveBase.runSysIDDynamic(true, controllerAngle));
     }
-    
-    
-    
-    public static Command getAutoCommand()
-    {
+
+
+    public static Command getAutoCommand() {
         return autoChooser.get();
     }
 }
