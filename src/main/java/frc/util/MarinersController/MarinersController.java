@@ -376,6 +376,11 @@ public abstract class MarinersController {
         try {
             setpointLock.lock();
 
+            if(RobotState.isDisabled()){
+                controlMode = ControlMode.Stopped;
+                stopMotorOutput();
+            }
+
             inputs.controlMode = controlMode.name();
             inputs.setpoint = setpoint.position;
             TrapezoidProfile.State goal = this.goal;

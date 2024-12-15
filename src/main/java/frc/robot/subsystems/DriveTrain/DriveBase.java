@@ -147,9 +147,9 @@ public class DriveBase extends SubsystemBase {
         RobotConfig config;
         try {
             config = RobotConfig.fromGUISettings();
-        } catch (IOException | ParseException | NullPointerException e) {
+        } catch (IOException | ParseException e) {
             config = DriveBaseConstants.PathPlanner.ROBOT_CONFIG;
-
+            DriverStation.reportError("pathplanner angry " + e.getMessage(), false);
         }
 
         PathFollowingController pathPlannerPIDController = new PPHolonomicDriveController(

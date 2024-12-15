@@ -39,11 +39,10 @@ public class DriveBaseConstants {
                 PIGEON_ID);
 
         public static final RobotConfig ROBOT_CONFIG = new RobotConfig(
-                50,
-                1,
+                20,
+                6.883,
                 MODULE_CONFIG,
-                DISTANCE_BETWEEN_WHEELS,
-                DISTANCE_BETWEEN_WHEELS);
+                MODULE_TRANSLATIONS);
 
         public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
                 Constants.ROBOT_TYPE == RobotType.DEVELOPMENT ?
