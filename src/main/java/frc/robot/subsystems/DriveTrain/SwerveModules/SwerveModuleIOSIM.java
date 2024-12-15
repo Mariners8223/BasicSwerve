@@ -21,7 +21,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
         PIDFGains driveMotorPIDController, steerMotorPIDController;
 
-        double DRIVE_KV, STEER_KV, STEER_KA, DRIVE_GEAR_RATIO, STEER_GEAR_RATIO, WHEEL_RADIUS_METERS;
+        double DRIVE_KS, DRIVE_KV, STEER_KV, STEER_KA, DRIVE_GEAR_RATIO, STEER_GEAR_RATIO, WHEEL_RADIUS_METERS;
 
         if (Constants.ROBOT_TYPE == Constants.RobotType.DEVELOPMENT) {
             DRIVE_GEAR_RATIO = DevBotConstants.DRIVE_GEAR_RATIO;
@@ -37,8 +37,10 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
             driveMotorModel = DCMotor.getKrakenX60(1);
             steerMotorModel = DCMotor.getNEO(1);
 
+            DRIVE_KS = constants.DRIVE_KS;
             DRIVE_KV = constants.DRIVE_KV;
             DRIVE_KA = constants.DRIVE_KA;
+
             STEER_KV = constants.STEER_KV;
             STEER_KA = constants.STEER_KA;
         }
@@ -56,8 +58,10 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
             driveMotorModel = DCMotor.getFalcon500(1);
             steerMotorModel = DCMotor.getNEO(1);
 
+            DRIVE_KS = constants.DRIVE_KS;
             DRIVE_KV = constants.DRIVE_KV;
             DRIVE_KA = constants.DRIVE_KA;
+
             STEER_KV = constants.STEER_KV;
             STEER_KA = constants.STEER_KA;
         }
@@ -66,6 +70,10 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
                 DRIVE_KV * WHEEL_RADIUS_METERS, DRIVE_KA * WHEEL_RADIUS_METERS, DRIVE_GEAR_RATIO);
 
         driveMotor.setPIDF(driveMotorPIDController);
+
+        driveMotor.setStaticFeedForward(DRIVE_KS);
+
+        driveMotor.setFeedForward(DRIVE_KV * WHEEL_CIRCUMFERENCE_METERS);
 
 //        steerMotor = new MarinersSimMotor(name.name() + " Steer Motor", steerMotorModel,
 //                STEER_KV, STEER_KA, STEER_GEAR_RATIO);

@@ -147,7 +147,7 @@ public class DriveBase extends SubsystemBase {
         RobotConfig config;
         try {
             config = RobotConfig.fromGUISettings();
-        } catch (IOException | ParseException e) {
+        } catch (IOException | ParseException | NullPointerException e) {
             config = DriveBaseConstants.PathPlanner.ROBOT_CONFIG;
 
         }

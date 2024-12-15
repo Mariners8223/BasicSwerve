@@ -867,6 +867,25 @@ public abstract class MarinersController {
     }
 
     /**
+     * sets a feedForawrd (diffrent then the static feed forward)
+     * is multiplied by the setpoint
+     * @param kF untis should be Volts / refrence units
+     */
+    public void setFeedForward(double kF){
+        if(kF < 0) throw new IllegalArgumentException("feed forward should be greater then zero");
+
+        feedForward = (measurement) -> kF;
+    }
+
+    /**
+     * sets the feedforward to a fucntion
+     * @param feedForward should return the feedForawrd value (units are Volts / refernceUnits)
+     */
+    public void setFeedForward(Function<Double, Double> feedForward){
+        this.feedForward = feedForward;
+    }
+
+    /**
      * sends the pid to the smart dashboard
      * that way you can change the pid values on the fly
      * WARNING this will break the feed forward if it is not static (base on the measurement)
