@@ -74,7 +74,7 @@ public class SwerveModule {
     }
 
     public void runSysID(Measure<Voltage> voltage, Rotation2d angle) {
-        io.setDriveMotorReference(voltage.baseUnitMagnitude());
+        io.setDriveMotorVoltage(voltage.baseUnitMagnitude());
         io.setSteerMotorReference(angle.getRotations());
     }
 

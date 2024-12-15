@@ -18,6 +18,7 @@ public class PigeonIO implements GyroIO{
         public double yaw = 0;
         public double pitch = 0;
         public double roll = 0;
+        public double yawRate = 0;
     }
 
     public PigeonIO(int id){
@@ -40,6 +41,7 @@ public class PigeonIO implements GyroIO{
         inputs.yaw = pigeon.getAngle();
         inputs.pitch = pigeon.getPitch().getValueAsDouble();
         inputs.roll = pigeon.getRoll().getValueAsDouble();
+        inputs.yawRate = pigeon.getRate();
 
         inputs.angle = Rotation2d.fromDegrees((-inputs.yaw) - inputs.rotationOffset.getDegrees());
 
