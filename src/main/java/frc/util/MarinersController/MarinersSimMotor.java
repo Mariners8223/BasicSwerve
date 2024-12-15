@@ -30,7 +30,7 @@ public class MarinersSimMotor extends MarinersController {
      */
     private double motorOutput = 0;
 
-    private MarinersMeasurements createMeasurement() {
+    private MarinersMeasurements createMeasurement(double unitConversion) {
         return new MarinersMeasurements(
                 () -> {
                     motor.update(1 / RUN_HZ);
@@ -38,7 +38,7 @@ public class MarinersSimMotor extends MarinersController {
                 },
                 () -> motor.getAngularVelocity().in(Units.RotationsPerSecond),
                 () -> motor.getAngularAcceleration().in(Units.RotationsPerSecondPerSecond),
-                1
+                unitConversion
         );
     }
 
@@ -47,16 +47,17 @@ public class MarinersSimMotor extends MarinersController {
      *
      * @param name            the name of the controller (for logging)
      * @param motorType       the type of motor to simulate
-     * @param gearRatio       the gear ratio of the motor (larger than 1 if the motor is geared down)
+     * @param motorReduction  the ratio between motor and the mechanism (motor turns / mechanism turns) (no unit conversion)
+     * @param unitConversion  if using any unit conversion (for example, if the mechanism is in meters, the unit conversion would be the meters per rotation)
      * @param momentOfInertia the moment of inertia of the system (in kg m^2)
      */
-    public MarinersSimMotor(String name, DCMotor motorType, double gearRatio, double momentOfInertia) {
+    public MarinersSimMotor(String name, DCMotor motorType, double motorReduction, double unitConversion, double momentOfInertia) {
         super(name, ControllerLocation.RIO);
 
-        motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(motorType, momentOfInertia, gearRatio),
-                motorType);
+        motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(motorType, momentOfInertia, motorReduction),
+                motorType.withReduction(motorReduction));
 
-        super.setMeasurements(createMeasurement());
+        super.setMeasurements(createMeasurement(unitConversion));
     }
 
     /**
@@ -65,10 +66,11 @@ public class MarinersSimMotor extends MarinersController {
      *
      * @param name            the name of the controller (for logging)
      * @param motorType       the type of motor to simulate
+     * @param motorReduction  the ratio between motor and the mechanism (motor turns / mechanism turns) (no unit conversion)
      * @param momentOfInertia the moment of inertia of the system (in kg m^2)
      */
-    public MarinersSimMotor(String name, DCMotor motorType, double momentOfInertia) {
-        this(name, motorType, 1, momentOfInertia);
+    public MarinersSimMotor(String name, DCMotor motorType, double motorReduction, double momentOfInertia) {
+        this(name, motorType, motorReduction, 1, momentOfInertia);
     }
 
     /**
@@ -78,15 +80,16 @@ public class MarinersSimMotor extends MarinersController {
      * @param motorType the type of motor
      * @param kV        the kv of the motor (in volts / w (radians per sec))
      * @param kA        the ka of the motor (int volts / w / s (radians per sec^2))
-     * @param gearRatio the gear ratio of the motor
+     * @param motorReduction  the ratio between motor and the mechanism (motor turns / mechanism turns) (no unit conversion)
+     * @param unitConversion  if using any unit conversion (for example, if the mechanism is in meters, the unit conversion would be the meters per rotation)
      */
-    public MarinersSimMotor(String name, DCMotor motorType, double kV, double kA, double gearRatio) {
+    public MarinersSimMotor(String name, DCMotor motorType, double kV, double kA, double motorReduction, double unitConversion) {
         super(name, ControllerLocation.RIO);
 
         motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(kV, kA),
-                motorType.withReduction(gearRatio));
+                motorType.withReduction(motorReduction));
 
-        super.setMeasurements(createMeasurement());
+        super.setMeasurements(createMeasurement(unitConversion));
     }
 
     /**
@@ -96,35 +99,48 @@ public class MarinersSimMotor extends MarinersController {
      * @param motorType the type of motor
      * @param kV        the kv of the motor
      * @param kA        the ka of the motor
-     * @param gearRatio the gear ratio of the motor
+     * @param motorReduction  the ratio between motor and the mechanism (motor turns / mechanism turns) (no unit conversion)
+     * @param unitConversion  if using any unit conversion (for example, if the mechanism is in meters, the unit conversion would be the meters per rotation)
      */
     public MarinersSimMotor(String name, DCMotor motorType,
                             Per<VoltageUnit, AngularVelocityUnit> kV,
                             Per<VoltageUnit, AngularAccelerationUnit> kA,
-                            double gearRatio) {
+                            double motorReduction,
+                            double unitConversion) {
         super(name, ControllerLocation.RIO);
 
         double kv = kV.in(Units.VoltsPerRadianPerSecond);
         double ka = kA.in(Units.VoltsPerRadianPerSecondSquared);
 
         motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(kv, ka),
-                motorType.withReduction(gearRatio));
+                motorType.withReduction(motorReduction));
 
-        super.setMeasurements(createMeasurement());
+        super.setMeasurements(createMeasurement(unitConversion));
     }
 
     /**
      * creates the controller
      *
      * @param name  the name of the motor
-     * @param motor the sim motor object (don't forget to set the gear ratio in the motor object)
+     * @param motor the sim motor object don't forget to set the motor reduction (not unit conversion)
+     * @param unitConversion the unit conversion for the mechanism (for example, if the mechanism is in meters, the unit conversion would be the meters per rotation)
      */
-    public MarinersSimMotor(String name, DCMotorSim motor) {
+    public MarinersSimMotor(String name, DCMotorSim motor, double unitConversion) {
         super(name, ControllerLocation.RIO);
 
         this.motor = motor;
 
-        super.setMeasurements(createMeasurement());
+        super.setMeasurements(createMeasurement(unitConversion));
+    }
+
+    /**
+     * creates the controller
+     *
+     * @param name  the name of the motor
+     * @param motor the sim motor object don't forget to set the motor reduction (not unit conversion)
+     */
+    public MarinersSimMotor(String name, DCMotorSim motor) {
+        this(name, motor, 1);
     }
 
     @Override
