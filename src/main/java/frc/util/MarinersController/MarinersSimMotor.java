@@ -46,10 +46,10 @@ public class MarinersSimMotor extends MarinersController {
      * creates the controller
      *
      * @param name            the name of the controller (for logging)
-     * @param motorType       the type of motor to simulate
+     * @param motorType       the type of motor to simulate (do not include the reduction)
      * @param motorReduction  the ratio between motor and the mechanism (motor turns / mechanism turns) (no unit conversion)
      * @param unitConversion  if using any unit conversion (for example, if the mechanism is in meters, the unit conversion would be the meters per rotation)
-     * @param momentOfInertia the moment of inertia of the system (in kg m^2)
+     * @param momentOfInertia the moment of inertia of the system (in kg m^2) (after motor reduction (in mechanism units))
      */
     public MarinersSimMotor(String name, DCMotor motorType, double motorReduction, double unitConversion, double momentOfInertia) {
         super(name, ControllerLocation.RIO);
@@ -65,9 +65,9 @@ public class MarinersSimMotor extends MarinersController {
      * using a gear ratio of 1
      *
      * @param name            the name of the controller (for logging)
-     * @param motorType       the type of motor to simulate
+     * @param motorType       the type of motor to simulate (do not include the reduction)
      * @param motorReduction  the ratio between motor and the mechanism (motor turns / mechanism turns) (no unit conversion)
-     * @param momentOfInertia the moment of inertia of the system (in kg m^2)
+     * @param momentOfInertia the moment of inertia of the system (in kg m^2) (after motor reduction (in mechanism units))
      */
     public MarinersSimMotor(String name, DCMotor motorType, double motorReduction, double momentOfInertia) {
         this(name, motorType, motorReduction, 1, momentOfInertia);
@@ -77,9 +77,9 @@ public class MarinersSimMotor extends MarinersController {
      * creates the controller
      *
      * @param name      the name of the motor (for logging)
-     * @param motorType the type of motor
-     * @param kV        the kv of the motor (in volts / w (radians per sec))
-     * @param kA        the ka of the motor (int volts / w / s (radians per sec^2))
+     * @param motorType the type of motor to simulate (do not include the reduction)
+     * @param kV        the kv of the motor (in volts / w (radians per sec)) (in mechanism units)
+     * @param kA        the ka of the motor (int volts / w / s (radians per sec^2)) (in mechanism units)
      * @param motorReduction  the ratio between motor and the mechanism (motor turns / mechanism turns) (no unit conversion)
      * @param unitConversion  if using any unit conversion (for example, if the mechanism is in meters, the unit conversion would be the meters per rotation)
      */
@@ -96,9 +96,9 @@ public class MarinersSimMotor extends MarinersController {
      * creates the controller
      *
      * @param name      the name of the motor (for logging)
-     * @param motorType the type of motor
-     * @param kV        the kv of the motor
-     * @param kA        the ka of the motor
+     * @param motorType the type of motor to simulate (do not include the reduction)
+     * @param kV        the kv of the motor (in mechanism units)
+     * @param kA        the ka of the motor (in mechanism units)
      * @param motorReduction  the ratio between motor and the mechanism (motor turns / mechanism turns) (no unit conversion)
      * @param unitConversion  if using any unit conversion (for example, if the mechanism is in meters, the unit conversion would be the meters per rotation)
      */
