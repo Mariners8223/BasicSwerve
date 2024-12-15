@@ -14,8 +14,6 @@ public class DriveBaseSYSID {
     private final SysIdRoutine steerMotorsRoutine;
     private final SysIdRoutine driveMotorsRoutine;
 
-    private final SysIdRoutine XRoutine;
-    private final SysIdRoutine YRoutine;
     private final SysIdRoutine ThetaRoutine;
 
     public DriveBaseSYSID(DriveBase driveBase, CommandPS5Controller controller) {
@@ -65,57 +63,6 @@ public class DriveBaseSYSID {
                         driveBase
                 ));
 
-        SwerveModuleState[] XRoutineStates = new SwerveModuleState[4];
-
-        for (int i = 0; i < 4; i++) {
-            XRoutineStates[i] = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
-        }
-
-        XRoutine = new SysIdRoutine(
-                new SysIdRoutine.Config(
-                        null, //set if needed
-                        null, //set if needed
-                        null, //set if needed
-                        consumer
-                ),
-                new SysIdRoutine.Mechanism(
-                        (voltage) -> {
-                            for (int i = 0; i < 4; i++) {
-                                XRoutineStates[i].speedMetersPerSecond = voltage.baseUnitMagnitude();
-                            }
-
-                            driveBase.driveSysID(XRoutineStates);
-                        },
-                        null, //should be null (use advantage kit)
-                        driveBase
-                ));
-
-        SwerveModuleState[] YRoutineStates = new SwerveModuleState[4];
-
-        for (int i = 0; i < 4; i++) {
-            YRoutineStates[i] = new SwerveModuleState(0, Rotation2d.fromDegrees(90));
-        }
-
-        YRoutine = new SysIdRoutine(
-                new SysIdRoutine.Config(
-                        null, //set if needed
-                        null, //set if needed
-                        null, //set if needed
-                        consumer
-                ),
-                new SysIdRoutine.Mechanism(
-                        (voltage) -> {
-                            for (int i = 0; i < 4; i++) {
-                                YRoutineStates[i].speedMetersPerSecond = voltage.baseUnitMagnitude();
-                            }
-
-                            driveBase.driveSysID(YRoutineStates);
-                        },
-                        null, //should be null (use advantage kit)
-                        driveBase
-                ));
-
-
         SwerveModuleState[] ThetaRoutineStates = new SwerveModuleState[4];
 
         ThetaRoutineStates[0] = new SwerveModuleState(0, Rotation2d.fromDegrees(135)); //front left
@@ -163,26 +110,6 @@ public class DriveBaseSYSID {
     }
 
     /**
-     * Get the X routine for the given direction
-     * the routine will run the robot in the X direction with the given voltage (forward is away from the driver)
-     * @param direction the direction to get the routine for
-     * @return the command to run the routine
-     */
-    public Command getXRoutineDynamic(SysIdRoutine.Direction direction) {
-        return XRoutine.dynamic(direction);
-    }
-
-    /**
-     * Get the Y routine for the given direction
-     * the routine will run the robot in the Y direction with the given voltage (forward is to the left)
-     * @param direction the direction to get the routine for
-     * @return the command to run the routine
-     */
-    public Command getYRoutineDynamic(SysIdRoutine.Direction direction) {
-        return YRoutine.dynamic(direction);
-    }
-
-    /**
      * Get the theta routine for the given direction
      * the routine will run the robot in the theta direction with the given voltage (positive is counter-clockwise)
      * @param direction the direction to get the routine for
@@ -210,26 +137,6 @@ public class DriveBaseSYSID {
      */
     public Command getDriveMotorsRoutineQuasistatic(SysIdRoutine.Direction direction) {
         return driveMotorsRoutine.quasistatic(direction);
-    }
-
-    /**
-     * Get the X routine for the given direction
-     * the routine will run the robot in the X direction at a quasistatic voltage (forward is away from the driver)
-     * @param direction the direction to get the routine for
-     * @return the command to run the routine
-     */
-    public Command getXRoutineQuasistatic(SysIdRoutine.Direction direction) {
-        return XRoutine.quasistatic(direction);
-    }
-
-    /**
-     * Get the Y routine for the given direction
-     * the routine will run the robot in the Y direction at a quasistatic voltage (forward is to the left)
-     * @param direction the direction to get the routine for
-     * @return the command to run the routine
-     */
-    public Command getYRoutineQuasistatic(SysIdRoutine.Direction direction) {
-        return YRoutine.quasistatic(direction);
     }
 
     /**

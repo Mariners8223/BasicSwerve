@@ -13,8 +13,6 @@ import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.subsystems.DriveTrain.DriveBaseSYSID;
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -29,24 +27,23 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.DriveTrain.DriveBase;
-import frc.util.MarinersController.MarinersController;
-import frc.util.MarinersController.MarinersTalonFX;
-import frc.util.MarinersController.MarinersController.ControllerLocation;
+import frc.robot.subsystems.DriveTrain.DriveBaseSYSID;
 
 public class RobotContainer {
     public static DriveBase driveBase;
     public static CommandPS5Controller driveController;
+    public static DriveBaseSYSID driveBaseSYSID;
 
     public static Field2d field;
     public static LoggedDashboardChooser<Command> autoChooser;
 
-    public static MarinersController motor;
-
-
     public RobotContainer() {
         driveController = new CommandPS5Controller(0);
         driveBase = new DriveBase();
+
+        driveBaseSYSID = new DriveBaseSYSID(driveBase, driveController);
 
         configureBindings();
 
@@ -57,13 +54,13 @@ public class RobotContainer {
         configChooser();
 
 
-        motor = new MarinersTalonFX("steer", ControllerLocation.MOTOR, 2);
+        // motor = new MarinersTalonFX("steer", ControllerLocation.MOTOR, 2);
 
-        motor.setMotorIdleMode(false);
+        // motor.setMotorIdleMode(false);
 
-        motor.setMaxMinOutput(6, -6);
+        // motor.setMaxMinOutput(6, -6);
 
-        SmartDashboard.putNumber("value", 0);
+        // SmartDashboard.putNumber("value", 0);
 
     }
 
@@ -127,13 +124,17 @@ public class RobotContainer {
     private void configureBindings() {
         driveController.options().onTrue(driveBase.resetOnlyDirection());
 
-        DriveBaseSYSID driveBaseSYSID = new DriveBaseSYSID(driveBase, driveController);
+        // driveController.cross().whileTrue(driveBaseSYSID.getThetaRoutineDynamic(SysIdRoutine.Direction.kForward));
+        // driveController.square().whileTrue(driveBaseSYSID.getThetaRoutineDynamic(SysIdRoutine.Direction.kReverse));
 
-        driveController.cross().whileTrue(driveBaseSYSID.getXRoutineDynamic(SysIdRoutine.Direction.kForward));
-        driveController.square().whileTrue(driveBaseSYSID.getXRoutineDynamic(SysIdRoutine.Direction.kReverse));
+        // driveController.circle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kForward));
+        // driveController.triangle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kReverse));
 
-        driveController.circle().whileTrue(driveBaseSYSID.getXRoutineQuasistatic(SysIdRoutine.Direction.kForward));
-        driveController.triangle().whileTrue(driveBaseSYSID.getXRoutineQuasistatic(SysIdRoutine.Direction.kReverse));
+        driveController.cross().whileTrue(driveBaseSYSID.getDriveMotorsRoutineDynamic(SysIdRoutine.Direction.kForward));
+        driveController.square().whileTrue(driveBaseSYSID.getDriveMotorsRoutineDynamic(SysIdRoutine.Direction.kReverse));
+
+        driveController.circle().whileTrue(driveBaseSYSID.getDriveMotorsRoutineQuasistatic(SysIdRoutine.Direction.kForward));
+        driveController.triangle().whileTrue(driveBaseSYSID.getDriveMotorsRoutineQuasistatic(SysIdRoutine.Direction.kReverse));
 
 
 //        driveController.cross().whileTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));

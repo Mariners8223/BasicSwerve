@@ -329,7 +329,9 @@ public abstract class MarinersController {
 
             double feedForward = arbitraryFeedForward + this.feedForward.apply(measurement) * setpoint.position;
 
-            feedForward += Math.signum(measurements.getVelocity()) * motorKs;
+            if(controlMode == ControlMode.Velocity || controlMode == ControlMode.ProfiledVelocity){
+                feedForward += Math.signum(setpoint.position) * motorKs;
+            }
 
             if (location == ControllerLocation.MOTOR) {
                 setOutput(setpoint.position * measurements.getGearRatio(), controlMode, feedForward);

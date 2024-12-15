@@ -23,6 +23,10 @@ public final class SimGyroIO implements GyroIO {
     private double prevVelocityX;
     private double prevVelocityY;
 
+    private double yaw;
+    private double previusYaw;
+    private double yawRate;
+
     public SimGyroIO(Supplier<Twist2d> twistSupplier,Supplier<ChassisSpeeds> chassisSpeedsSupplier) {
         this.twistSupplier = twistSupplier;
         this.chassisSpeedsSupplier = chassisSpeedsSupplier;
@@ -68,6 +72,15 @@ public final class SimGyroIO implements GyroIO {
             Logger.recordOutput("Gyro/velocityY", this.velocityY);
             Logger.recordOutput("Gyro/accelerationX", this.accelerationX);
             Logger.recordOutput("Gyro/accelerationY", this.accelerationY);
+
+            yaw = -angle.getDegrees();
+
+            yawRate = (yaw - previusYaw) / 0.02;
+
+            previusYaw = yaw;
+
+            Logger.recordOutput("Gyro/yaw", yaw);
+            Logger.recordOutput("Gyro/yawRate", yawRate);
 
     }
 
