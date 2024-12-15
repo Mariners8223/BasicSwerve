@@ -13,7 +13,7 @@ import frc.util.PIDFGains;
 
 public class DriveBaseConstants {
 
-    public static final double DISTANCE_BETWEEN_WHEELS = 0.576; // the distance between each wheel in meters
+    public static final double DISTANCE_BETWEEN_WHEELS = 0.58; // the distance between each wheel in meters
     public static final Translation2d[] MODULE_TRANSLATIONS = new Translation2d[]{
             new Translation2d(DISTANCE_BETWEEN_WHEELS / 2, DISTANCE_BETWEEN_WHEELS / 2),
             new Translation2d(DISTANCE_BETWEEN_WHEELS / 2, -DISTANCE_BETWEEN_WHEELS / 2),

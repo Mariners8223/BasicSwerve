@@ -30,6 +30,8 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
         driveMotor.setMotorInverted(constants.DRIVE_INVERTED);
 
+        driveMotor.setCurrentLimits(60, 90);
+
         steerMotor = new MarinersSparkBase(
                 name.name() + " Steer Motor",
                 MarinersController.ControllerLocation.RIO,
