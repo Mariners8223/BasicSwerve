@@ -18,6 +18,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
         double WHEEL_CIRCUMFERENCE_METERS;
 
         double STEER_GEAR_RATIO;
+        double DRIVE_JKgM;
 
         PIDFGains drivePIDF;
         PIDFGains steerPIDF;
@@ -31,6 +32,7 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
             drivePIDF = constants.DRIVE_MOTOR_PID;
             steerPIDF = constants.STEER_MOTOR_PID;
+            DRIVE_JKgM = constants.DRIVE_JKgM;
         }
         else {
             DRIVE_GEAR_RATIO = CompBotConstants.DRIVE_GEAR_RATIO;
@@ -41,10 +43,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
             drivePIDF = constants.DRIVE_MOTOR_PID;
             steerPIDF = constants.STEER_MOTOR_PID;
+            DRIVE_JKgM = 0.021;
         }
 
         driveMotor = new MarinersSimMotor(name.name() + " Drive Motor",
-                DCMotor.getKrakenX60(1), DRIVE_GEAR_RATIO / WHEEL_CIRCUMFERENCE_METERS, 1);
+                DCMotor.getKrakenX60(1), DRIVE_GEAR_RATIO / WHEEL_CIRCUMFERENCE_METERS, DRIVE_JKgM);
 
         driveMotor.setPIDF(drivePIDF);
 
