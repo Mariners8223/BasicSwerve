@@ -8,10 +8,8 @@ import com.ctre.phoenix6.Orchestra;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Units;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.*;
-import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.Drive.DriveCommand;
@@ -43,8 +41,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-
-import java.util.function.Supplier;
 
 /**
  * The DriveBase class represents the drivetrain of the robot.
@@ -103,8 +99,6 @@ public class DriveBase extends SubsystemBase {
      * the current pose of the robot (the position and rotation of the robot)
      */
     private Pose2d currentPose = new Pose2d();
-
-    private final SysIdRoutine sysIdRoutine;
 
     private final Orchestra orchestra = new Orchestra();
 
@@ -181,17 +175,6 @@ public class DriveBase extends SubsystemBase {
             if (!DriverStation.isFMSAttached()) setModulesBrakeMode(false);
         }
         ).ignoringDisable(true));
-
-        sysIdRoutine = new SysIdRoutine(new SysIdRoutine.Config(
-                Units.Volts.of(0.75).per(Units.Second),
-                Units.Volts.of(2),
-                null,
-                (state) -> inputs.sysIDState = state.toString()
-        ), new SysIdRoutine.Mechanism(
-                this::driveSysID,
-                null,
-                this
-        ));
 
         if(RobotBase.isReal()){
             for(SwerveModule module : modules){
@@ -389,22 +372,32 @@ public class DriveBase extends SubsystemBase {
         Logger.processInputs(getName(), inputs);
     }
 
-    private Supplier<Rotation2d> sysIDAngle;
+    /**
+     * sets the current state of the system identification
+     * @param state the state of the system identification
+     */
+    public void setSysIDState(SysIdRoutine.State state){
+        inputs.sysIDState = state.toString();
+    }
 
-    private void driveSysID(Measure<Voltage> voltage) {
+    /**
+     * drives the robot with the sysID routine
+     * not using module optimizations
+     * @param states the states to drive the robot in (speeds is voltage)
+     *               in order of front left, front right, back left, back right
+     */
+    public void driveSysID(SwerveModuleState[] states) {
+        if(states == null || states.length != 4) return;
+
         for (int i = 0; i < 4; i++) {
-            modules[i].runSysID(voltage, sysIDAngle.get().minus(getRotation2d()));
+            modules[i].runSysID(states[i].speedMetersPerSecond, states[i].angle);
         }
     }
 
-    public Command runSysIDQuasistatic(boolean isReverse, Supplier<Rotation2d> angle) {
-        sysIDAngle = angle;
-        return sysIdRoutine.quasistatic(isReverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward);
-    }
-
-    public Command runSysIDDynamic(boolean isReverse, Supplier<Rotation2d> angle) {
-        sysIDAngle = angle;
-        return sysIdRoutine.dynamic(isReverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward);
+    public void runSYSIDSteer(Measure<Voltage> voltage){
+        for (int i = 0; i < 4; i++) {
+            modules[i].runSysIDSteer(voltage.baseUnitMagnitude());
+        }
     }
 
     public Command startModuleDriveCalibration() {

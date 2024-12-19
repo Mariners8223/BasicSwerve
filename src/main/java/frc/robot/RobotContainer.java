@@ -9,11 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.subsystems.DriveTrain.DriveBaseSYSID;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -29,18 +28,19 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.DriveTrain.DriveBase;
 
-public class RobotContainer{
-     public static DriveBase driveBase;
-     public static CommandPS5Controller driveController;
+public class RobotContainer {
+    public static DriveBase driveBase;
+    public static CommandPS5Controller driveController;
+    public static DriveBaseSYSID driveBaseSYSID;
 
     public static Field2d field;
     public static LoggedDashboardChooser<Command> autoChooser;
 
-    public RobotContainer()
-    {
+    public RobotContainer() {
         // driveController = new CommandPS5Controller(0);
         driveController = new CommandPS5Controller(0);
         driveBase = new DriveBase();
+        driveBaseSYSID = new DriveBaseSYSID(driveBase, driveController);
 
         configureBindings();
 
@@ -52,24 +52,24 @@ public class RobotContainer{
     }
 
     private static final BooleanSupplier checkForPathChoiceUpdate = new BooleanSupplier() {
-        private String lastAutoName = "InstantCommand"; 
+        private String lastAutoName = "InstantCommand";
+
         @Override
         public boolean getAsBoolean() {
-            if(autoChooser.get() == null) return false;
+            if (autoChooser.get() == null) return false;
 
             String currentAutoName = autoChooser.get().getName();
 
-            try{ 
+            try {
                 return !Objects.equals(lastAutoName, currentAutoName);
-            }
-            finally{
+            } finally {
                 lastAutoName = currentAutoName;
             }
-            
+
         }
     };
 
-    private void configChooser(){
+    private void configChooser() {
         List<String> namesOfAutos = AutoBuilder.getAllAutoNames();
         List<PathPlannerAuto> autosOfAutos = new ArrayList<>();
 
@@ -88,7 +88,7 @@ public class RobotContainer{
         new Trigger(RobotState::isDisabled).and(checkForPathChoiceUpdate).onTrue(new InstantCommand(() -> updateFieldFromAuto(autoChooser.get().getName())).ignoringDisable(true));
     }
 
-    private static void updateFieldFromAuto(String autoName){
+    private static void updateFieldFromAuto(String autoName) {
         List<Pose2d> poses = new ArrayList<>();
 
         try {
@@ -100,37 +100,26 @@ public class RobotContainer{
 
                 poses.addAll(path.getPathPoses());
             });
-        }
-        catch (RuntimeException ignored){
+        } catch (RuntimeException ignored) {
         }
 
         field.getObject("AutoPath").setPoses(poses);
     }
-    
-    
+
+
     private void configureBindings() {
         driveController.options().onTrue(driveBase.resetOnlyDirection());
 
-        Supplier<Rotation2d> controllerAngle = () -> new Rotation2d(-RobotContainer.driveController.getRawAxis(1), -RobotContainer.driveController.getRawAxis(0));
-
-        driveController.cross().whileTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));
-        driveController.square().whileTrue(driveBase.runSysIDQuasistatic(true, controllerAngle));
-
-        driveController.circle().whileTrue(driveBase.runSysIDDynamic(false, controllerAngle));
-        driveController.triangle().whileTrue(driveBase.runSysIDDynamic(true, controllerAngle));
-//        driveController.cross().onTrue(driveBase.startModuleDriveCalibration());
-//        driveController.square().onTrue(driveBase.stopModuleDriveCalibration());
-//
-//        driveController.circle().onTrue(driveBase.startModuleSteerCalibration());
-//        driveController.triangle().onTrue(driveBase.stopModuleSteerCalibration());
+        driveController.cross().whileTrue(driveBaseSYSID.getThetaRoutineDynamic(SysIdRoutine.Direction.kForward));
+        driveController.square().whileTrue(driveBaseSYSID.getThetaRoutineDynamic(SysIdRoutine.Direction.kReverse));
+        driveController.triangle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kForward));
+        driveController.circle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kReverse));
 
         driveController.touchpad().whileTrue(driveBase.playAndStopMusic());
     }
-    
-    
-    
-    public static Command getAutoCommand()
-    {
+
+
+    public static Command getAutoCommand() {
         return autoChooser.get();
     }
 }

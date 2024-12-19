@@ -87,6 +87,11 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
     }
 
     @Override
+    public void setSteerMotorVoltage(double voltage) {
+        steerMotor.setVoltage(voltage);
+    }
+
+    @Override
     public void setIdleMode(boolean isBrakeMode) {
         driveMotor.setMotorIdleMode(isBrakeMode);
         steerMotor.setMotorIdleMode(isBrakeMode);

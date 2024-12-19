@@ -44,6 +44,13 @@ public abstract class SwerveModuleIO{
     public abstract void setSteerMotorReference(double reference);
 
     /**
+     * sets the voltage for the steer motor
+     *
+     * @param voltage the voltage to set the motor to
+     */
+    public abstract void setSteerMotorVoltage(double voltage);
+
+    /**
      * sets the idle mode of the module
      *
      * @param isBrakeMode true for brake mode, false for coast mode

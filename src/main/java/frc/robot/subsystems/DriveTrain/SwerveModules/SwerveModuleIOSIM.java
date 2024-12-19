@@ -81,6 +81,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
     }
 
     @Override
+    public void setSteerMotorVoltage(double voltage) {
+        steerMotor.setVoltage(voltage);
+    }
+
+    @Override
     public void setIdleMode(boolean isBrakeMode) {
         DriverStation.reportWarning("dummy this is a simulation", false);
     }
@@ -136,6 +141,11 @@ public class SwerveModuleIOSIM extends SwerveModuleIO {
 
         @Override
         public void setSteerMotorReference(double reference) {
+
+        }
+
+        @Override
+        public void setSteerMotorVoltage(double voltage) {
 
         }
 
