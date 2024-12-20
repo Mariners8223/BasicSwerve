@@ -12,9 +12,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularAcceleration;
-import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.*;
 import frc.util.PIDFGains;
 
 /**
@@ -23,6 +21,13 @@ import frc.util.PIDFGains;
  * @see TalonFX
  */
 public class MarinersTalonFX extends MarinersController {
+
+    private static final int DEVICE_TEMP_UPDATE_HZ = 10;
+    private static final int SUPPLY_CURRENT_UPDATE_HZ = 10;
+    private static final int STATOR_CURRENT_UPDATE_HZ = 10;
+    private static final int SUPPLY_VOLTAGE_UPDATE_HZ = 10;
+    private static final int MOTOR_VOLTAGE_UPDATE_HZ = 50;
+    private static final int DUTY_CYCLE_UPDATE_HZ = 100;
 
     /**
      * the TalonFX motor controller
@@ -35,6 +40,13 @@ public class MarinersTalonFX extends MarinersController {
      */
     private final TalonFXConfiguration config = new TalonFXConfiguration();
 
+    private final StatusSignal<Temperature> deviceTemp;
+    private final StatusSignal<Current> supplyCurrent;
+    private final StatusSignal<Current> statorCurrent;
+    private final StatusSignal<Voltage> supplyVoltage;
+    private final StatusSignal<Voltage> motorVoltage;
+    private final StatusSignal<Double> dutyCycle;
+
     /**
      * create a new measurement object for the motor
      * using the built-in position, velocity, and acceleration
@@ -44,20 +56,35 @@ public class MarinersTalonFX extends MarinersController {
      * @return the new measurement object
      */
     private MarinersMeasurements createMeasurement(double gearRatio){
-        StatusSignal<Angle> postion = motor.getPosition();
+        StatusSignal<Angle> position = motor.getPosition();
         StatusSignal<AngularVelocity> velocity = motor.getVelocity();
         StatusSignal<AngularAcceleration> accel = motor.getAcceleration();
 
         return new MarinersMeasurements(
             () -> {
-                BaseStatusSignal.refreshAll(postion, velocity, accel);
+                BaseStatusSignal.refreshAll(position, velocity, accel);
 
-                return postion.getValueAsDouble();
+                return position.getValueAsDouble();
             },
-            () -> velocity.getValueAsDouble(),
-            () -> accel.getValueAsDouble(),
+                velocity::getValueAsDouble,
+                accel::getValueAsDouble,
             gearRatio
         );
+    }
+
+    public MarinersTalonFX(String name, ControllerLocation location, int id, double gearRatio){
+        super(name, location);
+
+        this.motor = createMotor(id);
+
+        this.deviceTemp = motor.getDeviceTemp();
+        this.supplyCurrent = motor.getSupplyCurrent();
+        this.statorCurrent = motor.getStatorCurrent();
+        this.supplyVoltage = motor.getSupplyVoltage();
+        this.motorVoltage = motor.getMotorVoltage();
+        this.dutyCycle = motor.getDutyCycle();
+
+        super.setMeasurements(createMeasurement(gearRatio));
     }
 
     /**
@@ -66,10 +93,7 @@ public class MarinersTalonFX extends MarinersController {
      * @param location the location of the controller (RIO or MOTOR)
      */
     public MarinersTalonFX(String name, ControllerLocation location, int id){
-        super(name, location);
-
-        this.motor = createMotor(id);
-        super.setMeasurements(createMeasurement(1));
+        this(name, location, id, 1);
     }
 
     /**
@@ -90,13 +114,9 @@ public class MarinersTalonFX extends MarinersController {
      * @param gearRatio the gear ratio of the motor
      */
     public MarinersTalonFX(String name, ControllerLocation location, int id, PIDFGains gains, double gearRatio){
-        super(name, location);
+        this(name, location, id, gearRatio);
 
-        this.motor = createMotor(id);
-
-        super.setPIDF(gains);
-
-        super.setMeasurements(createMeasurement(gearRatio));
+        setPIDF(gains);
     }
 
     /**
@@ -118,31 +138,34 @@ public class MarinersTalonFX extends MarinersController {
 
         StatusCode error;
 
+        // set the update frequency for position signal to the run frequency
         error = talonFX.getPosition().setUpdateFrequency(RUN_HZ);
         reportError("Error setting position update frequency", error);
 
+        // set the update frequency for velocity signal to the run frequency
         error = talonFX.getVelocity().setUpdateFrequency(RUN_HZ);
         reportError("Error setting velocity update frequency", error);
 
+        // set the update frequency for acceleration signal to the run frequency
         error = talonFX.getAcceleration().setUpdateFrequency(RUN_HZ);
         reportError("Error setting acceleration update frequency", error);
 
-        error = talonFX.getDeviceTemp().setUpdateFrequency(10);
+        error = talonFX.getDeviceTemp().setUpdateFrequency(DEVICE_TEMP_UPDATE_HZ);
         reportError("Error setting temperature update frequency", error);
 
-        error = talonFX.getSupplyCurrent().setUpdateFrequency(10);
+        error = talonFX.getSupplyCurrent().setUpdateFrequency(SUPPLY_CURRENT_UPDATE_HZ);
         reportError("Error setting supply current update frequency", error);
 
-        error = talonFX.getStatorCurrent().setUpdateFrequency(10);
+        error = talonFX.getStatorCurrent().setUpdateFrequency(STATOR_CURRENT_UPDATE_HZ);
         reportError("Error setting stator current update frequency", error);
 
-        error = talonFX.getSupplyVoltage().setUpdateFrequency(10);
+        error = talonFX.getSupplyVoltage().setUpdateFrequency(SUPPLY_VOLTAGE_UPDATE_HZ);
         reportError("Error setting supply voltage update frequency", error);
 
-        error = talonFX.getMotorVoltage().setUpdateFrequency(50);
+        error = talonFX.getMotorVoltage().setUpdateFrequency(MOTOR_VOLTAGE_UPDATE_HZ);
         reportError("Error setting motor voltage update frequency", error);
 
-        error = talonFX.getDutyCycle().setUpdateFrequency(100);
+        error = talonFX.getDutyCycle().setUpdateFrequency(DUTY_CYCLE_UPDATE_HZ);
         reportError("Error setting duty cycle update frequency", error);
 
         error = talonFX.optimizeBusUtilization();
@@ -236,14 +259,16 @@ public class MarinersTalonFX extends MarinersController {
 
     @Override
     protected void updateInputs(MotorInputs inputs) {
-        inputs.currentDraw = motor.getSupplyCurrent().getValueAsDouble();
-        inputs.currentOutput = motor.getStatorCurrent().getValueAsDouble();
-        inputs.voltageOutput = motor.getMotorVoltage().getValueAsDouble();
-        inputs.voltageInput = motor.getSupplyVoltage().getValueAsDouble();
+        BaseStatusSignal.refreshAll(deviceTemp, supplyCurrent, statorCurrent, supplyVoltage, motorVoltage, dutyCycle);
+
+        inputs.currentDraw = supplyCurrent.getValueAsDouble();
+        inputs.currentOutput = statorCurrent.getValueAsDouble();
+        inputs.voltageOutput = motorVoltage.getValueAsDouble();
+        inputs.voltageInput = supplyVoltage.getValueAsDouble();
         inputs.powerDraw = inputs.currentDraw * inputs.voltageInput;
         inputs.powerOutput = inputs.currentOutput * inputs.voltageOutput;
-        inputs.temperature = motor.getDeviceTemp().getValueAsDouble();
-        inputs.dutyCycle = motor.getDutyCycle().getValueAsDouble();
+        inputs.temperature = deviceTemp.getValueAsDouble();
+        inputs.dutyCycle = dutyCycle.getValueAsDouble();
     }
 
     @Override

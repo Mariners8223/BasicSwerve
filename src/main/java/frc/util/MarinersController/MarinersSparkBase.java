@@ -32,6 +32,15 @@ import java.util.function.Function;
  */
 public class MarinersSparkBase extends MarinersController {
 
+    private static final int APPLIED_OUTPUT_PERIOD_MS = 10;
+    private static final int PRIMARY_ENCODER_POSITION_PERIOD_MS = 20;
+    private static final int PRIMARY_ENCODER_VELOCITY_PERIOD_MS = 20;
+    private static final int BUS_VOLTAGE_PERIOD_MS = 20;
+    private static final int FAULTS_PERIOD_MS = 20;
+    private static final int MOTOR_TEMPERATURE_PERIOD_MS = 20;
+    private static final int ABSOLUTE_ENCODER_POSITION_PERIOD_MS = 20;
+    private static final int ABSOLUTE_ENCODER_VELOCITY_PERIOD_MS = 20;
+
     /**
      * the type of motor controller
      */
@@ -215,8 +224,8 @@ public class MarinersSparkBase extends MarinersController {
 
         config.signals.externalOrAltEncoderPosition((int) (1000 / RUN_HZ)).
         externalOrAltEncoderVelocity((int) (1000 / RUN_HZ)).
-        absoluteEncoderPositionPeriodMs(20).
-        absoluteEncoderVelocityPeriodMs(20);
+        absoluteEncoderPositionPeriodMs(ABSOLUTE_ENCODER_POSITION_PERIOD_MS).
+        absoluteEncoderVelocityPeriodMs(ABSOLUTE_ENCODER_VELOCITY_PERIOD_MS);
 
         config.closedLoop.feedbackSensor(FeedbackSensor.kAlternateOrExternalEncoder);
 
@@ -332,12 +341,12 @@ public class MarinersSparkBase extends MarinersController {
 
         SignalsConfig signalsConfig = config.signals;
 
-        signalsConfig.appliedOutputPeriodMs(10).
-        primaryEncoderPositionPeriodMs(period).
-        primaryEncoderVelocityPeriodMs(period).
-        busVoltagePeriodMs(robotMainThreadPeriod).
-        faultsPeriodMs(robotMainThreadPeriod).
-        motorTemperaturePeriodMs(robotMainThreadPeriod);
+        signalsConfig.appliedOutputPeriodMs(APPLIED_OUTPUT_PERIOD_MS).
+        primaryEncoderPositionPeriodMs(PRIMARY_ENCODER_POSITION_PERIOD_MS).
+        primaryEncoderVelocityPeriodMs(PRIMARY_ENCODER_VELOCITY_PERIOD_MS).
+        busVoltagePeriodMs(BUS_VOLTAGE_PERIOD_MS).
+        faultsPeriodMs(FAULTS_PERIOD_MS).
+        motorTemperaturePeriodMs(MOTOR_TEMPERATURE_PERIOD_MS);
 
         config.voltageCompensation(12);
 
@@ -369,8 +378,8 @@ public class MarinersSparkBase extends MarinersController {
 
     /**
      * sets the current limits for the motor
-     * @param smartCurrentLimit the current limit for the motor (the motor will try to stay below this value)
-     * @param thresholdCurrentLimit the current threshold for the motor (above this value the motor will be disabled for a short period of time)
+     * @param currentLimit the current limit for the motor (the motor will try to stay below this value)
+     * @param currentThreshold the current threshold for the motor (above this value the motor will be disabled for a short period of time)
      */
     @Override
     public void setCurrentLimits(int currentLimit, int currentThreshold){
