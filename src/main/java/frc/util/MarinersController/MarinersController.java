@@ -579,11 +579,11 @@ public abstract class MarinersController {
             this.arbitraryFeedForward = arbitraryFeedForward;
 
             switch (controlMode) {
-                default -> stopMotorOutput();
                 case Voltage -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1], maxMinOutput[0]);
                 case DutyCycle -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
                 case Position, Velocity -> this.setpoint.position = setpoint;
                 case ProfiledPosition, ProfiledVelocity -> this.goal.position = setpoint;
+                default -> stopMotorOutput();
             }
 
         } finally {
@@ -802,7 +802,7 @@ public abstract class MarinersController {
      * reports a warning to the driver station and the smart dashboard
      * @param message the message to report (for example, "warning setting current limits")
      */
-    protected void reportWarning(String message){
+    protected void reportWarning(@SuppressWarnings("SameParameterValue") String message){
 
         String send = message + " for " + name;
 
@@ -874,9 +874,9 @@ public abstract class MarinersController {
     }
 
     /**
-     * sets a feedForawrd (diffrent then the static feed forward)
+     * sets a feedForward (different from the static feed forward)
      * is multiplied by the setpoint
-     * @param kF untis should be Volts / refrence units
+     * @param kF units should be Volts / reference units
      */
     public void setFeedForward(double kF){
         if(kF < 0) throw new IllegalArgumentException("feed forward should be greater then zero");
@@ -885,8 +885,8 @@ public abstract class MarinersController {
     }
 
     /**
-     * sets the feedforward to a fucntion
-     * @param feedForward should return the feedForawrd value (units are Volts / refernceUnits)
+     * sets the feedforward to a function
+     * @param feedForward should return the feedForward value (units are Volts / reference Units)
      */
     public void setFeedForward(Function<Double, Double> feedForward){
         this.feedForward = feedForward;
