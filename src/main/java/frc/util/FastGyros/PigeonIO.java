@@ -1,33 +1,66 @@
 package frc.util.FastGyros;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
-public class PigeonIO implements GyroIO{
-    Pigeon2 pigeon;
-    PigeonIOInputsAutoLogged inputs = new PigeonIOInputsAutoLogged();
+import java.util.LinkedList;
 
-    @AutoLog
-    public static class PigeonIOInputs{
-        public Rotation2d angle = new Rotation2d();
-        public Rotation2d rotationOffset = new Rotation2d();
-        public double yaw = 0;
-        public double pitch = 0;
-        public double roll = 0;
+public class PigeonIO extends GyroIO{
+
+    private final Pigeon2 pigeon;
+
+    private final StatusSignal[] signals;
+
+    private final StatusSignal<Angle> yaw;
+    private final StatusSignal<Angle> pitch;
+    private final StatusSignal<Angle> roll;
+    private final StatusSignal<LinearAcceleration> accelerationX;
+    private final StatusSignal<LinearAcceleration> accelerationY;
+    private final StatusSignal<AngularVelocity> yawRate;
+
+
+    public PigeonIO(int canID) {
+        pigeon = new Pigeon2(canID);
+
+        LinkedList<StatusSignal> signals = new LinkedList<>();
+
+        yaw = pigeon.getYaw();
+        pitch = pigeon.getPitch();
+        roll = pigeon.getRoll();
+        accelerationX = pigeon.getAccelerationX();
+        accelerationY = pigeon.getAccelerationY();
+        yawRate = pigeon.getAngularVelocityZWorld();
+
+        signals.add(yaw);
+        signals.add(pitch);
+        signals.add(roll);
+        signals.add(accelerationX);
+        signals.add(accelerationY);
+        signals.add(yawRate);
+
+        this.signals = new StatusSignal[signals.size()];
+
+        signals.toArray(this.signals);
     }
-
-    public PigeonIO(int id){
-        pigeon = new Pigeon2(id);
-    }
-
 
     @Override
-    public double getAngleDegrees() {
-        return inputs.yaw;
+    public void updateInputs() {
+        BaseStatusSignal.waitForAll(0.04, signals);
+
+        inputs.angle = Rotation2d.fromDegrees(this.yaw.getValueAsDouble());
+        inputs.yaw = -this.yaw.getValueAsDouble();
+        inputs.pitch = this.pitch.getValueAsDouble();
+        inputs.roll = this.roll.getValueAsDouble();
+        inputs.yawRate = -this.yawRate.getValueAsDouble();
+        inputs.accelerationX = this.accelerationX.getValueAsDouble();
+        inputs.accelerationY = this.accelerationY.getValueAsDouble();
     }
 
     @Override
@@ -36,19 +69,13 @@ public class PigeonIO implements GyroIO{
     }
 
     @Override
-    public void update() {
-        inputs.yaw = pigeon.getYaw().getValueAsDouble();
-        inputs.pitch = pigeon.getPitch().getValueAsDouble();
-        inputs.roll = pigeon.getRoll().getValueAsDouble();
-
-        inputs.angle = Rotation2d.fromDegrees((-inputs.yaw) - inputs.rotationOffset.getDegrees());
-
-        Logger.processInputs("Pigeon2", inputs);
+    public double getYaw() {
+        return inputs.yaw;
     }
 
     @Override
-    public double getYaw() {
-        return inputs.yaw;
+    public double getYawRate() {
+        return inputs.yawRate;
     }
 
     @Override
@@ -62,33 +89,22 @@ public class PigeonIO implements GyroIO{
     }
 
     @Override
-    public double getVelocityX() {
-        return 0;
-    }
-
-    @Override
-    public double getVelocityY() {
-        return 0;
-    }
-
-    @Override
     public double getAccelerationX() {
-        return 0;
+        return inputs.accelerationX;
     }
 
     @Override
     public double getAccelerationY() {
-        return 0;
+        return inputs.accelerationY;
     }
 
     @Override
-    public void reset(Pose2d var1) {
-        inputs.angle = var1.getRotation();
-        inputs.rotationOffset = var1.getRotation().unaryMinus();
+    public void reset(Rotation2d newAngle) {
+        pigeon.setYaw(newAngle.getDegrees());
     }
 
     @Override
-    public void initSendable(SendableBuilder var1) {
-        pigeon.initSendable(var1);
+    public void initSendable(SendableBuilder builder) {
+        pigeon.initSendable(builder);
     }
 }

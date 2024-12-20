@@ -129,10 +129,10 @@ public class DriveBase extends SubsystemBase {
         if (RobotBase.isReal()) {
             gyro = switch (Constants.ROBOT_TYPE) {
                 case DEVELOPMENT -> new PigeonIO(DriveBaseConstants.PIGEON_ID);
-                case COMPETITION -> new NavxIO(false);
+                case COMPETITION -> new NavxIO();
                 case REPLAY -> throw new IllegalArgumentException("Robot cannot be replay if it's real");
             };
-            gyro.reset(new Pose2d());
+            gyro.reset(new Rotation2d());
         } else gyro = new SimGyroIO(() -> driveTrainKinematics.toTwist2d(moduleDeltas), this::getChassisSpeeds);
 
         for (int i = 0; i < 4; i++) modules[i].resetDriveEncoder();
@@ -195,7 +195,7 @@ public class DriveBase extends SubsystemBase {
 
             poseEstimator.resetPosition(new Rotation2d(), positions, currentPose);
 
-            gyro.reset(currentPose);
+            gyro.reset(currentPose.getRotation());
         }).withName("Reset Only Direction").ignoringDisable(true);
     }
 
@@ -216,7 +216,7 @@ public class DriveBase extends SubsystemBase {
 
         poseEstimator.resetPosition(new Rotation2d(), positions, newPose);
 
-        gyro.reset(newPose);
+        gyro.reset(newPose.getRotation());
         currentPose = newPose;
         Logger.processInputs(getName(), inputs);
     }
@@ -254,7 +254,7 @@ public class DriveBase extends SubsystemBase {
      * @return the angle of the robot (left is positive) IN DEGREES
      */
     public double getAngle() {
-        return gyro.getAngleDegrees();
+        return -gyro.getYaw();
     }
 
     /**
