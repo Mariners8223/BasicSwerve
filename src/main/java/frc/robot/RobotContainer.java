@@ -130,11 +130,11 @@ public class RobotContainer {
         // driveController.circle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kForward));
         // driveController.triangle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kReverse));
 
-        driveController.cross().whileTrue(driveBaseSYSID.getDriveMotorsRoutineDynamic(SysIdRoutine.Direction.kForward));
-        driveController.square().whileTrue(driveBaseSYSID.getDriveMotorsRoutineDynamic(SysIdRoutine.Direction.kReverse));
+        driveController.cross().whileTrue(driveBaseSYSID.getThetaRoutineDynamic(SysIdRoutine.Direction.kForward));
+        driveController.square().whileTrue(driveBaseSYSID.getThetaRoutineDynamic(SysIdRoutine.Direction.kReverse));
 
-        driveController.circle().whileTrue(driveBaseSYSID.getDriveMotorsRoutineQuasistatic(SysIdRoutine.Direction.kForward));
-        driveController.triangle().whileTrue(driveBaseSYSID.getDriveMotorsRoutineQuasistatic(SysIdRoutine.Direction.kReverse));
+        driveController.circle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kForward));
+        driveController.triangle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kReverse));
 
 
 //        driveController.cross().whileTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));
