@@ -26,7 +26,7 @@ public class DriveBaseSYSID {
                         null, //set if needed
                         null, //set if needed
                         null, //set if needed
-                        (state) -> Logger.recordOutput("SysIDStates/Steer", state)
+                        (state) -> Logger.recordOutput("SysIDStates/Steer", state.toString())
                 ),
                 new SysIdRoutine.Mechanism(
                         driveBase::runSYSIDSteer,
@@ -45,7 +45,7 @@ public class DriveBaseSYSID {
                         null, //set if needed
                         null, //set if needed
                         null, //set if needed
-                        (state) -> Logger.recordOutput("SysIDStates/Drive", state)
+                        (state) -> Logger.recordOutput("SysIDStates/Drive", state.toString())
                 ),
                 new SysIdRoutine.Mechanism(
                         (voltage) -> {
@@ -74,7 +74,7 @@ public class DriveBaseSYSID {
                         null, //set if needed
                         null, //set if needed
                         null, //set if needed
-                        (state) -> Logger.recordOutput("SysIDStates/Theta", state)
+                        (state) -> Logger.recordOutput("SysIDStates/Theta", state.toString())
                 ),
                 new SysIdRoutine.Mechanism(
                         (voltage) -> {

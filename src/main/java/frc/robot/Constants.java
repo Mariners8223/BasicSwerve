@@ -15,5 +15,5 @@ public class Constants {
         REPLAY
     }
 
-    public static final RobotType ROBOT_TYPE = RobotType.DEVELOPMENT; //the type of robot the code is running on
+    public static final RobotType ROBOT_TYPE = RobotType.REPLAY; //the type of robot the code is running on
 }
