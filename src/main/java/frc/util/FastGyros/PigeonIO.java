@@ -15,7 +15,7 @@ public class PigeonIO extends GyroIO{
 
     private final Pigeon2 pigeon;
 
-    private final StatusSignal[] signals;
+    private final BaseStatusSignal[] signals;
 
     private final StatusSignal<Angle> yaw;
     private final StatusSignal<Angle> pitch;
@@ -28,7 +28,7 @@ public class PigeonIO extends GyroIO{
     public PigeonIO(int canID) {
         pigeon = new Pigeon2(canID);
 
-        LinkedList<StatusSignal> signals = new LinkedList<>();
+        LinkedList<BaseStatusSignal> signals = new LinkedList<>();
 
         yaw = pigeon.getYaw();
         pitch = pigeon.getPitch();
