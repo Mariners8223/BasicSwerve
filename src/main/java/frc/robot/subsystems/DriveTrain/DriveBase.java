@@ -11,7 +11,6 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.Drive.DriveCommand;
 import frc.robot.subsystems.DriveTrain.SwerveModules.CompBotConstants;
 import frc.robot.subsystems.DriveTrain.SwerveModules.DevBotConstants;
@@ -114,8 +113,6 @@ public class DriveBase extends SubsystemBase {
                 new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()}; //the current states of the modules
 
         protected String activeCommand; //the active command of the robot
-
-        protected String sysIDState = "None";
     }
 
     /**
@@ -370,14 +367,6 @@ public class DriveBase extends SubsystemBase {
         inputs.YspeedInput = chassisSpeeds.vyMetersPerSecond;
         inputs.rotationSpeedInput = chassisSpeeds.omegaRadiansPerSecond;
         Logger.processInputs(getName(), inputs);
-    }
-
-    /**
-     * sets the current state of the system identification
-     * @param state the state of the system identification
-     */
-    public void setSysIDState(SysIdRoutine.State state){
-        inputs.sysIDState = state.toString();
     }
 
     /**
