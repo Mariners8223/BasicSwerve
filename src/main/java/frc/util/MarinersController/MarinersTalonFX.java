@@ -15,6 +15,8 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.*;
 import frc.util.PIDFGains;
 
+import java.util.LinkedList;
+
 /**
  * A class to control a TalonFX motor controller
  * @see MarinersController
@@ -46,6 +48,8 @@ public class MarinersTalonFX extends MarinersController {
     private final StatusSignal<Voltage> supplyVoltage;
     private final StatusSignal<Voltage> motorVoltage;
     private final StatusSignal<Double> dutyCycle;
+
+    private final BaseStatusSignal[] signals;
 
     /**
      * create a new measurement object for the motor
@@ -83,6 +87,19 @@ public class MarinersTalonFX extends MarinersController {
         this.supplyVoltage = motor.getSupplyVoltage();
         this.motorVoltage = motor.getMotorVoltage();
         this.dutyCycle = motor.getDutyCycle();
+
+        LinkedList<BaseStatusSignal> signals = new LinkedList<>();
+
+        signals.add(deviceTemp);
+        signals.add(supplyCurrent);
+        signals.add(statorCurrent);
+        signals.add(supplyVoltage);
+        signals.add(motorVoltage);
+        signals.add(dutyCycle);
+
+        this.signals = new BaseStatusSignal[signals.size()];
+
+        signals.toArray(this.signals);
 
         super.setMeasurements(createMeasurement(gearRatio));
     }
@@ -259,7 +276,7 @@ public class MarinersTalonFX extends MarinersController {
 
     @Override
     protected void updateInputs(MotorInputs inputs) {
-        BaseStatusSignal.refreshAll(deviceTemp, supplyCurrent, statorCurrent, supplyVoltage, motorVoltage, dutyCycle);
+        BaseStatusSignal.refreshAll(signals);
 
         inputs.currentDraw = supplyCurrent.getValueAsDouble();
         inputs.currentOutput = statorCurrent.getValueAsDouble();
