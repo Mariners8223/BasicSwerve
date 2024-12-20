@@ -44,6 +44,7 @@ public abstract class GyroIO implements Sendable {
 
     /**
      * gets the angle of the gyro in degrees
+     * this angle is continuous and can be greater than 360 or less than 0
      * @return the angle of the gyro in degrees (right is positive)
      */
     public abstract double getYaw();
@@ -56,12 +57,14 @@ public abstract class GyroIO implements Sendable {
 
     /**
      * gets the pitch of the gyro in degrees
+     * this angle is between -90 and 90
      * @return the pitch of the gyro in degrees (up is positive)
      */
     public abstract double getPitch();
 
     /**
      * gets the roll of the gyro in degrees
+     * this angle is between -180 and 180
      * @return the roll of the gyro in degrees (right is positive)
      */
     public abstract double getRoll();
