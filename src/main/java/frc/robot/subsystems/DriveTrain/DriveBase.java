@@ -13,7 +13,6 @@ import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.Drive.DriveCommand;
 import frc.robot.subsystems.DriveTrain.SwerveModules.CompBotConstants;
 import frc.robot.subsystems.DriveTrain.SwerveModules.DevBotConstants;
@@ -113,8 +112,6 @@ public class DriveBase extends SubsystemBase {
                 new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()}; //the current states of the modules
 
         protected String activeCommand; //the active command of the robot
-
-        protected String sysIDState = "None"; //the state of the sysID routine
     }
 
     /**
@@ -397,10 +394,6 @@ public class DriveBase extends SubsystemBase {
         for (int i = 0; i < 4; i++) {
             modules[i].runSysIDSteer(voltage);
         }
-    }
-
-    public void setSysIDState(SysIdRoutine.State state) {
-        inputs.sysIDState = state.toString();
     }
 
     public Command startModuleDriveCalibration() {

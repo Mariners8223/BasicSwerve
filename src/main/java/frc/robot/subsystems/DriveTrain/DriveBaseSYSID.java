@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import org.littletonrobotics.junction.Logger;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -18,8 +19,6 @@ public class DriveBaseSYSID {
 
     public DriveBaseSYSID(DriveBase driveBase, CommandPS5Controller controller) {
 
-        Consumer<SysIdRoutineLog.State> consumer = driveBase::setSysIDState;
-
         Supplier<Rotation2d> controllerAngle = () -> new Rotation2d(-controller.getRawAxis(1), -controller.getRawAxis(0));
 
         steerMotorsRoutine = new SysIdRoutine(
@@ -27,7 +26,7 @@ public class DriveBaseSYSID {
                         null, //set if needed
                         null, //set if needed
                         null, //set if needed
-                        consumer
+                        (state) -> Logger.recordOutput("SysIDStates/Steer", state)
                 ),
                 new SysIdRoutine.Mechanism(
                         driveBase::runSYSIDSteer,
@@ -46,7 +45,7 @@ public class DriveBaseSYSID {
                         null, //set if needed
                         null, //set if needed
                         null, //set if needed
-                        consumer
+                        (state) -> Logger.recordOutput("SysIDStates/Drive", state)
                 ),
                 new SysIdRoutine.Mechanism(
                         (voltage) -> {
@@ -75,7 +74,7 @@ public class DriveBaseSYSID {
                         null, //set if needed
                         null, //set if needed
                         null, //set if needed
-                        consumer
+                        (state) -> Logger.recordOutput("SysIDStates/Theta", state)
                 ),
                 new SysIdRoutine.Mechanism(
                         (voltage) -> {
