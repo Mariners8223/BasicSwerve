@@ -19,7 +19,7 @@ public class SwerveModuleIOCompBot extends SwerveModuleIO {
 
     public SwerveModuleIOCompBot(SwerveModule.ModuleName name) {
 
-        CompBotConstants constants = CompBotConstants.valueOf(name.name());
+        CompBotConstants constants = CompBotConstants.values()[name.ordinal()];
 
         DutyCycleEncoder absEncoder = configDutyCycleEncoder(constants.ABSOLUTE_ENCODER_ID, constants.ABSOLUTE_ZERO_OFFSET);
 

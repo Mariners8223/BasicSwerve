@@ -16,7 +16,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
     public SwerveModuleIODevBot(SwerveModule.ModuleName name) {
 
-        DevBotConstants constants = DevBotConstants.valueOf(name.name());
+        DevBotConstants constants = DevBotConstants.values()[name.ordinal()];
 
         this.DRIVE_KA = constants.DRIVE_KA;
 

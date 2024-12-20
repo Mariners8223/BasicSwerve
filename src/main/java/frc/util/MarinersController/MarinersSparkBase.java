@@ -341,7 +341,7 @@ public class MarinersSparkBase extends MarinersController {
 
         config.voltageCompensation(12);
 
-        REVLibError error = motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        REVLibError error = sparkBase.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
         
         reportError("Error configuring motor", error);
         

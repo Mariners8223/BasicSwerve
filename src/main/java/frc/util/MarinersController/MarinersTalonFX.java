@@ -2,6 +2,7 @@ package frc.util.MarinersController;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -10,6 +11,10 @@ import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
 import frc.util.PIDFGains;
 
 /**
@@ -39,14 +44,18 @@ public class MarinersTalonFX extends MarinersController {
      * @return the new measurement object
      */
     private MarinersMeasurements createMeasurement(double gearRatio){
+        StatusSignal<Angle> postion = motor.getPosition();
+        StatusSignal<AngularVelocity> velocity = motor.getVelocity();
+        StatusSignal<AngularAcceleration> accel = motor.getAcceleration();
+
         return new MarinersMeasurements(
             () -> {
-                BaseStatusSignal.waitForAll(2 / RUN_HZ, motor.getPosition(), motor.getVelocity(), motor.getAcceleration());
+                BaseStatusSignal.refreshAll(postion, velocity, accel);
 
-                return motor.getPosition().getValueAsDouble();
+                return postion.getValueAsDouble();
             },
-            () -> motor.getVelocity().getValueAsDouble(),
-            () -> motor.getAcceleration().getValueAsDouble(),
+            () -> velocity.getValueAsDouble(),
+            () -> accel.getValueAsDouble(),
             gearRatio
         );
     }

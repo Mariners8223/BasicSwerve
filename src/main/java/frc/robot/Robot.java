@@ -51,7 +51,7 @@ public class Robot extends LoggedRobot
         }
 
         if(isReal()){
-            // Logger.addDataReceiver(new WPILOGWriter("/U/logs/AdvantageKit"));
+            Logger.addDataReceiver(new WPILOGWriter("/U/logs"));
             Logger.addDataReceiver(new NT4Publisher());
         }
         else{
