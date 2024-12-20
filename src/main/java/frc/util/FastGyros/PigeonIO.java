@@ -35,6 +35,15 @@ public class PigeonIO extends GyroIO{
         accelerationY = pigeon.getAccelerationY();
         yawRate = pigeon.getAngularVelocityZWorld();
 
+        yaw.setUpdateFrequency(50);
+        pitch.setUpdateFrequency(50);
+        roll.setUpdateFrequency(50);
+        accelerationX.setUpdateFrequency(50);
+        accelerationY.setUpdateFrequency(50);
+        yawRate.setUpdateFrequency(50);
+
+        pigeon.optimizeBusUtilization();
+
         signals.add(yaw);
         signals.add(pitch);
         signals.add(roll);
@@ -49,7 +58,7 @@ public class PigeonIO extends GyroIO{
 
     @Override
     public void update() {
-        BaseStatusSignal.waitForAll(0.04, signals);
+        BaseStatusSignal.refreshAll(signals);
 
         inputs.angle = Rotation2d.fromDegrees(this.yaw.getValueAsDouble());
         inputs.yaw = -this.yaw.getValueAsDouble();
