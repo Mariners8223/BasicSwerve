@@ -25,7 +25,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
                 MarinersController.ControllerLocation.MOTOR,
                 constants.DRIVE_MOTOR_ID,
                 constants.DRIVE_MOTOR_PID,
-                DevBotConstants.DRIVE_GEAR_RATIO * DevBotConstants.WHEEL_CIRCUMFERENCE_METERS);
+                DevBotConstants.DRIVE_GEAR_RATIO / DevBotConstants.WHEEL_CIRCUMFERENCE_METERS);
 
         driveMotor.setMotorInverted(constants.DRIVE_INVERTED);
 
