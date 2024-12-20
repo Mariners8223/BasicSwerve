@@ -84,6 +84,31 @@ public class MarinersSparkBase extends MarinersController {
         );
     }
 
+    /**
+     * configures the spark base
+     * @param sparkBase the spark base to configure
+     */
+    private void configSparkBase(SparkBase sparkBase) {
+        int period = (int) (1000 / RUN_HZ);
+
+        sparkBase.setControlFramePeriodMs(period);
+
+        SignalsConfig signalsConfig = config.signals;
+
+        signalsConfig.appliedOutputPeriodMs(APPLIED_OUTPUT_PERIOD_MS).
+                primaryEncoderPositionPeriodMs(PRIMARY_ENCODER_POSITION_PERIOD_MS).
+                primaryEncoderVelocityPeriodMs(PRIMARY_ENCODER_VELOCITY_PERIOD_MS).
+                busVoltagePeriodMs(BUS_VOLTAGE_PERIOD_MS).
+                faultsPeriodMs(FAULTS_PERIOD_MS).
+                motorTemperaturePeriodMs(MOTOR_TEMPERATURE_PERIOD_MS);
+
+        config.voltageCompensation(12);
+
+        REVLibError error = sparkBase.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+
+        reportError("Error configuring motor", error);
+    }
+
         /**
      * creates a new spark motor controller
      * this will create a motor that can only be controlled by duty cycle or voltage
@@ -103,7 +128,16 @@ public class MarinersSparkBase extends MarinersController {
             case SPARK_FLEX -> new SparkFlexConfig();
         };
 
-        motor = createSparkBase(id, isBrushless, type);
+        SparkLowLevel.MotorType motorType = isBrushless ? SparkLowLevel.MotorType.kBrushless : SparkLowLevel.MotorType.kBrushed;
+
+        motor = switch (type) {
+            case SPARK_MAX ->
+                    new SparkMax(id, motorType);
+            case SPARK_FLEX ->
+                    new SparkFlex(id, motorType);
+        };
+
+        configSparkBase(motor);
 
         setMeasurements(1);
     }
@@ -314,54 +348,11 @@ public class MarinersSparkBase extends MarinersController {
         return encoder;
     }
 
-
-    /**
-     * creates a new spark motor controller
-     * @param id the id of the motor controller
-     * @param isBrushless if the motor is brushless
-     * @param type the type of motor controller
-     * @return the new spark motor controller
-     */
-    private SparkBase createSparkBase(int id, boolean isBrushless, MotorType type) {
-
-        SparkLowLevel.MotorType motorType = isBrushless ? SparkLowLevel.MotorType.kBrushless : SparkLowLevel.MotorType.kBrushed;
-
-        SparkBase sparkBase = switch (type) {
-            case SPARK_MAX ->
-                    new SparkMax(id, motorType);
-            case SPARK_FLEX ->
-                    new SparkFlex(id, motorType);
-        };
-
-        int period = (int) (1000 / RUN_HZ);
-
-        int robotMainThreadPeriod = 20;
-
-        sparkBase.setControlFramePeriodMs(period);
-
-        SignalsConfig signalsConfig = config.signals;
-
-        signalsConfig.appliedOutputPeriodMs(APPLIED_OUTPUT_PERIOD_MS).
-        primaryEncoderPositionPeriodMs(PRIMARY_ENCODER_POSITION_PERIOD_MS).
-        primaryEncoderVelocityPeriodMs(PRIMARY_ENCODER_VELOCITY_PERIOD_MS).
-        busVoltagePeriodMs(BUS_VOLTAGE_PERIOD_MS).
-        faultsPeriodMs(FAULTS_PERIOD_MS).
-        motorTemperaturePeriodMs(MOTOR_TEMPERATURE_PERIOD_MS);
-
-        config.voltageCompensation(12);
-
-        REVLibError error = sparkBase.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-        
-        reportError("Error configuring motor", error);
-        
-        return sparkBase;
-    }
-
     /**
      * sets the current limits for the motor
      * @param stallCurrentLimit the current limit for the motor when stalled
      * @param freeSpeedCurrentLimit the current limit for the motor when at free speed
-     * @param thresholdRPM the rpm that below it the motor will be considered stalled (after that value the current limit will scale untill the limit set untill free speed)
+     * @param thresholdRPM the rpm that below it the motor will be considered stalled (after that value the current limit will scale until the limit set until free speed)
      * @param thresholdCurrentLimit the current threshold for the motor (above this value the motor will be disabled for a short period of time)
      */
     public void setCurrentLimits(int stallCurrentLimit, int freeSpeedCurrentLimit, int thresholdRPM, int thresholdCurrentLimit) {
