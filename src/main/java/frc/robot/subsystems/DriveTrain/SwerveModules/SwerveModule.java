@@ -65,19 +65,16 @@ public class SwerveModule {
     }
 
     public SwerveModuleState run(SwerveModuleState targetState, double acceleration) {
-        SwerveModuleState optimizedTargetState = new SwerveModuleState(targetState.speedMetersPerSecond, targetState.angle);
+        double inputtedVelocity = targetState.speedMetersPerSecond;
 
-        optimizedTargetState.optimize(inputs.currentState.angle);
+        targetState.optimize(inputs.currentState.angle);
 
-        if(optimizedTargetState.speedMetersPerSecond != targetState.speedMetersPerSecond) acceleration *= -1;
+        //checks if the speed was flipped
+        if(Math.signum(inputtedVelocity) != Math.signum(targetState.speedMetersPerSecond)){
+            acceleration = -acceleration;
+        }
 
-        targetState = optimizedTargetState;
-
-        double cos = targetState.angle.minus(inputs.currentState.angle).getCos();
-
-        targetState.speedMetersPerSecond *= cos;
-
-        acceleration *= cos;
+        targetState.cosineScale(inputs.currentState.angle);
 
         io.setDriveMotorReference(targetState.speedMetersPerSecond, acceleration);
         io.setSteerMotorReference(targetState.angle.getRotations());
