@@ -31,6 +31,8 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
         driveMotor.setCurrentLimits(60, 90);
 
+        driveMotor.setMotorDeadBandVoltage(constants.DRIVE_KS);
+
         steerMotor = new MarinersSparkBase(
                 name.name() + " Steer Motor",
                 MarinersController.ControllerLocation.RIO,
@@ -38,6 +40,10 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
                 true,
                 MarinersSparkBase.MotorType.SPARK_MAX,
                 constants.STEER_MOTOR_PID);
+
+        steerMotor.setMotorInverted(constants.STEER_INVERTED);
+
+        steerMotor.setMotorDeadBandVoltage(constants.STEER_KS);
 
         CANcoder absEncoder = configCANCoder(constants.ABSOLUTE_ENCODER_ID, constants.ABSOLUTE_ZERO_OFFSET, (int) steerMotor.RUN_HZ);
 
