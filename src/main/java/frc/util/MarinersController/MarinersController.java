@@ -330,6 +330,7 @@ public abstract class MarinersController {
                 default -> 0;
             };
 
+            //check if needed to wrap the position
             if (wrappingMinMax != null && controlMode.isPositionControl()) {
                 setpoint.position = calculatePositionWrapping(measurement, setpoint.position);
 
@@ -337,26 +338,29 @@ public abstract class MarinersController {
                     goal.position = calculatePositionWrapping(measurement, goal.position);
             }
 
-            if (softLimits != null) {
-                if (controlMode.isPositionControl()) {
-                    setpoint.position = MathUtil.clamp(setpoint.position, softLimits[0], softLimits[1]);
-                    if (controlMode == ControlMode.ProfiledPosition) {
-                        goal.position = MathUtil.clamp(goal.position, softLimits[0], softLimits[1]);
-                    }
-                } else if (controlMode.isVelocityControl()) {
-                    if (setpoint.position > softLimits[1] || setpoint.position < softLimits[0]) {
-                        setpoint.position = 0;
-                    }
-                    if (controlMode == ControlMode.ProfiledVelocity && (goal.position > softLimits[1] || goal.position < softLimits[0])) {
-                        goal.position = 0;
-                    }
+            //check if the motor is outside the soft limits
+            if(controlMode.isPositionControl()){
+                setpoint.position = checkSoftLimitForPosition(setpoint.position);
+
+                if(controlMode == ControlMode.ProfiledPosition){
+                    goal.position = checkSoftLimitForPosition(goal.position);
+                }
+            }
+            else if (controlMode.isVelocityControl()){
+                setpoint.position = checkSoftLimitForVelocity(measurements.getPosition());
+
+                if(controlMode == ControlMode.ProfiledVelocity){
+                    goal.position = checkSoftLimitForVelocity(measurements.getPosition());
                 }
             }
 
+            //calculate the motion profile
             if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
 
+            //calculate the feed forward
             double feedForward = arbitraryFeedForward + this.feedForward.apply(measurement) * setpoint.position;
 
+            //if using a built-in controller, sends the output to the motor controller
             if (location == ControllerLocation.MOTOR) {
                 setOutput(setpoint.position * measurements.getGearRatio(), controlMode, feedForward);
                 return;
@@ -393,6 +397,21 @@ public abstract class MarinersController {
         double errorBound = (wrappingMinMax[1] - wrappingMinMax[0]) / 2.0;
 
         return MathUtil.inputModulus(setpoint - measurement, -errorBound, errorBound) + measurement;
+    }
+
+    private double checkSoftLimitForPosition(double setPoint){
+        if(softLimits == null) return setPoint;
+        return MathUtil.clamp(setPoint, softLimits[0], softLimits[1]);
+    }
+
+    private double checkSoftLimitForVelocity(double setPoint){
+        if(softLimits == null) return setPoint;
+
+        if(setPoint > softLimits[1] || setPoint < softLimits[0]){
+            setPoint = 0;
+        }
+
+        return setPoint;
     }
 
 
@@ -901,7 +920,7 @@ public abstract class MarinersController {
             throw new IllegalArgumentException("limits must have exactly 2 elements");
         }
 
-        if(limits != null && limits[0] > limits[1]) {
+        if (limits != null && limits[0] > limits[1]) {
             throw new IllegalArgumentException("min limit must be less than max limit");
         }
 
