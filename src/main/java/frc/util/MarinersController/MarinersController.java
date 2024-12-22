@@ -111,7 +111,7 @@ public abstract class MarinersController {
 
         /**
          * the controller is running on the motor controller
-         * that means the pid is calculated on the motor controller and the output is sent to the motor
+         * that means the pid is calculated on the motor controller, and the output is sent to the motor,
          * but also there is a motion profile on the roborio that can be used
          * (less can bus traffic)
          */
@@ -232,7 +232,8 @@ public abstract class MarinersController {
 
     /**
      * the position wrapping min max
-     * if the controller is in position control mode and the position is outside of this range, the controller will wrap the position to be within this range
+     * if the controller is in position control mode and the position is outside of this range,
+     * the controller will wrap the position to be within this range
      * the array should be the minimum value first then the maximum
      * units are the units of the measurements
      */
@@ -489,7 +490,7 @@ public abstract class MarinersController {
     }
 
     /**
-     * if using profiled control mode this will return the goal of the controller (the end state)
+     * if using profiled control mode, this will return the goal of the controller (the end state)
      * if not using profiled control mode, this will return the setpoint of the controller
      *
      * @return the current goal of the controller
@@ -520,12 +521,13 @@ public abstract class MarinersController {
     }
 
     /**
-     * sets the motor as a follower to another motor
+     * sets the motor as a follower to another motor,
      * this will make the motor follow the output of the master motor
      * (this will make the motor ignore any reference set to it)
      * can only be undone by restarting the code
-     * @param master the master motor controller (the one that this motor will follow)
-     * @param invert true if the motor should follow the master in reverse (if the master spins clockwise, this motor will spin counter-clockwise)
+     * @param master the primary motor controller (the one that this motor will follow)
+     * @param invert true, if the motor should follow the master in reverse
+     *               (if the master spins clockwise, this motor will spin counter-clockwise)
      */
     public void setMotorAsFollower(MarinersController master, boolean invert){
         if(master.getClass() != this.getClass())
@@ -766,9 +768,13 @@ public abstract class MarinersController {
     /**
      * Enables position wrapping for the controller.
      * This method is used to wrap the position to be within a specified range.
-     * for example, if the minimum is 0 and the maximum is 1, and the position is 1.5, the position will be wrapped to 0.5.
-     * This is useful for systems that have a continuous range of motion. (like a swerve steer)
-     * DO NOT USE THIS FOR SYSTEMS THAT HAVE A LIMITED RANGE OF MOTION (like an elevator) OR CAN BE DAMAGED BY WRAPPING (like a turret)
+     * For example, if the minimum is 0 and the maximum is 1,
+     * and the position is 1.5, the position will be wrapped to 0.5.
+     * This is useful for systems that have a continuous range of motion.
+     * (like a swerve steer)
+     * DO NOT USE THIS FOR SYSTEMS THAT HAVE A LIMITED RANGE OF MOTION
+     * (like an elevator) OR CAN BE DAMAGED BY WRAPPING
+     * (like a turret)
      *
      * @param minMax An array containing the minimum and maximum values for position wrapping.
      *               The array should have exactly two elements: the minimum value first, then the maximum value.
@@ -826,9 +832,13 @@ public abstract class MarinersController {
     /**
      * Enables position wrapping for the controller.
      * This method is used to wrap the position to be within a specified range.
-     * for example, if the minimum is 0 and the maximum is 1, and the position is 1.5, the position will be wrapped to 0.5.
-     * This is useful for systems that have a continuous range of motion. (like a swerve steer)
-     * DO NOT USE THIS FOR SYSTEMS THAT HAVE A LIMITED RANGE OF MOTION (like an elevator) OR CAN BE DAMAGED BY WRAPPING (like a turret)
+     * For example, if the minimum is 0 and the maximum is 1,
+     * and the position is 1.5, the position will be wrapped to 0.5.
+     * This is useful for systems that have a continuous range of motion.
+     * (like a swerve steer)
+     * DO NOT USE THIS FOR SYSTEMS THAT HAVE A LIMITED RANGE OF MOTION
+     * (like an elevator) OR CAN BE DAMAGED BY WRAPPING
+     * (like a turret)
      *
      * @param minimum the minimum value
      * @param maximum the maximum value
@@ -975,7 +985,7 @@ public abstract class MarinersController {
      *
      * @param profile the profile of the controller
      *                (needs to be appropriately set for the control mode)
-     *                normally, this would be the max velocity and acceleration of the controlled value
+     *                normally, this would be the max velocity and acceleration of the controlled value,
      *                but if used profiled velocity control, this would be the max acceleration and jerk
      */
     public void setProfile(TrapezoidProfile profile) {
@@ -986,7 +996,7 @@ public abstract class MarinersController {
      * sets the profile of the controller
      *
      * @param constraints the constraints of the profile (needs to be appropriately set for the control mode)
-     *                    normally, this would be the max velocity and acceleration of the controlled value
+     *                    normally, this would be the max velocity and acceleration of the controlled value,
      *                    but if used profiled velocity control, this would be the max acceleration and jerk
      */
     public void setProfile(TrapezoidProfile.Constraints constraints) {
