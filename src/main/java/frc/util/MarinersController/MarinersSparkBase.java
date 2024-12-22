@@ -453,6 +453,21 @@ public class MarinersSparkBase extends MarinersController {
     }
 
     @Override
+    protected void setMotorSoftLimit(double minimum, double maximum) {
+        motor.setSoftLimit(CANSparkBase.SoftLimitDirection.kForward, (float) maximum);
+        motor.setSoftLimit(CANSparkBase.SoftLimitDirection.kReverse, (float) minimum);
+
+        motor.enableSoftLimit(CANSparkBase.SoftLimitDirection.kForward, true);
+        motor.enableSoftLimit(CANSparkBase.SoftLimitDirection.kReverse, true);
+    }
+
+    @Override
+    protected void disableSoftLimitMotor() {
+        motor.enableSoftLimit(CANSparkBase.SoftLimitDirection.kForward, false);
+        motor.enableSoftLimit(CANSparkBase.SoftLimitDirection.kReverse, false);
+    }
+
+    @Override
     protected void setMaxMinOutputMotor(double max, double min) {
         motor.getPIDController().setOutputRange(-Math.abs(min) / 12, max / 12);
     }
