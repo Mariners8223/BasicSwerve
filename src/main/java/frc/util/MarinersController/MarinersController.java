@@ -327,17 +327,18 @@ public abstract class MarinersController {
 
             if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
 
-            double feedForward = arbitraryFeedForward + this.feedForward.apply(measurement) * setpoint.position;
+            double staticForce = switch (controlMode){
+                case Position, ProfiledPosition -> Math.signum(setpoint.position - measurement) * motorKs;
+                case Velocity, ProfiledVelocity -> Math.signum(setpoint.position) * motorKs;
+                default -> 0;
+            };
 
-            if(controlMode == ControlMode.Velocity || controlMode == ControlMode.ProfiledVelocity){
-                feedForward += Math.signum(setpoint.position) * motorKs;
-            }
+            double feedForward = arbitraryFeedForward + staticForce + this.feedForward.apply(measurement) * setpoint.position;
 
             if (location == ControllerLocation.MOTOR) {
                 setOutput(setpoint.position * measurements.getGearRatio(), controlMode, feedForward);
                 return;
             }
-
 
             // calculate the output of the pid controller
             output = pidController.calculate(measurement, setpoint.position);
