@@ -94,6 +94,10 @@ public abstract class MarinersController {
         public boolean isPositionControl() {
             return this == Position || this == ProfiledPosition;
         }
+
+        public boolean isVelocityControl() {
+            return this == Velocity || this == ProfiledVelocity;
+        }
     }
 
     /**
@@ -148,7 +152,7 @@ public abstract class MarinersController {
         protected double dutyCycle = 0;
         protected String currentFaults = "";
 
-        protected void fillInputs(BaseControllerInputsAutoLogged inputs){
+        protected void fillInputs(BaseControllerInputsAutoLogged inputs) {
             inputs.temperature = temperature;
             inputs.currentDraw = currentDraw;
             inputs.currentOutput = currentOutput;
@@ -240,6 +244,13 @@ public abstract class MarinersController {
     private Double[] wrappingMinMax;
 
     /**
+     * the soft limits of the controller,
+     * the first value is the minimum value and the second value is the maximum value
+     * units are the units of the measurements
+     */
+    private Double[] softLimits;
+
+    /**
      * The deadband of the motor in voltage
      * if the motor output is less than this value, the motor will not put out any power
      */
@@ -288,9 +299,9 @@ public abstract class MarinersController {
             measurementLock.unlock();
         }
 
-        if(isRunningPIDTuning && location == ControllerLocation.MOTOR){
+        if (isRunningPIDTuning && location == ControllerLocation.MOTOR) {
             PIDFGains newGains = PIDFGains.fromController(pidController);
-            if(!newGains.equals(currentGains)){
+            if (!newGains.equals(currentGains)) {
                 setPIDFMotor(newGains);
                 currentGains = newGains;
             }
@@ -304,11 +315,11 @@ public abstract class MarinersController {
 
             controlMode = this.controlMode;
 
-            if(controlMode == ControlMode.Follower || controlMode == ControlMode.Stopped){
+            if (controlMode == ControlMode.Follower || controlMode == ControlMode.Stopped) {
                 return;
             }
 
-            if(!controlMode.needPID()){
+            if (!controlMode.needPID()) {
                 setOutput(setpoint.position, controlMode, 0);
                 return;
             }
@@ -326,15 +337,25 @@ public abstract class MarinersController {
                     goal.position = calculatePositionWrapping(measurement, goal.position);
             }
 
+            if (softLimits != null) {
+                if (controlMode.isPositionControl()) {
+                    setpoint.position = MathUtil.clamp(setpoint.position, softLimits[0], softLimits[1]);
+                    if (controlMode == ControlMode.ProfiledPosition) {
+                        goal.position = MathUtil.clamp(goal.position, softLimits[0], softLimits[1]);
+                    }
+                } else if (controlMode.isVelocityControl()) {
+                    if (setpoint.position > softLimits[1] || setpoint.position < softLimits[0]) {
+                        setpoint.position = 0;
+                    }
+                    if (controlMode == ControlMode.ProfiledVelocity && (goal.position > softLimits[1] || goal.position < softLimits[0])) {
+                        goal.position = 0;
+                    }
+                }
+            }
+
             if (controlMode.needMotionProfile()) setpoint = profile.calculate(1 / RUN_HZ, setpoint, goal);
 
-            double staticForce = switch (controlMode){
-                case Position, ProfiledPosition -> Math.signum(setpoint.position - measurement) * motorKs;
-                case Velocity, ProfiledVelocity -> Math.signum(setpoint.position) * motorKs;
-                default -> 0;
-            };
-
-            double feedForward = arbitraryFeedForward + staticForce + this.feedForward.apply(measurement) * setpoint.position;
+            double feedForward = arbitraryFeedForward + this.feedForward.apply(measurement) * setpoint.position;
 
             if (location == ControllerLocation.MOTOR) {
                 setOutput(setpoint.position * measurements.getGearRatio(), controlMode, feedForward);
@@ -348,7 +369,13 @@ public abstract class MarinersController {
             if (pidController.atSetpoint()) {
                 output = feedForward;
             } else {
-                output += feedForward;
+                double staticForce = switch (controlMode) {
+                    case Position, ProfiledPosition -> Math.signum(setpoint.position - measurement) * motorKs;
+                    case Velocity, ProfiledVelocity -> Math.signum(setpoint.position) * motorKs;
+                    default -> 0;
+                };
+
+                output += feedForward + staticForce;
             }
 
             if (Math.abs(output) <= motorVoltageDeadBand) {
@@ -380,7 +407,7 @@ public abstract class MarinersController {
         try {
             setpointLock.lock();
 
-            if(RobotState.isDisabled()){
+            if (RobotState.isDisabled()) {
                 controlMode = ControlMode.Stopped;
                 stopMotorOutput();
             }
@@ -507,9 +534,10 @@ public abstract class MarinersController {
 
     /**
      * gets the current PID gains of the controller (will only include P, I, D, maybe F)
+     *
      * @return the current PID gains of the controller
      */
-    public PIDFGains getPIDF(){
+    public PIDFGains getPIDF() {
         return currentGains;
     }
 
@@ -525,18 +553,19 @@ public abstract class MarinersController {
      * this will make the motor follow the output of the master motor
      * (this will make the motor ignore any reference set to it)
      * can only be undone by restarting the code
+     *
      * @param master the primary motor controller (the one that this motor will follow)
      * @param invert true, if the motor should follow the master in reverse
      *               (if the master spins clockwise, this motor will spin counter-clockwise)
      */
-    public void setMotorAsFollower(MarinersController master, boolean invert){
-        if(master.getClass() != this.getClass())
+    public void setMotorAsFollower(MarinersController master, boolean invert) {
+        if (master.getClass() != this.getClass())
             throw new IllegalArgumentException("cannot set a motor as follower to a different kind of motor");
 
-        try{
+        try {
             setpointLock.lock();
             controlMode = ControlMode.Follower;
-        }finally {
+        } finally {
             setpointLock.unlock();
         }
 
@@ -548,8 +577,8 @@ public abstract class MarinersController {
     /**
      * sets the reference of the controller
      *
-     * @param setpoint    the setpoint of the controller (needs to be appropriately set for the control mode)
-     * @param controlMode the control mode of the controller
+     * @param setpoint             the setpoint of the controller (needs to be appropriately set for the control mode)
+     * @param controlMode          the control mode of the controller
      * @param arbitraryFeedForward the feed forward of the controller that is set by the reference
      */
     public void setReference(double setpoint, ControlMode controlMode, double arbitraryFeedForward) {
@@ -568,12 +597,11 @@ public abstract class MarinersController {
                 if (this.controlMode != ControlMode.Stopped) {
                     stopMotorOutput();
                     this.controlMode = ControlMode.Stopped;
-
                 }
                 return;
             }
 
-            if(controlMode == ControlMode.Follower){
+            if (controlMode == ControlMode.Follower) {
                 DriverStation.reportError("cannot set reference to a follower motor", true);
                 return;
             }
@@ -583,7 +611,8 @@ public abstract class MarinersController {
 
             switch (controlMode) {
                 case Voltage -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1], maxMinOutput[0]);
-                case DutyCycle -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
+                case DutyCycle ->
+                        this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
                 case Position, Velocity -> this.setpoint.position = setpoint;
                 case ProfiledPosition, ProfiledVelocity -> this.goal.position = setpoint;
                 default -> stopMotorOutput();
@@ -621,7 +650,7 @@ public abstract class MarinersController {
                 return;
             }
 
-            if(controlMode == ControlMode.Follower){
+            if (controlMode == ControlMode.Follower) {
                 DriverStation.reportError("cannot set reference to a follower motor", true);
                 return;
             }
@@ -631,7 +660,8 @@ public abstract class MarinersController {
 
             switch (controlMode) {
                 case Voltage -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1], maxMinOutput[0]);
-                case DutyCycle -> this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
+                case DutyCycle ->
+                        this.setpoint.position = MathUtil.clamp(setpoint, maxMinOutput[1] / 12, maxMinOutput[0] / 12);
                 case Position, Velocity -> this.setpoint.position = setpoint;
                 case ProfiledPosition, ProfiledVelocity -> this.goal.position = setpoint;
                 default -> stopMotorOutput();
@@ -677,7 +707,7 @@ public abstract class MarinersController {
                 return;
             }
 
-            if(controlMode == ControlMode.Follower){
+            if (controlMode == ControlMode.Follower) {
                 DriverStation.reportError("cannot set reference to a follower motor", true);
                 return;
             }
@@ -791,10 +821,11 @@ public abstract class MarinersController {
 
     /**
      * reports an error to the driver station and the smart dashboard
+     *
      * @param message the message to report (for example, "error setting current limits")
-     * @param error the error code (for example, "current limit too low")
+     * @param error   the error code (for example, "current limit too low")
      */
-    protected void reportError(String message, String error){
+    protected void reportError(String message, String error) {
 
         String send = message + " for " + name + " motor with errorCode: " + error;
 
@@ -807,9 +838,10 @@ public abstract class MarinersController {
 
     /**
      * reports a warning to the driver station and the smart dashboard
+     *
      * @param message the message to report (for example, "warning setting current limits")
      */
-    protected void reportWarning(@SuppressWarnings("SameParameterValue") String message){
+    protected void reportWarning(@SuppressWarnings("SameParameterValue") String message) {
 
         String send = message + " for " + name;
 
@@ -823,9 +855,10 @@ public abstract class MarinersController {
     /**
      * sets the static feed forward of the controller
      * (the voltage needed to overcome static friction)
+     *
      * @param feedForward the voltage needed to overcome static friction (positive value)
      */
-    public void setStaticFeedForward(double feedForward){
+    public void setStaticFeedForward(double feedForward) {
         this.motorKs = feedForward;
     }
 
@@ -863,6 +896,30 @@ public abstract class MarinersController {
         return wrappingMinMax != null;
     }
 
+    public void enableSoftLimits(Double[] limits) {
+        if (limits != null && limits.length != 2) {
+            throw new IllegalArgumentException("limits must have exactly 2 elements");
+        }
+
+        if(limits != null && limits[0] > limits[1]) {
+            throw new IllegalArgumentException("min limit must be less than max limit");
+        }
+
+        softLimits = limits;
+    }
+
+    public void enableSoftLimits(double min, double max) {
+        enableSoftLimits(new Double[]{min, max});
+    }
+
+    public void disableSoftLimits() {
+        enableSoftLimits(null);
+    }
+
+    public boolean isSoftLimitsEnabled() {
+        return softLimits != null;
+    }
+
     /**
      * sets the pid gains and feed forward of the controller
      *
@@ -887,19 +944,21 @@ public abstract class MarinersController {
     /**
      * sets a feedForward (different from the static feed forward)
      * is multiplied by the setpoint
+     *
      * @param kF units should be Volts / reference units
      */
-    public void setFeedForward(double kF){
-        if(kF < 0) throw new IllegalArgumentException("feed forward should be greater then zero");
+    public void setFeedForward(double kF) {
+        if (kF < 0) throw new IllegalArgumentException("feed forward should be greater then zero");
 
         feedForward = (measurement) -> kF;
     }
 
     /**
      * sets the feedforward to a function
+     *
      * @param feedForward should return the feedForward value (units are Volts / reference Units)
      */
-    public void setFeedForward(Function<Double, Double> feedForward){
+    public void setFeedForward(Function<Double, Double> feedForward) {
         this.feedForward = feedForward;
     }
 
@@ -925,15 +984,16 @@ public abstract class MarinersController {
      * stops the pid tuning
      * only does something if started the tuning and using the motor controller on the motor
      */
-    public void stopPIDTuning(){
+    public void stopPIDTuning() {
         isRunningPIDTuning = false;
     }
 
     /**
      * checks if the pid tuning is running
+     *
      * @return true if the pid tuning is running
      */
-    public boolean isRunningPIDTuning(){
+    public boolean isRunningPIDTuning() {
         return isRunningPIDTuning;
     }
 
