@@ -319,6 +319,23 @@ public abstract class MarinersController {
                 return;
             }
 
+            if(!controlMode.isPositionControl() && softLimits != null){
+                if(measurements.getPosition() >= softLimits[1] && setpoint.position > 0){
+                    setpoint.position = 0;
+                }
+                else if(measurements.getPosition() <= softLimits[0] && setpoint.position < 0){
+                    setpoint.position = 0;
+
+                }
+            }
+            else{
+                setpoint.position = checkSoftLimitForPosition(setpoint.position);
+
+                if(controlMode == ControlMode.ProfiledPosition){
+                    goal.position = checkSoftLimitForPosition(goal.position);
+                }
+            }
+
             if (!controlMode.needPID()) {
                 setOutput(setpoint.position, controlMode, 0);
                 return;
@@ -336,22 +353,6 @@ public abstract class MarinersController {
 
                 if (controlMode == ControlMode.ProfiledPosition)
                     goal.position = calculatePositionWrapping(measurement, goal.position);
-            }
-
-            //check if the motor is outside the soft limits
-            if(controlMode.isPositionControl()){
-                setpoint.position = checkSoftLimitForPosition(setpoint.position);
-
-                if(controlMode == ControlMode.ProfiledPosition){
-                    goal.position = checkSoftLimitForPosition(goal.position);
-                }
-            }
-            else if (controlMode.isVelocityControl()){
-                setpoint.position = checkSoftLimitForVelocity(measurements.getPosition());
-
-                if(controlMode == ControlMode.ProfiledVelocity){
-                    goal.position = checkSoftLimitForVelocity(measurements.getPosition());
-                }
             }
 
             //calculate the motion profile
@@ -403,17 +404,6 @@ public abstract class MarinersController {
         if(softLimits == null) return setPoint;
         return MathUtil.clamp(setPoint, softLimits[0], softLimits[1]);
     }
-
-    private double checkSoftLimitForVelocity(double setPoint){
-        if(softLimits == null) return setPoint;
-
-        if(setPoint > softLimits[1] || setPoint < softLimits[0]){
-            setPoint = 0;
-        }
-
-        return setPoint;
-    }
-
 
     protected abstract void setOutput(double output, ControlMode controlMode, double feedForward);
 
