@@ -130,11 +130,14 @@ public class RobotContainer {
         // driveController.circle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kForward));
         // driveController.triangle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kReverse));
 
-        driveController.cross().whileTrue(driveBaseSYSID.getThetaRoutineDynamic(SysIdRoutine.Direction.kForward));
-        driveController.square().whileTrue(driveBaseSYSID.getThetaRoutineDynamic(SysIdRoutine.Direction.kReverse));
+        driveController.circle().onTrue(driveBase.startModuleSteerCalibration());
+        driveController.triangle().onTrue(driveBase.stopModuleSteerCalibration());
 
-        driveController.circle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kForward));
-        driveController.triangle().whileTrue(driveBaseSYSID.getThetaRoutineQuasistatic(SysIdRoutine.Direction.kReverse));
+//        driveController.cross().whileTrue(driveBaseSYSID.getSteerMotorsRoutineDynamic(SysIdRoutine.Direction.kForward));
+//        driveController.square().whileTrue(driveBaseSYSID.getSteerMotorsRoutineDynamic(SysIdRoutine.Direction.kReverse));
+//
+//        driveController.circle().whileTrue(driveBaseSYSID.getSteerMotorsRoutineQuasistatic(SysIdRoutine.Direction.kForward));
+//        driveController.triangle().whileTrue(driveBaseSYSID.getSteerMotorsRoutineQuasistatic(SysIdRoutine.Direction.kReverse));
 
 
 //        driveController.cross().whileTrue(driveBase.runSysIDQuasistatic(false, controllerAngle));

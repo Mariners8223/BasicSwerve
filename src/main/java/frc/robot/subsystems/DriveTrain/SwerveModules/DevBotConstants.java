@@ -5,28 +5,28 @@ import frc.util.PIDFGains;
 
 public enum DevBotConstants {
     FRONT_LEFT(3, 4, 5,
-            true, true, -0.422,
+            false, false, -0.42578125,
             new PIDFGains(3, 0, 0, 1.8749), //Drive motor PID
-            new PIDFGains(19, 10, 2, 0, 0.01, 0), //Steer motor PID
-            0.13777, 1.8887, 0.18407, 0, 1, 1),
+            new PIDFGains(25, 20, 0, 0, 0.001, 0.01), //Steer motor PID
+            0.13777, 1.8887, 0.18407, 0.19704, 1.7025, 0.10185),
 
     FRONT_RIGHT(6, 7, 8,
-            true, true, 0.389,
+            false, false, 0.3933,
             new PIDFGains(3, 0, 0, 1.8552), //Drive motor PID
-            new PIDFGains(19, 10, 2, 0, 0.01, 0), //Steer motor PID
-            0.063408, 1.8552, 0.10686, 0, 1, 1),
+            new PIDFGains(25, 20, 0, 0, 0.001, 0.01), //Steer motor PID
+            0.063408, 1.8552, 0.10686, 0.19704, 1.7025, 0.10185),
 
     BACK_LEFT(9, 10, 11,
-            true, true, 0.467,
+            false, false, 0.4968,
             new PIDFGains(3, 0, 0, 1.9608), //Drive motor PID
-            new PIDFGains(19, 10, 2, 0, 0.01, 0), //Steer motor PID
-            0.19252, 1.9943, 0.14615, 0, 1, 1),
+            new PIDFGains(25, 20, 0, 0, 0.001, 0.01), //Steer motor PID
+            0.19252, 1.9943, 0.14615, 0.2, 1.7386, 0.12048  ),
 
     BACK_RIGHT(12, 13, 14,
-            true, true, -0.188,
+            false, false, -0.1574,
             new PIDFGains(3, 0, 0, 1.8443), //Drive motor PID
-            new PIDFGains(19, 10, 2, 0, 0.01, 0), //Steer motor PID
-            0.081338, 1.8486, 0.087161, 0, 1, 1);
+            new PIDFGains(25, 20, 0, 0, 0.001, 0.01), //Steer motor PID
+            0.081338, 1.8486, 0.087161, 0.14, 1.602, 0.11135);
 
     public static final double DRIVE_GEAR_RATIO = 5.14;
     public static final double STEER_GEAR_RATIO = 12.8;

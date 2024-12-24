@@ -45,6 +45,10 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
         steerMotor.setMotorDeadBandVoltage(constants.STEER_KS);
 
+        steerMotor.enablePositionWrapping(-0.5, 0.5);
+
+        steerMotor.setProfile(20, 25);
+
         CANcoder absEncoder = configCANCoder(constants.ABSOLUTE_ENCODER_ID, constants.ABSOLUTE_ZERO_OFFSET, (int) steerMotor.RUN_HZ);
 
         steerMotor.setMeasurements(
@@ -82,7 +86,7 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
     @Override
     public void setSteerMotorReference(double reference) {
-        steerMotor.setReference(reference, MarinersController.ControlMode.Position);
+        steerMotor.setReference(reference, MarinersController.ControlMode.ProfiledPosition);
     }
 
     @Override
