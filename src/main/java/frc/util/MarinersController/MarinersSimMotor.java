@@ -130,8 +130,19 @@ public class MarinersSimMotor extends MarinersController {
         //nothing to do here
     }
 
+
     @Override
     public void setCurrentLimits(double currentLimit, double currentThreshold) {
+        //nothing to do here
+    }
+
+    @Override
+    protected void setMotorSoftLimit(double minimum, double maximum) {
+        //nothing to do here
+    }
+
+    @Override
+    protected void disableSoftLimitMotor() {
         //nothing to do here
     }
 
