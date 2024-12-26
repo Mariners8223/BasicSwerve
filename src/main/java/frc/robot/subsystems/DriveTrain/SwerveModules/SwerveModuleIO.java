@@ -99,12 +99,14 @@ public abstract class SwerveModuleIO{
         config.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
         config.MagnetSensor.MagnetOffset = -absoluteEncoderZeroOffset;
 
+        canCoder.getConfigurator().apply(config);
+
         canCoder.setPosition(canCoder.getAbsolutePosition().getValueAsDouble());
 
         canCoder.getPosition().setUpdateFrequency(updateRate);
         canCoder.getVelocity().setUpdateFrequency(updateRate);
 
-        canCoder.getConfigurator().apply(config);
+
         canCoder.optimizeBusUtilization();
 
         return canCoder;
