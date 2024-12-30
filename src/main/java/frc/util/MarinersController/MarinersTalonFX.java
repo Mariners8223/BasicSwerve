@@ -60,19 +60,11 @@ public class MarinersTalonFX extends MarinersController {
      * @return the new measurement object
      */
     private MarinersMeasurements createMeasurement(double gearRatio){
-        StatusSignal<Angle> position = motor.getPosition();
-        StatusSignal<AngularVelocity> velocity = motor.getVelocity();
-        StatusSignal<AngularAcceleration> accel = motor.getAcceleration();
-
-        return new MarinersMeasurements(
-            () -> {
-                BaseStatusSignal.refreshAll(position, velocity, accel);
-
-                return position.getValueAsDouble();
-            },
-                velocity::getValueAsDouble,
-                accel::getValueAsDouble,
-            gearRatio
+        return new MarinersMeasurementsCTRE(
+                motor.getPosition(),
+                motor.getVelocity(),
+                motor.getAcceleration(),
+                gearRatio
         );
     }
 

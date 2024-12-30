@@ -3,10 +3,7 @@ package frc.robot.subsystems.DriveTrain.SwerveModules;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.util.MarinersController.MarinersController;
-import frc.util.MarinersController.MarinersSparkBase;
-import frc.util.MarinersController.MarinersMeasurements;
-import frc.util.MarinersController.MarinersTalonFX;
+import frc.util.MarinersController.*;
 
 public class SwerveModuleIODevBot extends SwerveModuleIO {
     private final MarinersController driveMotor;
@@ -52,21 +49,11 @@ public class SwerveModuleIODevBot extends SwerveModuleIO {
 
         CANcoder absEncoder = configCANCoder(constants.ABSOLUTE_ENCODER_ID, constants.ABSOLUTE_ZERO_OFFSET, (int) steerMotor.RUN_HZ);
 
-        BaseStatusSignal canCoderPosition = absEncoder.getPosition();
-        BaseStatusSignal canCoderVelocity = absEncoder.getVelocity();
-
-        steerMotor.setMeasurements(
-                new MarinersMeasurements(
-                        () -> {
-                            BaseStatusSignal.refreshAll(canCoderPosition, canCoderVelocity);
-
-                            return canCoderPosition.getValueAsDouble();
-                        },
-
-                        canCoderVelocity::getValueAsDouble,
-                        1
-                )
-        );
+        steerMotor.setMeasurements(new MarinersMeasurementsCTRE(
+                absEncoder.getPosition(),
+                absEncoder.getVelocity(),
+                1
+        ));
     }
 
     @Override
