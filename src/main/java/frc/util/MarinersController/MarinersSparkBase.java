@@ -1,6 +1,7 @@
 package frc.util.MarinersController;
 
 import com.revrobotics.*;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel;
@@ -512,7 +513,7 @@ public class MarinersSparkBase extends MarinersController {
             default -> SparkBase.ControlType.kDutyCycle;
         };
 
-        REVLibError error = motor.getClosedLoopController().setReference(output, controlType, 0, feedForward);
+        REVLibError error = motor.getClosedLoopController().setReference(output, controlType, ClosedLoopSlot.kSlot0, feedForward);
         
         reportError("Error setting motor output", error);
     }

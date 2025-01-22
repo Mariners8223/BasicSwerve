@@ -2,6 +2,8 @@ package frc.util.MarinersController;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+
+import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -9,7 +11,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 public class MarinersMeasurementsCTRE extends MarinersMeasurements {
     BaseStatusSignal[] signals;
 
-    public MarinersMeasurementsCTRE(StatusSignal<Angle> positionSignal, double gearRatio) {
+    public MarinersMeasurementsCTRE(StatusSignal<AngleUnit> positionSignal, double gearRatio) {
         super(
                 positionSignal::getValueAsDouble,
                 gearRatio

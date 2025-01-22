@@ -2,10 +2,17 @@ package frc.util.MarinersController;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.units.*;
-import edu.wpi.first.units.measure.Per;
+import edu.wpi.first.units.AngularAccelerationUnit;
+import edu.wpi.first.units.AngularVelocityUnit;
+import edu.wpi.first.units.VoltageUnit;
+import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.util.PIDFGains;
+
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
+import static edu.wpi.first.units.Units.VoltsPerRadianPerSecond;
+import static edu.wpi.first.units.Units.VoltsPerRadianPerSecondSquared;
 
 import java.util.function.Supplier;
 
@@ -32,13 +39,14 @@ public class MarinersSimMotor extends MarinersController {
 
     private MarinersMeasurements createMeasurement(double unitConversion) {
         return new MarinersMeasurements(
-                () -> {
-                    motor.update(1 / RUN_HZ);
-                    return motor.getAngularPositionRotations();
-                },
-                () -> motor.getAngularVelocity().in(Units.RotationsPerSecond),
-                // () -> motor.getAngularAcceleration().in(Units.RotationsPerSecondPerSecond),
-                unitConversion
+            () -> {
+                motor.update(1 / this.RUN_HZ);
+
+                return motor.getAngularPositionRotations();
+            },
+            () -> motor.getAngularVelocity().in(RotationsPerSecond),
+            () -> motor.getAngularAcceleration().in(RotationsPerSecondPerSecond),
+            unitConversion
         );
     }
 
@@ -109,8 +117,8 @@ public class MarinersSimMotor extends MarinersController {
                             double unitConversion) {
         super(name, ControllerLocation.RIO);
 
-        double kv = kV.in(Units.VoltsPerRadianPerSecond);
-        double ka = kA.in(Units.VoltsPerRadianPerSecondSquared);
+        double kv = kV.in(VoltsPerRadianPerSecond);
+        double ka = kA.in(VoltsPerRadianPerSecondSquared);
 
         motor = new DCMotorSim(LinearSystemId.createDCMotorSystem(kv, ka),
                 motorType.withReduction(motorReduction));

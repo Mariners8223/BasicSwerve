@@ -182,10 +182,12 @@ public class DriveBase extends SubsystemBase {
      */
     public Command resetOnlyDirection() {
         return new InstantCommand(() -> {
-            if (DriverStation.getAlliance().isPresent()) if (DriverStation.getAlliance().get() == Alliance.Blue)
-                currentPose = new Pose2d(currentPose.getX(), currentPose.getY(), new Rotation2d());
-            else currentPose = new Pose2d(currentPose.getX(), currentPose.getY(), new Rotation2d(-Math.PI));
-            else currentPose = new Pose2d(currentPose.getX(), currentPose.getY(), new Rotation2d());
+            Pose2d currentPose;
+            if(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red){
+                currentPose = new Pose2d(this.currentPose.getX(), this.currentPose.getY(), new Rotation2d(Math.PI));
+            } else {
+                currentPose = new Pose2d(this.currentPose.getX(), this.currentPose.getY(), new Rotation2d());
+            }
 
             SwerveModulePosition[] positions = new SwerveModulePosition[4];
             for (int i = 0; i < 4; i++) positions[i] = modules[i].modulePeriodic();
@@ -271,9 +273,7 @@ public class DriveBase extends SubsystemBase {
     public ChassisSpeeds getAbsoluteChassisSpeeds() {
         ChassisSpeeds speeds = getChassisSpeeds();
 
-        speeds.toFieldRelativeSpeeds(getRotation2d());
-
-        return speeds;
+        return ChassisSpeeds.fromRobotRelativeSpeeds(speeds, getRotation2d());
     }
 
     /**
@@ -296,59 +296,13 @@ public class DriveBase extends SubsystemBase {
     }
 
     /**
-     * drives the robot relative to itself
-     *
-     * @param Xspeed        the X speed of the robot (forward is positive) m/s
-     * @param Yspeed        the Y speed of the robot (left is positive) m/s
-     * @param rotationSpeed the rotation of the robot (left is positive) rad/s
-     */
-    public void drive(double Xspeed, double Yspeed, double rotationSpeed, Translation2d centerOfRotation) {
-
-        ChassisSpeeds robotRelativeSpeeds = new ChassisSpeeds(Xspeed, Yspeed, rotationSpeed);
-
-        robotRelativeSpeeds.toRobotRelativeSpeeds(getRotation2d());
-
-        targetStates = driveTrainKinematics.toSwerveModuleStates(robotRelativeSpeeds, centerOfRotation);
-        SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, MAX_FREE_WHEEL_SPEED);
-
-        for (int i = 0; i < 4; i++) {
-            targetStates[i] = modules[i].run(targetStates[i]);
-        }
-
-        inputs.XspeedInput = Xspeed;
-        inputs.YspeedInput = Yspeed;
-        inputs.rotationSpeedInput = rotationSpeed;
-        Logger.processInputs(getName(), inputs);
-    }
-
-    /**
-     * drives the robot relative to itself
-     *
-     * @param Xspeed        the X speed of the robot (forward is positive) m/s
-     * @param Yspeed        the Y speed of the robot (left is positive) m/s
-     * @param rotationSpeed the rotation of the robot (left is positive) rad/s
-     */
-    public void robotRelativeDrive(double Xspeed, double Yspeed, double rotationSpeed) {
-
-        targetStates = driveTrainKinematics.toSwerveModuleStates(new ChassisSpeeds(Xspeed, Yspeed, rotationSpeed));
-        SwerveDriveKinematics.desaturateWheelSpeeds(inputs.currentStates, MAX_FREE_WHEEL_SPEED);
-
-        for (int i = 0; i < 4; i++) {
-            targetStates[i] = modules[i].run(targetStates[i]);
-        }
-
-        inputs.XspeedInput = Xspeed;
-        inputs.YspeedInput = Yspeed;
-        inputs.rotationSpeedInput = rotationSpeed;
-        Logger.processInputs(getName(), inputs);
-    }
-
-    /**
      * drives the robot without built in pid fixes
      *
      * @param chassisSpeeds the chassis speeds of the target
      */
     public void drive(ChassisSpeeds chassisSpeeds) {
+        chassisSpeeds = ChassisSpeeds.discretize(chassisSpeeds, 0.02);
+
         targetStates = driveTrainKinematics.toSwerveModuleStates(chassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, MAX_FREE_WHEEL_SPEED);
 
@@ -363,6 +317,8 @@ public class DriveBase extends SubsystemBase {
     }
 
     public void drivePP(ChassisSpeeds chassisSpeeds, DriveFeedforwards feedforwards) {
+        chassisSpeeds = ChassisSpeeds.discretize(chassisSpeeds, 0.02);
+
         targetStates = driveTrainKinematics.toSwerveModuleStates(chassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, MAX_FREE_WHEEL_SPEED);
 
